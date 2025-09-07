@@ -35,9 +35,13 @@ function setup_coords_display() {
 function open_add_dialog() {
     const {lng, lat} = map.getCenter();
     const name = prompt(`Name for point at ${lat}, ${lng}`);
+    if (name == null) {
+        return;
+    }
     const point = new Point(Date.now(), name, lat, lng);
     points.push(point);
     draw_list();
+    draw_marker(point);
 }
 
 function draw_list() {
@@ -53,12 +57,22 @@ function draw_list() {
     }
 }
 
+function draw_marker(point) {
+    const marker = new maplibregl.Marker()
+        .setLngLat([point.lng, point.lat])
+        .addTo(map);
+    marker.getElement().addEventListener('click', () => map.flyTo({
+        center: [point.lng, point.lat],
+    }));
+    markers[point.createdAt] = marker;
+}
 const $coord_display = $( "#coords-display" );
 const $point_list = $( "#point-list" );
 var map;
 const points = [];
+const markers = {};
 
 
 setup_map();
 setup_coords_display();
-$( "button#add-button" ).on("pointerup", (event) => open_add_dialog());
+$( "button#add-button" ).on("click", (event) => open_add_dialog());
