@@ -4,6 +4,11 @@
         <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
         <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet" />
 
+        <!-- jQuery -->
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+
         <!-- JS & CSS -->
         <link rel="stylesheet" href="style.css">
         <script src="script.js" defer></script>
@@ -12,7 +17,21 @@
     </head>
     <body>
         <div display="flex">
-            <div id="map"></div>
+            <div id="map-container">
+                <div id="crosshair"></div>
+                <div id="map"></div>
+            </div>
+            <p id="coords-display"></p>
+            <button id="add-button">+</button>
+            <div id="point-list">
+                <template>
+                    <div class="list-item">
+                        <p class="name"></p>
+                        <p class="lat"></p>
+                        <p class="lng"></p>
+                    </div>
+                </template>
+            </div>
         </div>
     </body>
 <html>

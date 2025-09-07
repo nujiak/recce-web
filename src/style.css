@@ -1,3 +1,44 @@
+#map-container {
+    position: relative;
+    height:  50%;
+}
+
 #map {
-    height: 50%;
+    width: 100%;
+    height: 100%;
+}
+
+#crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1rem;
+    height: 1rem;
+    margin-left: -0.5rem;
+    margin-top: -0.5rem;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+#crosshair::before,
+#crosshair::after {
+    content: '';
+    position: absolute;
+    background: black;
+}
+
+#crosshair::before {
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    transform: translateX(-50%);
+}
+
+#crosshair::after {
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform: translateY(-50%);
 }
