@@ -32,16 +32,32 @@ function setup_coords_display() {
 
 }
 
+function setup_add_dialog() {
+    $add_point_dialog.children( "div" ).on("click", (event) => event.stopPropagation());
+    $add_point_dialog.on("click", (event) => $add_point_dialog.get(0).close());
+    $add_point_dialog.find( "#add-point-confirm" ).on("click", (event) => {
+        const name = $add_point_dialog.find( "[name='name']" ).val();
+        const lat = $add_point_dialog.find( "[name='lat']" ).val();
+        const lng = $add_point_dialog.find( "[name='lng']" ).val();
+        const point = new Point(
+            Date.now(),
+            name,
+            Number(lat),
+            Number(lng),
+        );
+        points.push(point);
+        draw_list();
+        draw_marker(point);
+        $add_point_dialog.get(0).close();
+    });
+}
+
 function open_add_dialog() {
     const {lng, lat} = map.getCenter();
-    const name = prompt(`Name for point at ${lat}, ${lng}`);
-    if (name == null) {
-        return;
-    }
-    const point = new Point(Date.now(), name, lat, lng);
-    points.push(point);
-    draw_list();
-    draw_marker(point);
+    $add_point_dialog.find( "[name='name']" ).val("");
+    $add_point_dialog.find( "[name='lat']" ).val(lat);
+    $add_point_dialog.find( "[name='lng']" ).val(lng);
+    $add_point_dialog.get(0).showModal();
 }
 
 function draw_list() {
@@ -66,13 +82,16 @@ function draw_marker(point) {
     }));
     markers[point.createdAt] = marker;
 }
+
 const $coord_display = $( "#coords-display" );
 const $point_list = $( "#point-list" );
+const $add_point_dialog = $( "#add-point" );
 var map;
 const points = [];
 const markers = {};
 
-
 setup_map();
 setup_coords_display();
+setup_add_dialog();
 $( "button#add-button" ).on("click", (event) => open_add_dialog());
+

@@ -42,3 +42,16 @@
     height: 2px;
     transform: translateY(-50%);
 }
+
+dialog {
+    padding: 0;
+}
+
+.dialog-container {
+    padding: 1rem;
+}
+
+.field {
+    display: flex;
+    justify-content: space-between;
+}
