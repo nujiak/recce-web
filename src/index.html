@@ -9,6 +9,11 @@
             integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
             crossorigin="anonymous"></script>
 
+        <!-- Proj4js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.19.10/proj4.js"
+            integrity="sha512-QXAXxYhXWvAc5fA3edU2rOQANjhwKAAlqz1WEhh/FXzODQoqVb9PkHqJcCG7aFoJpN0VQMNnxOBztoIQOcEO5w=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
         <!-- JS & CSS -->
         <link rel="stylesheet" href="style.css">
         <script src="script.js" defer></script>
@@ -21,14 +26,14 @@
                 <div id="crosshair"></div>
                 <div id="map"></div>
             </div>
-            <p id="coords-display"></p>
+            <p id="coord-display"></p>
             <button id="add-button">+</button>
             <div id="point-list">
                 <template>
                     <div class="list-item">
                         <p class="name"></p>
-                        <p class="lat"></p>
                         <p class="lng"></p>
+                        <p class="lat"></p>
                     </div>
                 </template>
             </div>
@@ -40,12 +45,12 @@
                 <input type="text" name="name", id="dialog-name">
                 </div>
                 <div class="field">
-                <label for="lat">Latitude</label>
-                <input type="text" name="lat", id="dialog-lat">
-                </div>
-                <div class="field">
                 <label for="lng">Longitude</label>
                 <input type="text" name="lng", id="dialog-lng">
+                </div>
+                <div class="field">
+                <label for="lat">Latitude</label>
+                <input type="text" name="lat", id="dialog-lat">
                 </div>
                 <div>
                 <button id="add-point-confirm">Add</button>
