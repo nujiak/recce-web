@@ -142,10 +142,10 @@ function draw_list() {
     $point_list.children().not( "template" ).remove();
     for (point of points) {
         const $list_item = $clonableItem.clone();
-        $list_item.children( ".name" ).text(point.name);
+        $list_item.find( ".name" ).text(point.name);
         const {x, y} = CoordinateConverter.from_wgs_84({lng: point.lng, lat: point.lat});
-        $list_item.children( ".lng" ).text(x);
-        $list_item.children( ".lat" ).text(y);
+        $list_item.find( ".lng" ).text(x);
+        $list_item.find( ".lat" ).text(y);
         const p = point;
         $list_item.find( "button" ).on("click", async (event) => {
             await delete_point(p);
