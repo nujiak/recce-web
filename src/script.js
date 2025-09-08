@@ -74,8 +74,6 @@ function setup_map() {
 
     geolocate.on("trackuserlocationstart", (event) =>
         $user_coord_display.show());
-    geolocate.on("trackuserlocationend", (event) =>
-        $user_coord_display.hide());
     geolocate.on("geolocate", (event) => {
         const {x, y} = CoordinateConverter.from_wgs_84({
             lng: event.coords.longitude,
