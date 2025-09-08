@@ -35,6 +35,23 @@ class CoordinateConverter {
     }
 }
 
+class Db {
+    static initialize() {
+        db = new Dexie("PointsDatabase");
+        db.version(1).stores({
+            points: `++id, createdAt, name, lng, lat`,
+        });
+        db.points.mapToClass(Point);
+        (async () => {
+            await db.points.each((point) => {
+                points.push(point);
+                draw_marker(point);
+            });
+            draw_list();
+        })();
+    }
+}
+
 function setup_map() {
     map = new maplibregl.Map({
         style: "https://tiles.openfreemap.org/styles/liberty",
@@ -64,17 +81,23 @@ function setup_coord_display() {
 function setup_add_dialog() {
     $add_point_dialog.children( "div" ).on("click", (event) => event.stopPropagation());
     $add_point_dialog.on("click", (event) => $add_point_dialog.get(0).close());
-    $add_point_dialog.find( "#add-point-confirm" ).on("click", (event) => {
+    $add_point_dialog.find( "#add-point-confirm" ).on("click", async (event) => {
         const name = $add_point_dialog.find( "[name='name']" ).val();
         const x = $add_point_dialog.find( "[name='lng']" ).val();
         const y = $add_point_dialog.find( "[name='lat']" ).val();
         const {lng, lat} = CoordinateConverter.to_wgs_84(Number(x), Number(y));
-        const point = new Point(Date.now(), name, lng, lat);
-        points.push(point);
+        add_point(name, lng, lat);
         draw_list();
-        draw_marker(point);
         $add_point_dialog.get(0).close();
+        await db.points.add(point);
     });
+}
+
+function add_point(name, lng, lat) {
+    const point = new Point(Date.now(), name, lng, lat);
+    points.push(point);
+    draw_marker(point);
+    return point;
 }
 
 function open_add_dialog() {
@@ -116,7 +139,9 @@ const $add_point_dialog = $( "#add-point" );
 var map;
 const points = [];
 const markers = {};
+var db;
 
+Db.initialize();
 setup_map();
 setup_coord_display();
 setup_add_dialog();
