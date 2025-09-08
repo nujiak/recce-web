@@ -1,5 +1,6 @@
 class Point {
-    constructor(createdAt, name, lng, lat) {
+    constructor(createdAt, name, lng, lat, id = undefined) {
+        this.id = id;
         this.createdAt = createdAt;
         this.name = name;
         this.lng = lng;
@@ -60,8 +61,28 @@ function setup_map() {
         container: "map",
     });
 
-    let nav = new maplibregl.NavigationControl();
+    const nav = new maplibregl.NavigationControl();
     map.addControl(nav, 'bottom-right');
+
+    const geolocate = new maplibregl.GeolocateControl({
+        positionOptions: {
+            enableHighAccuracy: true,
+        },
+        trackUserLocation: true,
+    });
+    map.addControl(geolocate, 'bottom-right');
+
+    geolocate.on("trackuserlocationstart", (event) =>
+        $user_coord_display.show());
+    geolocate.on("trackuserlocationend", (event) =>
+        $user_coord_display.hide());
+    geolocate.on("geolocate", (event) => {
+        const {x, y} = CoordinateConverter.from_wgs_84({
+            lng: event.coords.longitude,
+            lat: event.coords.latitude,
+        });
+        $user_coord_display.text(`${x}, ${y}`);
+    });
 }
 
 function setup_coord_display() {
@@ -88,16 +109,25 @@ function setup_add_dialog() {
         const {lng, lat} = CoordinateConverter.to_wgs_84(Number(x), Number(y));
         add_point(name, lng, lat);
         draw_list();
-        $add_point_dialog.get(0).close();
         await db.points.add(point);
+
+        $add_point_dialog.get(0).close();
     });
 }
 
 function add_point(name, lng, lat) {
     const point = new Point(Date.now(), name, lng, lat);
-    points.push(point);
+    const id = points.push(point);
+    point.id = id;
     draw_marker(point);
     return point;
+}
+
+async function delete_point(point) {
+    const index = points.indexOf(point);
+    points.splice(index, 1);
+    markers[point.createdAt].remove();
+    await db.points.delete(point.id);
 }
 
 function open_add_dialog() {
@@ -113,11 +143,16 @@ function draw_list() {
     const $clonableItem = $(template).find(".list-item");
     $point_list.children().not( "template" ).remove();
     for (point of points) {
-        const $list_item = $clonableItem.clone();EPSG:4326
+        const $list_item = $clonableItem.clone();
         $list_item.children( ".name" ).text(point.name);
         const {x, y} = CoordinateConverter.from_wgs_84({lng: point.lng, lat: point.lat});
         $list_item.children( ".lng" ).text(x);
         $list_item.children( ".lat" ).text(y);
+        const p = point;
+        $list_item.find( "button" ).on("click", async (event) => {
+            await delete_point(p);
+            draw_list();
+        })
         $point_list.append($list_item);
     }
 }
@@ -133,6 +168,7 @@ function draw_marker(point) {
 }
 
 const $coord_display = $( "#coord-display" );
+const $user_coord_display = $( "#user-coord-display" );
 const $point_list = $( "#point-list" );
 const $add_point_dialog = $( "#add-point" );
 
