@@ -10,28 +10,37 @@ class Point {
 
 class CoordinateConverter {
     static Projection = Object.freeze({
-        WGS_84: 'EPSG:4326',
-        KERTAU_1948: '+proj=omerc +lat_0=4 +lonc=102.25 +alpha=323.0257905 +k=0.99984 +x_0=804670.24 +y_0=0 +no_uoff +gamma=323.1301023611111 +a=6377295.664 +b=6356094.667915204 +units=m +no_defs +towgs84=-11,851,5',
+        WGS_84: {
+            friendly_name: 'WGS84',
+            proj_string: 'EPSG:4326',
+            format: ({lng, lat}) => ({lng: lng.toPrecision(6), lat: lat.toPrecision(6)}),
+        },
+        KERTAU_1948: {
+            friendly_name: 'Kertau 1948',
+            proj_string: '+proj=omerc +lat_0=4 +lonc=102.25 +alpha=323.0257905 +k=0.99984 +x_0=804670.24 +y_0=0 +no_uoff +gamma=323.1301023611111 +a=6377295.664 +b=6356094.667915204 +units=m +no_defs +towgs84=-11,851,5',
+            format: ({x, y}) => ({x: Math.trunc(x), y: Math.trunc(y)}),
+        },
     });
 
     static current_projection = CoordinateConverter.Projection.KERTAU_1948;
 
-    static friendly_names = {
-        [CoordinateConverter.Projection.WGS_84]: "WGS84",
-        [CoordinateConverter.Projection.KERTAU_1948]: "Kertau 1948",
-    };
-
-    static from_wgs_84(coord) {
+    static from_wgs_84(coord, format = false) {
         const {lng, lat} = coord;
-        const [x, y] = proj4(CoordinateConverter.current_projection, [lng, lat]);
+        const [x, y] = proj4(CoordinateConverter.current_projection.proj_string, [lng, lat]);
+        if (format) {
+            return CoordinateConverter.current_projection.format({x, y});
+        }
         return {x, y};
     }
 
-    static to_wgs_84(x, y) {
+    static to_wgs_84(x, y, format = false) {
         const [lng, lat] = proj4(
-            CoordinateConverter.current_projection,
-            CoordinateConverter.Projection.WGS_84,
+            CoordinateConverter.current_projection.proj_string,
+            CoordinateConverter.Projection.WGS_84.proj_string,
             [x, y]);
+        if (format) {
+            return CoordinateConverter.Projection.WGS_84.format({lng, lat});
+        }
         return {lng, lat};
     }
 }
@@ -78,7 +87,7 @@ function setup_map() {
         const {x, y} = CoordinateConverter.from_wgs_84({
             lng: event.coords.longitude,
             lat: event.coords.latitude,
-        });
+        }, format=true);
         $user_coord_display.text(`${x}, ${y}`);
     });
 }
@@ -92,7 +101,7 @@ function setup_coord_display() {
     return;
 
     function update_coord_display() {
-        const {x, y} = CoordinateConverter.from_wgs_84(map.getCenter());
+        const {x, y} = CoordinateConverter.from_wgs_84(map.getCenter(), format=true);
         $coord_display.text(`${x}, ${y}`);
     }
 }
@@ -143,7 +152,10 @@ function draw_list() {
     for (point of points) {
         const $list_item = $clonableItem.clone();
         $list_item.find( ".name" ).text(point.name);
-        const {x, y} = CoordinateConverter.from_wgs_84({lng: point.lng, lat: point.lat});
+        const {x, y} = CoordinateConverter.from_wgs_84(
+            {lng: point.lng, lat: point.lat},
+            format=true,
+        );
         $list_item.find( ".lng" ).text(x);
         $list_item.find( ".lat" ).text(y);
         const p = point;
