@@ -4,11 +4,39 @@ body {
     font-family: "Geist Mono", monospace;
     font-weight: 400;
     font-style: normal;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+}
+
+#body-container {
+    box-sizing: border-box;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+    height: 100%;
+    width: 100%;
+    gap: 4px;
+    padding: 4px;
+}
+
+@media (orientation: portrait) {
+    #body-container {
+        flex-direction: column;
+    }
+}
+
+@media (orientation: landscape) {
+    #body-container {
+        flex-direction: row;
+    }
 }
 
 h2 {
     margin: 0 0 0.5rem;
+    text-transform: uppercase;
 }
+
 button {
     background-color: oklch(0.7 0.18 151 / 30%);
     border-radius: 4px;
@@ -23,8 +51,8 @@ button {
 
 #map-container {
     position: relative;
-    height:  50%;
-    margin-bottom: 4px;
+    flex: 1 1 0;
+    min-height: 0;
 }
 
 #map {
@@ -68,11 +96,17 @@ button {
     transform: translateY(-50%);
 }
 
+#coord-container {
+    display: flex;
+    flex-direction: column;
+}
+
 #target-coord-box {
     display: flex;
     flex-direction: row;
     justify-content: stretch;
     padding: 16px;
+    gap: 1rem;
 }
 
 #target-coord-box > * {
@@ -91,15 +125,33 @@ button {
     margin-bottom: 4px;
 }
 
-#point-list {
+#pins-section {
     border: 2px solid oklch(0.7 0.18 151 / 80%);
     background-color: oklch(0.7 0.18 151 / 15%);
     border-radius: 8px;
     padding: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+#point-list {
     overflow: scroll;
     display: flex;
     flex-direction: column;
     gap: 8px;
+    flex: 1 1 0;
+    min-height: 16rem;
+    position: relative;
+}
+
+#point-list:has(> template:only-child)::before {
+    content: "No pins added (yet)";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-style: italic;
+    pointer-events: none;
 }
 
 #point-list .list-item {
@@ -109,6 +161,7 @@ button {
     display: flex;
     flex-direction: row;
     justify-content: stretch;
+    gap: 1rem;
 }
 
 #point-list .list-item .name {

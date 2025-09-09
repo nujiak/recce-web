@@ -21,7 +21,7 @@
         <link rel="stylesheet" href="style.css">
         <script src="script.js" defer></script>
 
-        <font>
+        <!-- Font -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
@@ -29,7 +29,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
     </head>
     <body>
-        <div display="flex">
+        <div id="body-container">
             <div id="map-container">
                 <div id="crosshair"></div>
                 <div id="map"></div>
@@ -40,20 +40,23 @@
                     <p id="coord-display"></p>
                     <button id="add-button">ADD PIN</button>
                 </div>
-            </div>
-            <div id="point-list">
-                <template>
-                    <div class="list-item">
-                        <div class="list-item-content">
-                            <p class="name"></p>
-                            <p>
-                                <span class="lng"></span>
-                                <span class="lat"></span>
-                            </p>
-                        </div>
-                        <button>X</button>
+                <div id="pins-section">
+                    <h2>Pins</h2>
+                    <div id="point-list">
+                        <template>
+                            <div class="list-item">
+                                <div class="list-item-content">
+                                    <p class="name"></p>
+                                    <p>
+                                        <span class="lng"></span>
+                                        <span class="lat"></span>
+                                    </p>
+                                </div>
+                                <button>X</button>
+                            </div>
+                        </template>
                     </div>
-                </template>
+                </div>
             </div>
         </div>
         <dialog id="add-point">
