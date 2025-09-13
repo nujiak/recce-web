@@ -1,4 +1,4 @@
-<html>
+<html lang="en">
     <head>
         <!-- MapLibre GL -->
         <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
@@ -27,6 +27,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
 
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+        <title>Recce Web</title>
     </head>
     <body>
         <div id="body-container">
@@ -36,7 +37,7 @@
             </div>
             <div id="coord-container">
                 <p id="user-coord-display" class="coord-box" style="display: none"></p>
-                <div id="target-coord-box" class="coord-box" display="flex">
+                <div id="target-coord-box" class="coord-box">
                     <p id="coord-display"></p>
                     <button id="add-button">ADD PIN</button>
                 </div>
@@ -63,16 +64,16 @@
             <div class="dialog-container">
                 <h2>ADD PIN</h2>
                 <div class="field">
-                    <label for="name">Name</label>
-                    <input type="text" name="name", id="dialog-name">
+                    <label for="dialog-name">Name</label>
+                    <input type="text" name="name" id="dialog-name">
                 </div>
                 <div class="field">
-                    <label for="lng">Longitude</label>
-                    <input type="text" name="lng", id="dialog-lng">
+                    <label for="dialog-lng">Longitude</label>
+                    <input type="text" name="lng" id="dialog-lng">
                 </div>
                 <div class="field">
-                    <label for="lat">Latitude</label>
-                    <input type="text" name="lat", id="dialog-lat">
+                    <label for="dialog-lat">Latitude</label>
+                    <input type="text" name="lat" id="dialog-lat">
                 </div>
                 <div>
                     <button id="add-point-confirm">Add</button>
@@ -80,4 +81,4 @@
             </div>
         </dialog>
     </body>
-<html>
+</html>

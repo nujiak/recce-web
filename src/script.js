@@ -81,13 +81,13 @@ function setup_map() {
     });
     map.addControl(geolocate, 'bottom-right');
 
-    geolocate.on("trackuserlocationstart", (event) =>
+    geolocate.on("trackuserlocationstart", () =>
         $user_coord_display.show());
     geolocate.on("geolocate", (event) => {
         const {x, y} = CoordinateConverter.from_wgs_84({
             lng: event.coords.longitude,
             lat: event.coords.latitude,
-        }, format=true);
+        }, true);
         $user_coord_display.text(`${x}, ${y}`);
     });
 }
@@ -98,23 +98,21 @@ function setup_coord_display() {
     // Initial update
     update_coord_display();
 
-    return;
-
     function update_coord_display() {
-        const {x, y} = CoordinateConverter.from_wgs_84(map.getCenter(), format=true);
+        const {x, y} = CoordinateConverter.from_wgs_84(map.getCenter(), true);
         $coord_display.text(`${x}, ${y}`);
     }
 }
 
 function setup_add_dialog() {
-    $add_point_dialog.children( "div" ).on("click", (event) => event.stopPropagation());
-    $add_point_dialog.on("click", (event) => $add_point_dialog.get(0).close());
-    $add_point_dialog.find( "#add-point-confirm" ).on("click", async (event) => {
-        const name = $add_point_dialog.find( "[name='name']" ).val();
-        const x = $add_point_dialog.find( "[name='lng']" ).val();
-        const y = $add_point_dialog.find( "[name='lat']" ).val();
+    $add_point_dialog.children("div").on("click", (event) => event.stopPropagation());
+    $add_point_dialog.on("click", () => $add_point_dialog.get(0).close());
+    $add_point_dialog.find("#add-point-confirm").on("click", async () => {
+        const name = $add_point_dialog.find("[name='name']").val();
+        const x = $add_point_dialog.find("[name='lng']").val();
+        const y = $add_point_dialog.find("[name='lat']").val();
         const {lng, lat} = CoordinateConverter.to_wgs_84(Number(x), Number(y));
-        add_point(name, lng, lat);
+        const point = add_point(name, lng, lat);
         draw_list();
         await db.points.add(point);
 
@@ -124,8 +122,7 @@ function setup_add_dialog() {
 
 function add_point(name, lng, lat) {
     const point = new Point(Date.now(), name, lng, lat);
-    const id = points.push(point);
-    point.id = id;
+    point.id = points.push(point);
     draw_marker(point);
     return point;
 }
@@ -139,27 +136,27 @@ async function delete_point(point) {
 
 function open_add_dialog() {
     const {x, y} = CoordinateConverter.from_wgs_84(map.getCenter());
-    $add_point_dialog.find( "[name='name']" ).val("");
-    $add_point_dialog.find( "[name='lng']" ).val(x);
-    $add_point_dialog.find( "[name='lat']" ).val(y);
+    $add_point_dialog.find("[name='name']").val("");
+    $add_point_dialog.find("[name='lng']").val(x);
+    $add_point_dialog.find("[name='lat']").val(y);
     $add_point_dialog.get(0).showModal();
 }
 
 function draw_list() {
-    const template = $( "#point-list > template" ).prop("content");
+    const template = $("#point-list > template").prop("content");
     const $clonableItem = $(template).find(".list-item");
-    $point_list.children().not( "template" ).remove();
-    for (point of points) {
+    $point_list.children().not("template").remove();
+    for (const point of points) {
         const $list_item = $clonableItem.clone();
-        $list_item.find( ".name" ).text(point.name);
+        $list_item.find(".name").text(point.name);
         const {x, y} = CoordinateConverter.from_wgs_84(
             {lng: point.lng, lat: point.lat},
-            format=true,
+            true,
         );
-        $list_item.find( ".lng" ).text(x);
-        $list_item.find( ".lat" ).text(y);
+        $list_item.find(".lng").text(x);
+        $list_item.find(".lat").text(y);
         const p = point;
-        $list_item.find( "button" ).on("click", async (event) => {
+        $list_item.find("button").on("click", async () => {
             await delete_point(p);
             draw_list();
         })
@@ -177,19 +174,19 @@ function draw_marker(point) {
     markers[point.createdAt] = marker;
 }
 
-const $coord_display = $( "#coord-display" );
-const $user_coord_display = $( "#user-coord-display" );
-const $point_list = $( "#point-list" );
-const $add_point_dialog = $( "#add-point" );
+const $coord_display = $("#coord-display");
+const $user_coord_display = $("#user-coord-display");
+const $point_list = $("#point-list");
+const $add_point_dialog = $("#add-point");
 
-var map;
+let map;
 const points = [];
 const markers = {};
-var db;
+let db;
 
 Db.initialize();
 setup_map();
 setup_coord_display();
 setup_add_dialog();
-$( "button#add-button" ).on("click", (event) => open_add_dialog());
+$("button#add-button").on("click", () => open_add_dialog());
 
