@@ -82,7 +82,7 @@ function setup_map() {
     map.addControl(geolocate, 'bottom-right');
 
     geolocate.on("trackuserlocationstart", () =>
-        $user_coord_display.show());
+        $user_coord_box.show());
     geolocate.on("geolocate", (event) => {
         const {x, y} = CoordinateConverter.from_wgs_84({
             lng: event.coords.longitude,
@@ -100,7 +100,7 @@ function setup_coord_display() {
 
     function update_coord_display() {
         const {x, y} = CoordinateConverter.from_wgs_84(map.getCenter(), true);
-        $coord_display.text(`${x}, ${y}`);
+        $target_coord_display.text(`${x}, ${y}`);
     }
 }
 
@@ -174,8 +174,9 @@ function draw_marker(point) {
     markers[point.createdAt] = marker;
 }
 
-const $coord_display = $("#coord-display");
-const $user_coord_display = $("#user-coord-display");
+const $target_coord_display = $("#target-coord-display");
+const $user_coord_box = $("#user-coord-box");
+const $user_coord_display = $user_coord_box.find("#user-coord-display");
 const $point_list = $("#point-list");
 const $add_point_dialog = $("#add-point");
 

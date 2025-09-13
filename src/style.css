@@ -33,8 +33,18 @@ body {
 }
 
 h2 {
-    margin: 0 0 0.5rem;
+    margin: 0 0 4px 0;
     text-transform: uppercase;
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.icon-title {
+    margin-bottom: -1px;
 }
 
 button {
@@ -47,6 +57,7 @@ button {
     font-weight: 800;
     font-style: normal;
     font-size: 1rem;
+    text-transform: uppercase;
 }
 
 #map-container {
@@ -104,32 +115,40 @@ button {
 #target-coord-box {
     display: flex;
     flex-direction: row;
-    justify-content: stretch;
-    padding: 16px;
+    align-content: stretch;
     gap: 1rem;
 }
 
-#target-coord-box > * {
-    flex: 1 1 0;
+#target-coord-box > div {
+    flex: 2 1 0;
     display: inline;
 }
 
-#coord-display {
+#add-button {
+    flex: 1 1 0;
+}
+
+.coords {
     flex: 2 1 0;
+    margin: 0;
 }
 
 .coord-box {
-    border: 2px solid oklch(0.8 0 0 / 80%);
-    border-radius: 8px;
+    border-color: oklch(0.8 0 0 / 80%);
     padding: 0.2rem 0.4rem;
     margin-bottom: 4px;
 }
 
-#pins-section {
-    border: 2px solid oklch(0.7 0.18 151 / 80%);
-    background-color: oklch(0.7 0.18 151 / 15%);
+.large-container {
+    border-width: 2px;
+    border-style: solid;
     border-radius: 8px;
-    padding: 8px;
+    padding: 16px;
+}
+
+#pins-section {
+    border-color: oklch(0.7 0.18 151 / 80%);
+    background-color: oklch(0.7 0.18 151 / 15%);
     display: flex;
     flex-direction: column;
 }
@@ -165,7 +184,7 @@ button {
 }
 
 #point-list .list-item .name {
-    font-weight: 800;
+    font-weight: 600;
 }
 
 #point-list .list-item p {
@@ -233,4 +252,12 @@ dialog::backdrop {
     justify-content: space-between;
     gap: 8px;
     align-items: center;
+}
+
+.material-symbols-outlined {
+    vertical-align: middle;
+    font-variation-settings: 'FILL' 0,
+    'wght' 600,
+    'GRAD' 0,
+    'opsz' 24
 }
