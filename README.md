@@ -434,7 +434,7 @@ is accessible offline.
 
 | Feature | Phase | Status |
 |---------|-------|--------|
-| Map with crosshair + coordinate display | 0 / 2 | partial |
+| Map with crosshair + coordinate display | 0 / 2 | done |
 | Six coordinate systems (WGS84, UTM, MGRS, BNG, QTH, Kertau) | 2 | — |
 | Settings (coord system, units, theme, map type) | 2 | — |
 | Onboarding flow | 3 | — |
