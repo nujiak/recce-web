@@ -456,7 +456,7 @@ is accessible offline.
 | Add to Ruler from Saved | 9 | — |
 | PWA (installable, offline-capable) | 10 | stub |
 | Dark / light / system theme | 2 / 11 | partial |
-| Responsive layout (mobile + desktop) | 1 | partial |
+| Responsive layout (mobile + desktop) | 1 | done |
 | Keyboard navigation + ARIA | 11 | — |
 
 ---
