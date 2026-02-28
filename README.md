@@ -22,24 +22,28 @@ npx serve dist    # or: python3 -m http.server --directory dist
 ### Map
 
 - Full-screen MapLibre GL JS map with OpenFreeMap vector tiles (no API key required)
-- Fixed crosshair with live coordinate display in the active coordinate system
+- Fixed crosshair with live coordinate display in the active coordinate system; tap to copy coordinates to clipboard
+- Self-inverting crosshair via `mix-blend-mode: difference` — visible on any map background
 - Compass button showing current bearing; click resets rotation to north
 - Location button centres map on GPS position
-- Add Pin FAB pre-filled with crosshair coordinates
-- Go To dialog — enter any coordinate in any supported system, map flies to that position
+- Add Pin button pre-filled with crosshair coordinates (in coord toolbar)
+- Go To button (`near_me`) — enter any coordinate in any supported system, map flies to that position
 - Live GPS-to-crosshair overlay showing distance and bearing (when GPS is active)
 
 ### Track plotting mode
 
-- Tap the plot FAB to append the current crosshair as a node
-- Long-press the FAB to append and name a checkpoint
+- Start Track button in the coord toolbar; disabled while a plotting session is in progress
+- Tap the node button to append the current crosshair position as a node
+- Long-press the node button to append and name a checkpoint
+- Live ghost preview line from the last committed node to the crosshair, showing the next segment before it is committed
+- Track preview uses the track's own colour; ghost line uses the same colour at 40% opacity
 - Undo removes the last node; Save opens the track editor; Cancel discards the session
 
 ### Pin system
 
 - Create, edit, and delete pins with name, coordinates, colour, group, and description
 - Five colours: red, orange, green, azure, violet
-- Pin Info modal shows all six coordinate representations simultaneously
+- Pin Info modal shows all six coordinate representations simultaneously; tap any row to copy that coordinate
 - "Open in Maps" launches a `geo:` URI or Google Maps URL
 - Pins rendered as markers on the map; click to open Pin Info
 
@@ -55,7 +59,9 @@ npx serve dist    # or: python3 -m http.server --directory dist
 - Unified list of pins and tracks with colour indicators, group tags, and coordinate/stats previews
 - Sort by newest, oldest, name A–Z, name Z–A, or group
 - Real-time search filtered by name or group
-- Multi-select mode: bulk delete, share as a code, or add to Ruler
+- Multi-select mode entered by **holding any card for ~300 ms**; the held item is selected immediately
+- Selection toggles are DOM-only (no DB round-trip); deselecting the last item exits multi-select
+- Actions in multi-select: bulk delete, share as a code, or add to Ruler
 
 ### Coordinate systems
 
@@ -70,19 +76,24 @@ All six systems share a unified API — display and parse in any system at any t
 | QTH (Maidenhead)            | Global                          |
 | Kertau 1948                 | Peninsular Malaysia & Singapore |
 
-### GPS & Compass (Toolbox)
+### Tools
 
-- Live position in the active coordinate system with accuracy and altitude
+Accessed via the **Tools tab** in the bottom nav on mobile (opens a modal grid launcher) or
+via the **icon row below the Saved panel** on desktop (expands an accordion inline).
+
+#### GPS & Compass
+
+- Live position in the active coordinate system with accuracy and altitude; tap coordinate to copy
 - Compass needle (azimuth, pitch, roll) with animated diamond needle — red north, gray south
 - Azimuth displayed in degrees or NATO mils depending on settings
 
-### Ruler (Toolbox)
+#### Ruler
 
 - Multi-point measurement with per-segment distance and bearing
 - Populated from Saved multi-select; cumulative total at the bottom
 - Memory-only; resets on page reload
 
-### Settings (Toolbox)
+#### Settings
 
 | Setting           | Options                            |
 | ----------------- | ---------------------------------- |
@@ -90,6 +101,9 @@ All six systems share a unified API — display and parse in any system at any t
 | Angle unit        | Degrees, NATO Mils                 |
 | Length unit       | Metric, Imperial, Nautical         |
 | Theme             | Light, Dark, System                |
+
+All changes apply immediately and refresh every live-rendered value in the app (coordinate
+displays, compass azimuth, GPS overlay, ruler segments, saved list).
 
 ### Share codes
 

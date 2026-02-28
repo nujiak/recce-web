@@ -152,15 +152,28 @@ imperatively by the module that owns the relevant section of the UI.
 
 ### Navigation Model
 
-| Surface           | Mobile                    | Desktop                              |
-| ----------------- | ------------------------- | ------------------------------------ |
-| **Map** (default) | Full screen               | Left pane (flexible width)           |
-| **Saved**         | Full screen, tab-switched | Right pane (fixed width, scrollable) |
-| **Toolbox**       | FAB → modal overlay       | FAB → modal overlay                  |
+| Surface           | Mobile                                     | Desktop                                       |
+| ----------------- | ------------------------------------------ | --------------------------------------------- |
+| **Map** (default) | Full screen                                | Left pane (flexible width)                    |
+| **Saved**         | Full screen, tab-switched                  | Right pane (fixed width, scrollable)          |
+| **Tools**         | Third bottom-nav tab → modal grid launcher | Icon row pinned below Saved panel (accordion) |
 
-Map/Saved toggle is a bottom tab bar on mobile. On desktop the two panes sit side-by-side
-via CSS Grid. The Toolbox FAB is always visible on the map surface and opens a modal
-containing GPS, Ruler, and Settings panels.
+Map/Saved/Tools toggle is a three-item bottom tab bar on mobile. On desktop the two content
+panes (Map + Saved) sit side-by-side via CSS Grid; a Tools icon row is pinned below the
+Saved panel and expands an accordion panel inline — no modal is used on desktop.
+
+**Mobile Tools modal — two-view pattern:**
+
+1. **Grid view** (default when tab is tapped): 3 large icon cards — GPS/Compass, Ruler,
+   Settings. Tapping a card slides in the tool view.
+2. **Tool view**: replaces the grid with the selected panel; a `←` back button in the
+   modal header returns to the grid. The modal-level close button dismisses entirely.
+
+**Desktop Tools accordion:**
+
+- Three icon buttons pinned at the bottom of the Saved panel column.
+- Clicking an icon expands its panel below the icons; clicking the same icon (or another)
+  collapses/switches. State tracked as `activeDesktopTool: string | null` in `nav.js`.
 
 ---
 
@@ -168,22 +181,24 @@ containing GPS, Ruler, and Settings panels.
 
 ### Map Screen
 
-| Element                  | Behaviour                                                                              |
-| ------------------------ | -------------------------------------------------------------------------------------- |
-| Full-screen MapLibre map | Default view on launch                                                                 |
-| Crosshair                | Fixed centre reticle; coordinate display updates on every `move` event                 |
-| Coordinate display       | Shows crosshair position in the active coordinate system                               |
-| Live measurement overlay | Distance and bearing from current GPS location to crosshair (shown when GPS is active) |
-| Compass button           | Shows current bearing; click resets map rotation to north                              |
-| Location button          | Centres map on current GPS position; long-press also resets rotation                   |
-| Main FAB (➕)            | Opens pin editor pre-filled with crosshair coordinates                                 |
-| Go To button             | Opens coordinate input → flies map to entered position                                 |
-| Track plot FAB           | Starts/appends track plotting mode (secondary FAB, visible during plotting)            |
+| Element                             | Behaviour                                                                                                                                           |
+| ----------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Full-screen MapLibre map            | Default view on launch                                                                                                                              |
+| Crosshair                           | Fixed centre reticle; coordinate display updates on every `move` event; uses `mix-blend-mode: difference` to self-invert against any map background |
+| Coordinate display                  | Shows crosshair position in the active coordinate system; tap/click to copy to clipboard                                                            |
+| Live measurement overlay            | Distance and bearing from current GPS location to crosshair (shown when GPS is active)                                                              |
+| Compass button                      | Shows current bearing; click resets map rotation to north                                                                                           |
+| Location button                     | Centres map on current GPS position; long-press also resets rotation                                                                                |
+| Add Pin button (`add_location_alt`) | Opens pin editor pre-filled with crosshair coordinates; lives in `.coord-actions` toolbar                                                           |
+| Go To button (`near_me`)            | Opens coordinate input → flies map to entered position; lives in `.coord-actions` toolbar                                                           |
+| Start Track button                  | Starts track plotting mode; lives in `.coord-actions` toolbar; disabled while plotting is active                                                    |
 
 **Track plotting mode** (active while building a track):
 
-- Tapping the plot FAB appends the current crosshair position as a node
-- Long-pressing the FAB appends the node and prompts for a checkpoint name
+- Tapping the plot node button appends the current crosshair position as a node
+- Long-pressing the node button appends the node and prompts for a checkpoint name
+- A dashed ghost line extends from the last committed node to the live crosshair position, previewing the next segment
+- The committed track preview line uses the track's own colour; the ghost line uses the same colour at reduced opacity (0.4)
 - Undo button removes the last node
 - Save button opens the track editor; Cancel discards the session
 
@@ -262,11 +277,13 @@ Track cards additionally show: Path/Area icon, total distance, node count.
 
 **Sort options:** Name A–Z, Name Z–A, Time newest, Time oldest, Group.
 
-**Multi-select mode** (entered via long-press or checkbox):
+**Multi-select mode** (entered via long-press on any card, ~300 ms):
 
-- Delete selected items
-- Share selected items (generates a share code)
-- Add selected items to Ruler
+- The long-pressed item is immediately selected as the first item.
+- Tapping additional cards selects/deselects them without a full re-render (DOM-only toggle).
+- Deselecting the last selected item exits multi-select automatically.
+- A "Hold an item to select" hint is shown in the list header.
+- Actions: bulk delete, share as a code, or add to Ruler.
 
 **Search:** real-time filter by name or group.
 
@@ -745,4 +762,388 @@ npm run dev     # local dev server with HMR
 npx serve dist
 # or
 python3 -m http.server --directory dist
+```
+
+---
+
+## Pending Implementation Plan
+
+The following changes have been designed and are ready for implementation. Each change is
+broken into numbered phases with explicit dependencies. Implement one change at a time,
+completing all its phases before moving to the next change. Each phase should leave the
+codebase in a working state and be committed atomically.
+
+---
+
+### Change 1 — FAB Refactor & Navigation Restructure
+
+**Goal:** Remove cluttered FABs; move controls into contextual toolbars and a dedicated
+Tools tab/accordion. This cleans up the map surface and aligns with mobile navigation
+conventions (bottom tab bar for top-level destinations).
+
+#### Key facts (gathered from codebase)
+
+- `#toolbox-fab` (`.fab`, `explore` icon) — opens `#toolbox-modal`; wired in `nav.js → setupToolbox()`
+- `#start-track-btn` (`.fab.fab-secondary`, `show_chart` icon) — outside `#app`; toggled via `display` in `map.js → updateStartTrackButton()`
+- `#add-button` (`.icon-btn`, `add_location_alt`) and `#goto-btn` (`.icon-btn`, `straighten`) — already inside `.coord-actions` in `#target-coord-box`
+- Bottom nav has two tabs: `data-tab="map"` and `data-tab="saved"`, wired in `nav.js → setupTabs() → switchTab()`
+- `#toolbox-modal` contains three `<section class="toolbox-panel">`: `#gps-panel`, `#ruler-panel`, `#settings-panel`
+- Desktop breakpoint: `@media (min-width: 768px)`
+
+#### Phase 1 — Go To icon
+
+**Files:** `src/index.html`
+
+- Replace the icon text inside `#goto-btn` from `straighten` to `near_me`.
+
+#### Phase 2 — Move Start Track button into `.coord-actions`
+
+**Files:** `src/index.html`, `src/map/map.js`, `src/style.css`
+
+- Remove `#start-track-btn` from its current location (outside `#app`, after all modals).
+- Add `<button id="start-track-btn" class="icon-btn">` with icon `show_chart` inside `.coord-actions`, after `#add-button`.
+- In `map.js → updateStartTrackButton()`: replace `display` toggling with `disabled` attribute toggling.
+- Remove `.fab-secondary` CSS if it becomes unused.
+
+#### Phase 3 — Remove Toolbox FAB; add Tools tab to bottom nav
+
+**Files:** `src/index.html`, `src/ui/nav.js`, `src/style.css`
+
+- Remove `#toolbox-fab` element from HTML and all associated CSS.
+- Add a third `<button class="nav-tab" data-tab="tools">` to `#bottom-nav` with icon `construction` and label "Tools".
+- In `nav.js → switchTab()`: when `tab === 'tools'`, open the toolbox modal instead of swapping surfaces (Map/Saved surface state is preserved underneath).
+- The Tools tab does not correspond to a surface div — it is purely a modal trigger.
+
+#### Phase 4 — Toolbox modal: two-view pattern (grid → tool)
+
+**Files:** `src/index.html`, `src/ui/nav.js`, `src/style.css`
+
+- Restructure `#toolbox-modal` into two views within the same modal:
+  1. **Grid view** (default): three large tappable cards — GPS/Compass (`explore`), Ruler (`straighten`), Settings (`settings`) — each with icon + label.
+  2. **Tool view**: selected panel fills the modal body; a `←` back button in the header returns to grid view.
+- The existing `#toolbox-close` button remains as the top-level dismiss (closes modal entirely from either view).
+- Add a new back button (e.g. `#toolbox-back`, `arrow_back` icon) visible only in tool view.
+- In `nav.js`, track `activeToolPanel: string | null` ('gps' | 'ruler' | 'settings' | null).
+- `showToolGrid()`: hides panels, shows grid, hides back button.
+- `showToolPanel(name)`: hides grid, shows the named `<section>`, shows back button, updates header title.
+- The three `.toolbox-panel` sections remain in the DOM; visibility controlled by `display` or a `.active` class.
+- On mobile only (via CSS): the grid is shown; on desktop the modal is never opened for tools (accordion used instead — Phase 5).
+
+#### Phase 5 — Desktop: Tools accordion below Saved panel
+
+**Files:** `src/index.html`, `src/ui/nav.js`, `src/style.css`
+
+- Add a `<div id="desktop-tools-bar">` containing three icon buttons (`#dt-gps-btn`, `#dt-ruler-btn`, `#dt-settings-btn`) at the bottom of the Saved panel column in the desktop layout.
+- Add a `<div id="desktop-tools-accordion">` below the icon bar; initially empty / hidden.
+- Visible only at `@media (min-width: 768px)`.
+- In `nav.js`, track `activeDesktopTool: string | null`.
+- Each icon button click:
+  - If `activeDesktopTool === name`: collapse (set to `null`, hide accordion).
+  - Otherwise: set `activeDesktopTool = name`, render the correct panel into `#desktop-tools-accordion`, expand.
+- The panel content rendered into the accordion is the same logical content as the toolbox panels (`#gps-panel`, `#ruler-panel`, `#settings-panel`); either move the sections into the accordion or clone/reference the same JS-rendered content.
+- On desktop, clicking the Tools tab in the bottom nav (if visible) should be a no-op or hidden — the bottom nav itself is hidden at `@media (min-width: 768px)`.
+
+**Dependency order:**
+
+```
+Phase 1 → independent
+Phase 2 → independent
+Phase 3 → must precede Phase 4
+Phase 4 → must precede Phase 5
+```
+
+---
+
+### Change 2 — Track Plotting Preview Improvements
+
+**Goal:** Make the in-progress track visible on any map background by honouring the
+track's own colour, and add a live ghost line from the last node to the crosshair so
+the user can preview the next segment before committing it.
+
+#### Key facts (gathered from codebase)
+
+- `TEMP_TRACK_SOURCE = 'temp-track-source'`, `TEMP_TRACK_LAYER = 'temp-track-layer'` in `tracks.js`
+- Current layer paint: `'line-color': '#ffffff'` (hardcoded white — ignores the `color` property already set on the feature)
+- `updateTempTrack(nodes, isCyclical, color)` already sets `properties.color` via `colorMap` lookup — the layer just doesn't use it
+- `colorMap` in `tracks.js` maps color names to hex values
+- `addNode()` / `addNodeWithName()` / `undoNode()` in `map.js` all call `updateTempTrack`
+- No `move` listener exists in `setupTrackPlotting()` — the ghost line does not exist yet
+- Map center accessed via `map.getCenter()` — no cached variable
+
+#### Phase 1 — Fix temp track colour
+
+**Files:** `src/map/tracks.js`
+
+- Change `TEMP_TRACK_LAYER` paint `'line-color'` from `'#ffffff'` to `['get', 'color']`.
+- Increase `line-width` from `2` to `3`.
+- Change `line-dasharray` from `[2, 2]` to `[4, 3]` for better visibility.
+
+#### Phase 2 — Add ghost preview source and layer
+
+**Files:** `src/map/tracks.js`
+
+- Add constants `PREVIEW_SOURCE = 'preview-track-source'` and `PREVIEW_LAYER = 'preview-track-layer'`.
+- In `init()`, register:
+  - A GeoJSON source `PREVIEW_SOURCE` (empty `FeatureCollection`).
+  - A line layer `PREVIEW_LAYER` using `['get', 'color']` for colour, `line-opacity: 0.4`, `line-width: 3`, same dasharray as the temp layer.
+- Export two functions:
+  - `updatePreviewLine(lastNode, cursorLatLng, color)` — sets `PREVIEW_SOURCE` to a 2-point `LineString` from `{ lat: lastNode.lat, lng: lastNode.lng }` to `{ lat: cursorLatLng.lat, lng: cursorLatLng.lng }`, with `properties.color` resolved via `colorMap`.
+  - `clearPreviewLine()` — sets `PREVIEW_SOURCE` to an empty `FeatureCollection`.
+
+#### Phase 3 — Wire ghost line to map move events
+
+**Files:** `src/map/map.js`
+
+- In `setupTrackPlotting()`, define a named handler:
+  ```js
+  function updatePreview() {
+    if (!isPlottingMode || plotNodes.length === 0) return;
+    tracksModule.updatePreviewLine(plotNodes[plotNodes.length - 1], map.getCenter(), plotColor);
+  }
+  ```
+- In `startPlotting()`: call `map.on('move', updatePreview)`.
+- In `exitPlottingMode()`: call `map.off('move', updatePreview)` and `tracksModule.clearPreviewLine()`.
+- In `undoNode()`: if `plotNodes.length === 0` after pop, call `tracksModule.clearPreviewLine()`.
+
+**Dependency order:**
+
+```
+Phase 1 → independent
+Phase 2 → independent, must precede Phase 3
+Phase 3 → depends on Phase 2
+```
+
+---
+
+### Change 3 — Saved List Long-Press Multi-Select
+
+**Goal:** Make multi-select feel native by replacing the toolbar button entry point with
+a long-press gesture (standard on Android/iOS list interactions). Avoid DB round-trips
+on every selection toggle to keep interactions instant.
+
+#### Key facts (gathered from codebase)
+
+- Multi-select state: `isMultiSelectMode: boolean`, `selectedIds: Set<string>` (keys like `"pin:42"`)
+- Entry: `#saved-multiselect-btn` click → `toggleMultiSelect()` — **to be removed**
+- Exit: `exitMultiSelect()` called by cancel button, post-delete, post-share, post-ruler
+- Cards rendered via full `innerHTML` replacement in `render()`, which re-fetches from DB
+- Card click handler re-calls `render()` on every toggle — causes DB round-trip per tap
+- Checkboxes are visual-only; no independent event listeners
+- `showToast` already imported in `saved.js`
+
+#### Phase 1 — In-memory item cache
+
+**Files:** `src/ui/saved.js`
+
+- Add module-level `let cachedItems = []`.
+- `render(forceRefetch = false)`: only re-fetches from DB when `forceRefetch === true` or `cachedItems` is empty. All other calls (enter/exit multi-select, selection toggles) rebuild HTML from `cachedItems`.
+- Call `render(true)` in: `init()`, after delete, after a save/import that mutates data, on sort/search change.
+- Call `render()` (no refetch) in: `exitMultiSelect()`, `enterMultiSelect()`.
+
+#### Phase 2 — Remove multi-select toolbar button
+
+**Files:** `src/index.html`, `src/ui/saved.js`, `src/style.css`
+
+- Remove `#saved-multiselect-btn` from HTML and its `addEventListener` in `saved.js`.
+- Remove `toggleMultiSelect()`.
+- Add a static hint element in the saved screen header: `<p class="saved-hint">Hold an item to select</p>`, visible only when not in multi-select mode.
+- Keep `exitMultiSelect()` unchanged.
+
+#### Phase 3 — Long-press handler on cards
+
+**Files:** `src/ui/saved.js`
+
+- After each render, attach pointer event listeners to each card alongside the existing `click` listener.
+- Long-press logic (300 ms threshold):
+  - `pointerdown`: record `pointerId`, start position `(x, y)`, start a 300 ms `setTimeout`.
+  - `pointermove`: if displacement > 8 px from start, cancel the timer (user is scrolling).
+  - `pointerup` / `pointercancel`: cancel the timer.
+  - On timer fire (300 ms elapsed without cancel):
+    - Set `isMultiSelectMode = true`.
+    - Add the card's key (`"pin:id"` or `"track:id"`) to `selectedIds`.
+    - Call `render()` (reads from `cachedItems`, no DB fetch).
+    - Call `navigator.vibrate?.(30)` for haptic feedback where supported.
+  - Set a `longPressHandled` flag on `pointerup` if the long press fired, so the subsequent `click` event is ignored.
+
+#### Phase 4 — DOM-only selection toggle
+
+**Files:** `src/ui/saved.js`
+
+- In the card `click` handler, when `isMultiSelectMode === true`:
+  - Toggle the key in `selectedIds`.
+  - Directly toggle `.selected` class on the card element (`card.classList.toggle('selected')`).
+  - Directly set `card.querySelector('input[type="checkbox"]').checked`.
+  - If `selectedIds.size === 0`: call `exitMultiSelect()` (re-renders from `cachedItems`).
+  - Do **not** call `render()`.
+
+**Dependency order:**
+
+```
+Phase 1 → must land first
+Phase 2, 3 → depend on Phase 1; independent of each other
+Phase 4 → depends on Phase 1 and Phase 3
+```
+
+---
+
+### Change 4 — Crosshair Visibility via Blend Mode
+
+**Goal:** Make the crosshair self-invert against any map background so it remains
+legible on both light and dark tiles without theme-dependent colour logic.
+
+#### Key facts (gathered from codebase)
+
+- `#crosshair` in `src/index.html:36` — single `<div>`, no children, no JS interaction
+- Arms rendered via `::before` (vertical) and `::after` (horizontal) pseudo-elements
+- Current colour: `var(--color-text)` — theme-dependent, invisible on matching backgrounds
+- `pointer-events: none` on the host element; `z-index: 1000`
+- No JS touches the crosshair
+
+#### Phase 1 — Apply `mix-blend-mode: difference`
+
+**Files:** `src/style.css`
+
+- On `#crosshair::before, #crosshair::after`:
+  - Change `background` from `var(--color-text)` to `#ffffff`.
+  - Add `mix-blend-mode: difference`.
+- Result: crosshair appears dark on light backgrounds, light on dark backgrounds — universally legible.
+
+#### Phase 2 — Fallback (if WebGL canvas clips blend mode)
+
+**Files:** `src/style.css`
+
+- If testing reveals `mix-blend-mode` is clipped by the MapLibre WebGL canvas compositing context:
+  - Keep arms white.
+  - Add `filter: drop-shadow(0 0 1.5px rgba(0,0,0,0.9)) drop-shadow(0 0 1.5px rgba(0,0,0,0.9))` on `#crosshair`.
+  - Remove `mix-blend-mode` from the arms.
+- This doubles the dark outline weight for reliable contrast without blend modes.
+
+**Dependency order:**
+
+```
+Phase 1 → try first; Phase 2 replaces it only if blend mode fails during testing
+```
+
+---
+
+### Change 5 — Tap-to-Copy Coordinates
+
+**Goal:** Any rendered coordinate string (outside of editable inputs and list cards)
+should be tappable to copy to clipboard, with a toast confirmation. This is consistent
+with how mapping tools like Google Maps handle coordinate display.
+
+#### Key facts (gathered from codebase)
+
+- `showToast(message, type)` exported from `src/utils/toast.js`; already imported in `gps.js`, `saved.js`
+- Coordinate display locations in scope:
+  1. `#target-coord-display` — crosshair HUD (updated on every map `move`; `map.js`)
+  2. `#gps-coord-value` — GPS panel (programmatically injected; `gps.js`); has existing copy button `#gps-copy-btn` that calls `handleCopyCoord()`
+  3. `#pin-info-coord-list` rows (`.pin-info-coord-row` / `.pin-info-coord-value`) — all-systems list in Pin Info modal (`pin-info.js`)
+- **Excluded** (by design): `#pin-editor-coord` (editable input), `.pin-card-coord` (part of card tap target)
+
+#### Phase 1 — Crosshair HUD (`#target-coord-display`)
+
+**Files:** `src/map/map.js`, `src/style.css`
+
+- In `map.js`, after querying `#target-coord-display`, attach a `click` listener:
+  ```js
+  el.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(el.textContent.trim());
+      showToast('Coordinates copied', 'success');
+    } catch {
+      showToast('Failed to copy', 'error');
+    }
+  });
+  ```
+- Import `showToast` from `../utils/toast.js`.
+- In `style.css`, add `cursor: pointer` to `#target-coord-display` and an `:active` opacity dip (`opacity: 0.6`) for tap feedback.
+
+#### Phase 2 — GPS panel coordinate (`#gps-coord-value`)
+
+**Files:** `src/ui/gps.js`
+
+- In the programmatically-built panel HTML (inside `init()`), add `class="coord-copyable"` to the `#gps-coord-value` element (or attach a listener directly after injection).
+- After injecting the panel HTML, attach a `click` listener on `#gps-coord-value` that calls the existing `handleCopyCoord()`.
+- Add `cursor: pointer` to `#gps-coord-value` inline style or via the CSS class.
+
+#### Phase 3 — Pin Info all-systems rows
+
+**Files:** `src/ui/pin-info.js`, `src/style.css`
+
+- In `pin-info.js`, after the coord list rows are rendered into `#pin-info-coord-list`, query all `.pin-info-coord-row` elements and attach a `click` listener to each:
+  ```js
+  row.addEventListener('click', async () => {
+    const value = row.querySelector('.pin-info-coord-value')?.textContent.trim();
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      showToast('Coordinates copied', 'success');
+    } catch {
+      showToast('Failed to copy', 'error');
+    }
+  });
+  ```
+- Import `showToast` from `../utils/toast.js`.
+- In `style.css`, add `cursor: pointer` and `:hover` background tint + `:active` opacity dip on `.pin-info-coord-row`.
+
+**Dependency order:**
+
+```
+All three phases are fully independent.
+```
+
+---
+
+### Change 6 — Settings Changes Refresh All Live Values
+
+**Goal:** Any preference change (coordinate system, angle unit, length unit, theme)
+should immediately update every live-rendered value in the app. Currently `angleUnit`
+and `lengthUnit` changes are silent — no `prefsChanged` event is dispatched, so the
+compass azimuth, GPS overlay, and ruler show stale values until page reload.
+
+#### Key facts (gathered from codebase)
+
+- `settings.js` dispatches `prefsChanged` only for `coordinateSystem` (line 108–115); `angleUnit`, `lengthUnit`, and `theme` call `savePrefs()` but dispatch nothing
+- `map.js` listens for `prefsChanged` but guards `e.detail.key === 'coordinateSystem'` only → `updateCoordDisplay()`
+- `gps.js` listens for `prefsChanged` unconditionally → `updateDisplay()` but **not** `updateCompassDisplay()`
+- `ruler.js` listens for `prefsChanged` unconditionally → `render()` ✓ (already correct)
+- `saved.js` has **no** `prefsChanged` listener — stale if user changes system while Saved is open
+- `map.js → updateGPSOverlay()` reads `lengthUnit` and `angleUnit` at call time but is only triggered by `gpsPositionUpdate` events, not by `prefsChanged`
+
+#### Phase 1 — Dispatch `prefsChanged` for all settings
+
+**Files:** `src/ui/settings.js`
+
+- `angleUnit` change handler: add `window.dispatchEvent(new CustomEvent('prefsChanged', { detail: { key: 'angleUnit', value } }))` after `savePrefs()`.
+- `lengthUnit` change handler: same, with `key: 'lengthUnit'`.
+- `theme` change handler: same, with `key: 'theme'` (harmless; `applyPrefs()` already acts immediately).
+
+#### Phase 2 — Wire GPS overlay to `prefsChanged`
+
+**Files:** `src/map/map.js`
+
+- In the existing `prefsChanged` listener (currently guards on `coordinateSystem` only):
+  - Also call `updateGPSOverlay()` when `key === 'angleUnit'` or `key === 'lengthUnit'`.
+
+#### Phase 3 — Wire compass display to `prefsChanged`
+
+**Files:** `src/ui/gps.js`
+
+- In the existing `prefsChanged` listener (currently calls `updateDisplay()` only):
+  - Also call `updateCompassDisplay()` unconditionally — it is a no-op if no compass data has arrived yet.
+
+#### Phase 4 — Wire Saved list to `prefsChanged`
+
+**Files:** `src/ui/saved.js`
+
+- Add `window.addEventListener('prefsChanged', () => render())`.
+- After Change 3 Phase 1 is implemented, `render()` reads from `cachedItems` (no DB fetch). If Change 3 is not yet implemented, this will trigger a DB re-fetch — acceptable as a fallback.
+
+**Dependency order:**
+
+```
+Phase 1 → must land first (all others depend on the events being dispatched)
+Phase 2, 3, 4 → independent of each other; all depend on Phase 1
+Phase 4 → zero DB cost only after Change 3 Phase 1 is implemented
 ```
