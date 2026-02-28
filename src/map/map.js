@@ -243,7 +243,7 @@ function setupTrackPlotting() {
 function updateStartTrackButton() {
   const startTrackBtn = document.getElementById('start-track-btn');
   if (startTrackBtn) {
-    startTrackBtn.style.display = isPlottingMode ? 'none' : 'flex';
+    startTrackBtn.disabled = isPlottingMode;
   }
 }
 
@@ -253,10 +253,8 @@ function startPlotting() {
   plotColor = 'red';
 
   const plotBar = document.getElementById('track-plot-bar');
-  const startTrackBtn = document.getElementById('start-track-btn');
 
   if (plotBar) plotBar.style.display = 'flex';
-  if (startTrackBtn) startTrackBtn.style.display = 'none';
 
   updatePlotCount();
 }
