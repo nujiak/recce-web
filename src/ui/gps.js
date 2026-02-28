@@ -126,6 +126,7 @@ export function init() {
   // Listen for preference changes
   window.addEventListener('prefsChanged', () => {
     updateDisplay();
+    updateCompassDisplay();
   });
 }
 

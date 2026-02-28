@@ -19,6 +19,7 @@ let longPressHandled = false;
 export function init() {
   setupToolbarEvents();
   setupImportDialog();
+  window.addEventListener('prefsChanged', () => render());
   render(true);
 }
 

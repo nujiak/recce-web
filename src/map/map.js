@@ -69,6 +69,9 @@ export function init() {
     if (e.detail.key === 'coordinateSystem') {
       updateCoordDisplay();
     }
+    if (e.detail.key === 'angleUnit' || e.detail.key === 'lengthUnit') {
+      updateGPSOverlay();
+    }
   });
 
   window.addEventListener('flyToPin', (e) => {
