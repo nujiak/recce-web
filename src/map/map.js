@@ -1,9 +1,14 @@
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { CoordinateTransformer } from '../coords/index.js';
-import { getAllPins, addPin } from '../db/db.js';
+import { getAllPins } from '../db/db.js';
 import { getPrefs } from '../ui/settings.js';
-import { renderMarkers, addMarker } from './markers.js';
+import {
+  renderMarkers,
+  addMarker as addMarkerToMap,
+  updateMarker as updateMarkerOnMap,
+  removeMarker as removeMarkerFromMap,
+} from './markers.js';
 
 let map = null;
 
@@ -32,26 +37,15 @@ export function init() {
     renderMarkers(map, pins);
   });
 
-  const addButton = document.getElementById('add-button');
-  if (addButton) {
-    addButton.addEventListener('click', openAddDialog);
-  }
-
-  const addPointDialog = document.getElementById('add-point');
-  const addPointConfirm = document.getElementById('add-point-confirm');
-
-  if (addPointDialog && addPointConfirm) {
-    addPointDialog.addEventListener('click', (e) => {
-      if (e.target === addPointDialog) addPointDialog.close();
-    });
-
-    addPointConfirm.addEventListener('click', handleAddConfirm);
-  }
-
   window.addEventListener('prefsChanged', (e) => {
     if (e.detail.key === 'coordinateSystem') {
       updateCoordDisplay();
     }
+  });
+
+  window.addEventListener('flyToPin', (e) => {
+    const { lat, lng } = e.detail;
+    map.flyTo({ center: [lng, lat], zoom: 15 });
   });
 }
 
@@ -64,57 +58,19 @@ function updateCoordDisplay() {
   if (el) el.textContent = display;
 }
 
-function openAddDialog() {
+export function addMarker(pin) {
   if (!map) return;
-  const center = map.getCenter();
-  const prefs = getPrefs();
-  const display = CoordinateTransformer.toDisplay(center.lat, center.lng, prefs.coordinateSystem);
-
-  const dialog = document.getElementById('add-point');
-  const nameInput = dialog.querySelector('[name="name"]');
-  const coordInput = dialog.querySelector('[name="coord"]');
-  const coordLabel = dialog.querySelector('label[for="dialog-coord"]');
-
-  if (nameInput) nameInput.value = '';
-  if (coordInput) coordInput.value = display;
-  if (coordLabel) coordLabel.textContent = prefs.coordinateSystem;
-
-  dialog.showModal();
+  addMarkerToMap(map, pin);
 }
 
-async function handleAddConfirm() {
-  const dialog = document.getElementById('add-point');
-  const nameInput = dialog.querySelector('[name="name"]');
-  const coordInput = dialog.querySelector('[name="coord"]');
+export function updateMarker(pin) {
+  updateMarkerOnMap(map, pin);
+}
 
-  const name = nameInput.value.trim();
-  const coordStr = coordInput.value.trim();
-
-  if (!name || !coordStr) return;
-
-  const prefs = getPrefs();
-  const parsed = CoordinateTransformer.parse(coordStr, prefs.coordinateSystem);
-  if (!parsed) return;
-
-  const pin = {
-    createdAt: Date.now(),
-    name,
-    lat: parsed.lat,
-    lng: parsed.lng,
-    color: 'red',
-    group: '',
-    description: '',
-  };
-
-  const id = await addPin(pin);
-  pin.id = id;
-  addMarker(map, pin);
-
-  dialog.close();
+export function removeMarker(pinId) {
+  removeMarkerFromMap(pinId);
 }
 
 export function getMap() {
   return map;
 }
-
-export { map };
