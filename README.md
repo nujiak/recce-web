@@ -4,7 +4,9 @@ A mapping and reconnaissance utility for the browser — a feature-complete rewr
 Recce Android app in plain HTML, JavaScript, and CSS, built with Vite and deployed as a
 fully static site.
 
-**Live features:** map with crosshair, pin saving, coordinate display in Kertau 1948 / WGS84.
+**Current state:** Phases 0–3 complete. Map, crosshair, all six coordinate systems, settings,
+onboarding, and nav shell are working. Phases 4–6 JS logic is written but not functional —
+the HTML shell is missing all required UI elements.
 
 ---
 
@@ -25,254 +27,198 @@ The app is built incrementally in self-contained phases. Each phase is independe
 shippable — `main` always holds a working app.
 
 The full technical reference (data models, coordinate system specs, feature
-behaviours) lives in `AGENTS.md`. This document describes *what to build* in each phase
+behaviours) lives in `AGENTS.md`. This document describes _what to build_ in each phase
 and the acceptance criteria.
 
 ---
 
-### Phase 0 — Foundation (current state → Vite)
+### Phase 0 — Foundation ✅ DONE
 
-**Goal:** Migrate the existing prototype to Vite and establish the structural foundation.
-No new user-visible features.
-
-**Tasks:**
-
-- Initialise a Vite project; move `src/index.html`, `src/style.css` into the Vite layout
-- Remove jQuery; replace all `$()` calls with vanilla `document.querySelector` / event
-  listeners
-- Split monolithic `script.js` into ES modules:
-  - `src/db/db.js` — Dexie initialisation, schema version 1 (`pins` table only)
-  - `src/coords/index.js` — stub `CoordinateTransformer` wrapping existing Kertau logic
-  - `src/map/map.js` — MapLibre setup, crosshair, `move`-event coordinate display
-  - `src/main.js` — entry point; imports and calls each module's `init()`
-- Replace all hardcoded `oklch`/hex colour literals in `style.css` with CSS custom
-  properties defined in `:root`; add a `data-theme="dark"` default on `<html>`
-- Add stub `public/manifest.json` and `public/sw.js` (no caching yet)
-- Update `.gitignore` to exclude `node_modules/`, `dist/`
-
-**Exit criteria:** `npm run build` produces a working `dist/`; existing pin add/delete/list
-still works; no jQuery in the bundle.
+Vite migration, jQuery removal, ES module split, CSS custom properties, stub PWA files.
 
 ---
 
-### Phase 1 — Navigation Shell
+### Phase 1 — Navigation Shell ✅ DONE
 
-**Goal:** Establish the full navigation model so every subsequent feature has a surface to live on.
-
-**Surfaces:**
-
-| Surface | Mobile | Desktop |
-|---------|--------|---------|
-| **Map** | Full screen, default tab | Left pane (flexible width) |
-| **Saved** | Full screen, second tab | Right pane (fixed width, scrollable) |
-| **Toolbox** | FAB → modal overlay | FAB → modal overlay |
-
-**Tasks:**
-
-- `src/ui/nav.js`:
-  - Bottom tab bar with two tabs: Map and Saved; active tab highlighted
-  - Toolbox FAB (persistent, always visible over the map); opens a full-screen modal
-    containing labelled placeholder panels for GPS, Ruler, and Settings
-  - On desktop (`min-width: 768px`): Map and Saved rendered side-by-side via CSS Grid;
-    Toolbox FAB remains
-- Move the existing crosshair + coordinate display into the Map surface
-- Saved surface: empty-state message only (no list yet)
-- All layout via CSS Grid / Flexbox; no JS-driven layout switching
-
-**Exit criteria:** All three surfaces are reachable and render correctly at 375 px (mobile)
-and 1280 px (desktop) viewport widths.
+Bottom tab bar (Map / Saved), Toolbox FAB + modal overlay, desktop side-by-side layout via
+CSS Grid.
 
 ---
 
-### Phase 2 — Coordinate Systems & Settings
+### Phase 2 — Coordinate Systems & Settings ✅ DONE
 
-**Goal:** Full six-system coordinate support used everywhere in the app, with a working
-Settings panel.
-
-**Coordinate systems to implement** (full specs in `AGENTS.md`):
-
-| File | System | Display example | Notes |
-|------|--------|-----------------|-------|
-| `wgs84.js` | WGS84 | `1.35210° N 103.81980° E` | Two input formats; signed or cardinal |
-| `utm.js` | UTM | `48N 0361234 0149234` | Manual TM projection; zones 1–60 |
-| `mgrs.js` | MGRS | `48PWW 12345 67890` | Derived from UTM; Y-band disambiguation |
-| `bng.js` | BNG | `TQ 12345 67890` | proj4js EPSG:27700; GB only |
-| `qth.js` | QTH | `OK21ab12` | Maidenhead; algorithmic; 2/4/6/8 chars |
-| `kertau.js` | Kertau 1948 | `804670 149234` | proj4js custom proj; MY/SG only |
-
-**Tasks:**
-
-- Implement each parser/formatter module. Each must export:
-  - `format(lat, lng) → string | null` — WGS84 in, display string out; `null` if out of range
-  - `parse(input) → { lat, lng } | null` — display string in, WGS84 out
-- `src/coords/index.js` — `CoordinateTransformer`:
-  ```js
-  toDisplay(lat, lng, system)  // → string | null
-  parse(input, system)         // → { lat, lng } | null
-  allSystems(lat, lng)         // → Map<system, string>
-  ```
-- Wire the map crosshair coordinate display to the active `coordinateSystem` preference;
-  re-render on every `move` event
-- `src/ui/settings.js` — Settings panel (inside the Toolbox modal):
-  - Coordinate system selector (6 options)
-  - Angle unit: Degrees / NATO Mils
-  - Length unit: Metric / Imperial / Nautical
-  - Theme: Light / Dark / System
-  - Map type: Normal / Satellite / Hybrid (switches MapLibre tile source)
-- Read/write preferences via `localStorage` key `recce_prefs`; apply all preferences on
-  page load before anything renders
-
-**Exit criteria:** Switching coordinate system in Settings immediately updates the crosshair
-display; all six `format` → `parse` round-trips return the original lat/lng within floating-point
-tolerance; BNG returns `null` outside Great Britain; Kertau returns `null` outside Malaysia/Singapore.
+All six coordinate systems implemented (`wgs84.js`, `utm.js`, `mgrs.js`, `bng.js`,
+`qth.js`, `kertau.js`) with `CoordinateTransformer` unified API. Settings panel (inside
+Toolbox) with coordinate system, angle unit, length unit, theme, map type selectors.
 
 ---
 
-### Phase 3 — Onboarding
+### Phase 3 — Onboarding ✅ DONE
 
-**Goal:** First-launch setup so users configure preferences before encountering the app.
-
-**Tasks:**
-
-- `src/ui/onboarding.js` — three-step full-screen modal:
-  1. **Welcome** — app name and one-line description
-  2. **Preferences** — same controls as the Settings panel (coordinate system, angle unit,
-     length unit, theme); writes choices to `recce_prefs` on every change so they are
-     immediately applied if the user skips forward
-  3. **Done** — "You're ready" confirmation screen; button sets `onboardingDone: true`
-     and closes the modal
-- Enforce `data-theme="dark"` on `<html>` for the duration of onboarding, regardless of
-  the theme preference chosen; restore the chosen theme on completion
-- On every page load: if `recce_prefs.onboardingDone` is absent or `false`, show the
-  onboarding modal before anything else
-
-**Exit criteria:** Fresh-session (no `recce_prefs`) shows onboarding; completing it lands
-on the Map screen with the chosen preferences active; returning users skip directly to the map.
+Three-step full-screen modal on first launch. Dark theme enforced during flow. Preferences
+written to `localStorage` key `recce_prefs`.
 
 ---
 
-### Phase 4 — Pin System
+### Phase 4 — Pin System 🔴 NEEDS HTML + WIRING
 
 **Goal:** Full pin lifecycle — create, view, edit, delete — with map markers and the Saved list.
 
-**Data model** (see `AGENTS.md` for full schema):
-```js
-{ id, createdAt, name, lat, lng, color, group, description }
-```
-Colors: `red`, `orange`, `green`, `azure`, `violet`.
+**Status:** All JS modules exist and are correct (`pin-editor.js`, `pin-info.js`,
+`markers.js`, `saved.js` with pin rendering). However, `index.html` contains **none** of
+the required UI elements for these modules — the JS will silently no-op because all
+`getElementById` calls return `null`. The old `<dialog id="add-point">` is a stale
+leftover from the pre-Vite MVP and must be removed.
 
-**Tasks:**
+**What still needs to be done:**
 
-- Migrate Dexie schema to version 2: rename `points` table → `pins`; add `color`,
-  `group`, `description` columns; keep `createdAt` as deduplication key
-- `src/map/markers.js`:
-  - On DB load, render a colour-coded MapLibre marker for every pin
-  - Clicking a marker opens the Pin Info modal for that pin
-  - Markers update when a pin is created, edited, or deleted
-- `src/ui/pin-editor.js` — bottom sheet (mobile) / centred dialog (desktop):
-  - Fields: Name (required, max 20 chars), Coordinates (single field, parsed via
-    `CoordinateTransformer.parse` in the active system), Colour picker (5 swatches),
-    Group (text input with datalist autocomplete from existing group names),
-    Description (multiline `<textarea>`)
-  - **Create mode**: pre-filled with the crosshair's current coordinates; Save writes to DB
-  - **Edit mode**: pre-filled with the pin's data; Save updates; Delete removes from DB and map
-- `src/ui/pin-info.js` — modal dialog:
-  - Header styled with the pin's colour
-  - Group tag (hidden if empty)
-  - Description (hidden if empty)
-  - Coordinates section: one row per system using `CoordinateTransformer.allSystems()`;
-    systems that return `null` (out of range) are omitted
-  - Actions: **Open in Maps** (`geo:<lat>,<lng>` URI, falls back to
-    `https://www.google.com/maps?q=<lat>,<lng>`), **Map** (fly to pin + close dialog),
-    **Edit** (opens pin editor in edit mode)
-- Map surface: Main FAB (➕) opens pin editor pre-filled with the current crosshair
-  position
-- Map surface: **Go To** button — opens a small input dialog; the user types a coordinate
-  in any supported format; on submit `CoordinateTransformer.parse` resolves it and the
-  map flies to that position
-- `src/ui/saved.js` — render a card per pin in the Saved surface:
-  - Colour indicator dot, name, group tag (if set), coordinates in active system
-  - Tapping a card opens the Pin Info modal
+1. **`src/index.html`** — add all missing HTML:
+   - Pin editor bottom sheet: `id="pin-editor"`, `id="pin-editor-backdrop"`, fields for
+     `pin-editor-title`, `pin-editor-name`, `pin-editor-coord`, `pin-editor-coord-label`,
+     `pin-editor-colors`, `pin-editor-group` (with `list="pin-editor-groups"`),
+     `pin-editor-groups` datalist, `pin-editor-description`, buttons for `pin-editor-close`,
+     `pin-editor-save`, `pin-editor-delete`
+   - Pin info modal: `id="pin-info"`, `id="pin-info-backdrop"`, elements for `pin-info-name`,
+     `pin-info-group`, `pin-info-description`, `pin-info-coord-list`, buttons for
+     `pin-info-close`, `pin-info-map`, `pin-info-edit`, `pin-info-open-maps`
+   - Remove the stale `<dialog id="add-point">` block
+   - Saved screen toolbar: `id="saved-toolbar"` (with `id="saved-sort-btn"`,
+     `id="saved-search"`, `id="saved-multiselect-btn"`), `id="saved-multi-toolbar"` (with
+     `id="saved-delete-btn"`, `id="saved-share-btn"`, `id="saved-ruler-btn"`,
+     `id="saved-cancel-btn"`)
+   - Go To dialog: `id="goto-dialog"`, `id="goto-backdrop"`, `id="goto-input"`,
+     `id="goto-submit"`, `id="goto-close"`
+   - Go To button on the map surface: `id="goto-btn"`
+   - FAB on map surface for "Add pin" (currently a button inside `coord-container` with
+     `id="add-button"` — wire it or replace with the main FAB pattern)
 
-**Exit criteria:** Full pin CRUD persists across reloads; pins appear on the map and in
-the Saved list; the Pin Info modal shows all valid coordinate representations; Go To
-accepts all six coordinate formats.
+2. **`src/ui/pin-info.js`** — add "Open in Maps" handler (currently the button is
+   referenced but no handler wired; use `geo:<lat>,<lng>` URI with Google Maps fallback)
 
----
+3. **`src/map/map.js`** — add:
+   - "Go To" button listener: on click, open the goto dialog; on submit, call
+     `CoordinateTransformer.parse(input, prefs.coordinateSystem)` and `map.flyTo()`
+   - Wire the `add-button` FAB to dispatch `openPinEditor` with the current crosshair
+     lat/lng (this event is already handled in `main.js`)
 
-### Phase 5 — Saved Screen (Sort, Filter, Multi-select)
+4. **`src/style.css`** — add styles for pin editor sheet, pin info modal, saved toolbar,
+   goto dialog, colour swatches, group tags
 
-**Goal:** Transform the Saved screen into a proper management surface.
+**Data model:** schema v1 already has the correct `pins` table (no migration needed).
 
-**Tasks:**
-
-- **Sort** — toolbar control cycling through: Name A–Z, Name Z–A, Time newest, Time oldest,
-  Group (alphabetical group headers inserted between cards)
-- **Search** — text input that filters cards in real time by name or group (case-insensitive
-  substring match)
-- **Multi-select mode** — entered by long-pressing a card (or a dedicated toggle);
-  cards show checkboxes; a contextual toolbar appears with:
-  - **Delete** — removes all selected items from DB and map; exits multi-select
-  - **Share** — stub (shows "coming soon"); will be wired in Phase 7
-  - **Add to Ruler** — stub (shows "coming soon"); will be wired in Phase 9
-- **Empty state** — shown when no items exist or no items match the current search
-
-**Exit criteria:** Sort, search, and bulk-delete all work on a list of ≥10 mixed pins.
+**Exit criteria:** Full pin CRUD persists across reloads; pins appear on map and in the
+Saved list; Pin Info modal shows all valid coordinate representations; "Open in Maps" works;
+Go To accepts all six coordinate formats.
 
 ---
 
-### Phase 6 — Track System
+### Phase 5 — Saved Screen (Sort, Filter, Multi-select) 🔴 NEEDS HTML + TRACK SUPPORT
 
-**Goal:** Multi-point paths and areas on the map (called "Chains" in the original Android app,
-renamed to **Tracks** in recce-web).
+**Goal:** Transform the Saved screen into a proper management surface for both pins and tracks.
 
-**Data model** (see `AGENTS.md` for full schema):
-```js
-{ id, createdAt, name, nodes: [{ lat, lng, name? }], isCyclical, color, group, description }
-```
-- `isCyclical = false` → open **Path** (polyline)
-- `isCyclical = true` → closed **Area** (filled polygon)
+**Status:** `saved.js` has complete sort/search/multi-select logic for pins, but it
+references HTML elements that do not exist yet (same gap as Phase 4). Tracks are not
+included in the list at all.
 
-**Calculations:**
-- **Path total distance:** sum of Haversine distances between consecutive nodes
-- **Area perimeter:** same formula including the closing node→first-node segment
-- **Area enclosed area:** shoelace formula on the node coordinates (spherical approximation
-  acceptable for the areas likely to be plotted)
+**What still needs to be done:**
 
-**Tasks:**
+1. **`src/index.html`** — add the Saved screen toolbar HTML (same items listed in Phase 4
+   task 1 above; phases 4 and 5 share the same HTML gap)
 
-- Migrate Dexie schema to version 3: add `tracks` table
-- **Track plotting mode** on the Map surface:
-  - A secondary "plot" FAB appears when the user taps a dedicated "start track" button
-  - Each tap of the plot FAB appends `{ lat, lng }` from the current crosshair as a new node;
-    a live polyline preview updates on the map
-  - Long-pressing the plot FAB appends the node and immediately prompts for an optional
-    checkpoint name (short text input in a small popover or inline sheet)
-  - An **Undo** button removes the last added node
-  - A **Save** button opens the track editor pre-filled with the plotted nodes; on save,
-    the track is written to DB
-  - A **Cancel** button discards the session with a confirmation prompt
-- `src/map/tracks.js`:
-  - Render each track as a MapLibre `line` layer (path) or `fill` + `line` layer (area),
-    colour-coded to the track's `color`
-  - Named checkpoint nodes rendered as small labelled markers
-  - Clicking a polyline / polygon opens the Track Info modal
-  - Layers update when tracks are added, edited, or deleted
-- `src/ui/track-editor.js` — same sheet pattern as pin editor:
-  - Name (required, max 20 chars), Type toggle (Path / Area), Colour picker, Group, Description
-  - Save / Delete actions
-- `src/ui/track-info.js` — modal dialog:
-  - Header styled with the track's colour + type icon (path vs area)
-  - Total distance (path) or perimeter and area (area), formatted in the user's `lengthUnit`
-  - Checkpoint list (only nodes where `name` is non-empty)
-  - Group tag, description
-  - Actions: **Map** (fit map to track bounds + close), **Edit** (opens editor)
-- Saved screen: track cards display type icon, total distance, node count alongside the
-  standard name / colour / group fields
+2. **`src/ui/saved.js`** — extend to include tracks:
+   - Import `getAllTracks` from `db.js`
+   - Fetch both `pins` and `tracks` in `render()`; merge into a single sorted/filtered list
+   - Track cards must show: colour indicator, name, group tag, type icon (path/area),
+     total distance (formatted with `formatDistance`), node count
+   - Tapping a track card dispatches `trackCardClicked` (wire in `main.js` to open
+     `track-info.js`)
+   - Long-press on any card enters multi-select mode (currently only tap-toggle is wired)
+   - Bulk delete must handle both `db.pins.delete` and `db.tracks.delete`
+
+3. **`main.js`** — wire `trackCardClicked` event to open Track Info modal (analogous to
+   the existing `pinCardClicked` handler)
+
+**Exit criteria:** Sort, search, and bulk-delete all work on a list of ≥10 mixed pins and
+tracks.
+
+---
+
+### Phase 6 — Track System 🔴 NEEDS DB MIGRATION + HTML + WIRING
+
+**Goal:** Multi-point paths and areas on the map (called "Chains" in the original Android
+app, renamed to **Tracks** in recce-web).
+
+**Status:** JS modules are written (`track-editor.js`, `track-info.js`, `tracks.js`,
+`utils/geo.js`). However:
+
+- `db.js` is schema **version 1** with only a `pins` table — no `tracks` table and no
+  `getAllTracks` / `addTrack` / `updateTrack` / `deleteTrack` / `getAllGroups` exports
+- `index.html` has no track editor, track info, or track plotting UI elements
+- `main.js` does not import or initialise any track module
+- `map.js` does not initialise `tracks.js`, does not handle `flyToTrack`, and has no
+  track plotting mode
+
+**What still needs to be done:**
+
+1. **`src/db/db.js`** — migrate to schema v2 (bump version 1 → 2; add
+   `tracks: '++id, createdAt, name, isCyclical, color, group'`); add and export:
+   `getAllTracks()`, `addTrack()`, `updateTrack()`, `deleteTrack()`, `getAllGroups()`
+   (combines unique groups from both `pins` and `tracks`)
+
+2. **`src/index.html`** — add:
+   - Track editor bottom sheet (same pattern as pin editor): `id="track-editor"`,
+     `id="track-editor-backdrop"`, fields for `track-editor-title`, `track-editor-name`,
+     `track-editor-type` (checkbox/toggle for Path/Area), `track-editor-colors`,
+     `track-editor-group` (with `list="track-editor-groups"`), `track-editor-groups`
+     datalist, `track-editor-description`, `track-editor-node-count`, buttons for
+     `track-editor-close`, `track-editor-save`, `track-editor-delete`
+   - Track info modal: `id="track-info"`, `id="track-info-backdrop"`, elements for
+     `track-info-header`, `track-info-name`, `track-info-type-icon`, `track-info-type-label`,
+     `track-info-stats`, `track-info-checkpoints`, `track-info-group`, `track-info-description`,
+     buttons for `track-info-close`, `track-info-map`, `track-info-edit`
+   - Track plotting controls on the map surface (visible only during active plotting):
+     `id="track-plot-bar"` container (hidden by default) containing:
+     - `id="plot-node-btn"` — tap to append crosshair as node (long-press for named checkpoint)
+     - `id="plot-undo-btn"` — remove last node
+     - `id="plot-save-btn"` — open track editor with plotted nodes
+     - `id="plot-cancel-btn"` — discard with confirmation
+   - `id="start-track-btn"` on the map surface to enter plotting mode
+   - Checkpoint name popover/sheet: `id="checkpoint-name-dialog"` with a text input and
+     confirm/cancel buttons
+
+3. **`src/map/map.js`** — add:
+   - `import { init as initTracks, loadTracks, addTrack, updateTrack, removeTrack,
+updateTempTrack, clearTempTrack, getTrackBounds } from './tracks.js'`
+   - Call `initTracks(map)` and `loadTracks()` inside `map.on('load', ...)`
+   - Handle `flyToTrack` event: call `map.fitBounds(getTrackBounds(track), { padding: 50 })`
+   - Export `addTrack`, `updateTrack`, `removeTrack` (wrapping the tracks module) for use
+     by `main.js`
+   - Implement track plotting mode state machine:
+     - `start-track-btn` click → show `track-plot-bar`, enter plotting mode
+     - `plot-node-btn` click → append `{ lat, lng }` to session nodes; call `updateTempTrack`
+     - `plot-node-btn` long-press (>500 ms) → append node, show checkpoint name dialog; on
+       confirm, store node with `name`
+     - `plot-undo-btn` click → pop last node; call `updateTempTrack`
+     - `plot-save-btn` click → call `clearTempTrack`, open track editor with session nodes
+     - `plot-cancel-btn` click → confirm discard; call `clearTempTrack`, hide `track-plot-bar`
+
+4. **`src/main.js`** — add:
+   - Imports for `track-editor.js` (`initTrackEditor`, `openTrackCreate`, `openTrackEdit`)
+     and `track-info.js` (`initTrackInfo`, `openTrackInfo`)
+   - Call `initTrackEditor()` and `initTrackInfo()` in `DOMContentLoaded`
+   - Handle `trackClicked` event → open Track Info modal
+   - Handle `trackCardClicked` event → open Track Info modal
+   - Handle `openTrackEditor` event (dispatched by `map.js` after plotting) → open track
+     editor in create mode with the plotted nodes
+   - On track save/edit/delete: call `addTrack`/`updateTrack`/`removeTrack` from `map.js`
+     and `refreshSaved()`
+
+5. **`src/style.css`** — add styles for track editor sheet, track info modal, track plot
+   bar, checkpoint name dialog, track cards in Saved
 
 **Exit criteria:** A 5-node path and a 4-node area can each be plotted, saved, displayed
 on the map, and edited; distance/area calculations are correct; named checkpoints appear
-on the map and in the Track Info modal.
+on the map and in Track Info; track cards appear in the Saved list.
 
 ---
 
@@ -281,6 +227,7 @@ on the map and in the Track Info modal.
 **Goal:** Compact codes that survive copy-paste through WhatsApp, Telegram, or SMS.
 
 **Format:** `R1<Base62>`
+
 - Base62 alphabet: `0-9A-Za-z` (62 characters, no `+`, `/`, `=`, or spaces)
 - Version prefix `R1` — allows future format changes without breaking old decoders
 - Payload: `{ pins: [...], tracks: [...] }` with `id` omitted; `createdAt` is the
@@ -291,8 +238,8 @@ on the map and in the Track Info modal.
 
 **Tasks:**
 
-- Add `pako` as a production dependency (`npm install pako`)
-- `src/share/share.js`:
+- `pako` is already installed as a production dependency
+- `src/share/share.js` does not exist yet — create it with:
   - `encode(pins, tracks) → string`
   - `decode(code) → { pins, tracks } | null` — returns `null` on any parse/decompress error
 - Wire **Share** action in Saved multi-select (Phase 5 stub):
@@ -432,44 +379,46 @@ is accessible offline.
 
 ## Feature Parity Checklist
 
-| Feature | Phase | Status |
-|---------|-------|--------|
-| Map with crosshair + coordinate display | 0 / 2 | done |
-| Six coordinate systems (WGS84, UTM, MGRS, BNG, QTH, Kertau) | 2 | done |
-| Settings (coord system, units, theme, map type) | 2 | done |
-| Onboarding flow | 3 | done |
-| Pin creation / editing / deletion | 4 | partial |
-| Pin colour + group + description | 4 | — |
-| Pin info modal (all coord representations) | 4 | — |
-| "Open in Maps" from pin info | 4 | — |
-| "Go To" coordinate navigation | 4 | — |
-| Saved list (sort, filter, multi-select, bulk delete) | 5 | — |
-| Track (path & area) plotting on map | 6 | — |
-| Track creation / editing / deletion | 6 | — |
-| Named checkpoints within tracks | 6 | — |
-| Track info modal (distance / perimeter / area) | 6 | — |
-| Share codes (export + import, Base62 + zlib) | 7 | — |
-| GPS panel (position, accuracy, altitude) | 8 | — |
-| Compass panel (azimuth, pitch, roll) | 8 | — |
-| Live distance/bearing overlay on map | 8 | — |
-| Ruler (multi-point distance + bearing) | 9 | — |
-| Add to Ruler from Saved | 9 | — |
-| PWA (installable, offline-capable) | 10 | stub |
-| Dark / light / system theme | 2 / 11 | done |
-| Responsive layout (mobile + desktop) | 1 | done |
-| Keyboard navigation + ARIA | 11 | — |
+| Feature                                                     | Phase  | Status                                     |
+| ----------------------------------------------------------- | ------ | ------------------------------------------ |
+| Map with crosshair + coordinate display                     | 0 / 2  | ✅ done                                    |
+| Six coordinate systems (WGS84, UTM, MGRS, BNG, QTH, Kertau) | 2      | ✅ done                                    |
+| Settings (coord system, units, theme, map type)             | 2      | ✅ done                                    |
+| Onboarding flow                                             | 3      | ✅ done                                    |
+| Pin creation / editing / deletion                           | 4      | 🔴 JS done, HTML missing                   |
+| Pin colour + group + description                            | 4      | 🔴 JS done, HTML missing                   |
+| Pin info modal (all coord representations)                  | 4      | 🔴 JS done, HTML missing                   |
+| "Open in Maps" from pin info                                | 4      | 🔴 not wired                               |
+| "Go To" coordinate navigation                               | 4      | 🔴 not implemented                         |
+| Saved list pins (sort, filter, multi-select, bulk delete)   | 5      | 🔴 JS done, HTML missing                   |
+| Saved list tracks                                           | 5      | 🔴 not implemented                         |
+| Track DB schema (version 2)                                 | 6      | 🔴 not done (still v1, pins only)          |
+| Track (path & area) plotting on map                         | 6      | 🔴 JS done, HTML + wiring missing          |
+| Track creation / editing / deletion                         | 6      | 🔴 JS done, HTML + wiring missing          |
+| Named checkpoints within tracks                             | 6      | 🔴 JS done, wiring missing                 |
+| Track info modal (distance / perimeter / area)              | 6      | 🔴 JS done, HTML + wiring missing          |
+| Share codes (export + import, Base62 + zlib)                | 7      | 🔴 not started (`pako` installed)          |
+| GPS panel (position, accuracy, altitude)                    | 8      | 🔴 not started                             |
+| Compass panel (azimuth, pitch, roll)                        | 8      | 🔴 not started                             |
+| Live distance/bearing overlay on map                        | 8      | 🔴 not started                             |
+| Ruler (multi-point distance + bearing)                      | 9      | 🔴 not started                             |
+| Add to Ruler from Saved                                     | 9      | 🔴 not started                             |
+| PWA (installable, offline-capable)                          | 10     | 🟡 stub only (`vite-plugin-pwa` installed) |
+| Dark / light / system theme                                 | 2 / 11 | ✅ done                                    |
+| Responsive layout (mobile + desktop)                        | 1      | ✅ done                                    |
+| Keyboard navigation + ARIA                                  | 11     | 🔴 not started                             |
 
 ---
 
 ## Tech Stack
 
-| Concern | Choice |
-|---------|--------|
-| Build | Vite |
-| Map | MapLibre GL JS + OpenFreeMap tiles |
-| Database | Dexie (IndexedDB) |
-| Coordinates | proj4js + custom parsers (see `AGENTS.md`) |
-| Compression | pako (zlib / deflate) |
-| Share encoding | Base62 (custom, no deps) |
-| Icons | Material Symbols (CDN) |
-| Font | Geist Mono (Google Fonts) |
+| Concern        | Choice                                     |
+| -------------- | ------------------------------------------ |
+| Build          | Vite                                       |
+| Map            | MapLibre GL JS + OpenFreeMap tiles         |
+| Database       | Dexie (IndexedDB)                          |
+| Coordinates    | proj4js + custom parsers (see `AGENTS.md`) |
+| Compression    | pako (zlib / deflate)                      |
+| Share encoding | Base62 (custom, no deps)                   |
+| Icons          | Material Symbols (CDN)                     |
+| Font           | Geist Mono (Google Fonts)                  |
