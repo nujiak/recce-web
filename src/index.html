@@ -19,7 +19,7 @@
     <!-- Icons -->
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add,add_location_alt,arrow_back,arrows_input,checklist,close,compass_calibration,delete,edit,explore,location_on,map,pin_drop,ruler,share,satellite_alt,settings,straighten,trip_origin"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add,add_location_alt,arrow_back,arrows_input,checklist,close,compass_calibration,delete,edit,explore,location_on,map,pin_drop,ruler,save,share,show_chart,satellite_alt,settings,straighten,trip_origin,undo"
     />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -244,6 +244,140 @@
       </div>
       <div class="dialog-actions">
         <button id="goto-submit" class="btn-primary">Go</button>
+      </div>
+    </div>
+
+    <!-- Track Editor Bottom Sheet -->
+    <div id="track-editor-backdrop" class="sheet-backdrop"></div>
+    <div id="track-editor" class="bottom-sheet" role="dialog" aria-label="Track Editor">
+      <div class="sheet-header">
+        <h2 id="track-editor-title">New Track</h2>
+        <button id="track-editor-close" class="icon-btn" aria-label="Close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="sheet-content">
+        <div class="field">
+          <label for="track-editor-name">Name</label>
+          <input type="text" id="track-editor-name" maxlength="20" placeholder="Enter name" />
+        </div>
+        <div class="field">
+          <label class="checkbox-label">
+            <input type="checkbox" id="track-editor-type" />
+            <span>Closed Area (polygon)</span>
+          </label>
+          <p id="track-editor-node-count" class="field-hint">0 nodes</p>
+        </div>
+        <div class="field">
+          <label>Colour</label>
+          <div id="track-editor-colors" class="color-picker"></div>
+        </div>
+        <div class="field">
+          <label for="track-editor-group">Group</label>
+          <input
+            type="text"
+            id="track-editor-group"
+            list="track-editor-groups"
+            placeholder="Optional group name"
+          />
+          <datalist id="track-editor-groups"></datalist>
+        </div>
+        <div class="field">
+          <label for="track-editor-description">Description</label>
+          <textarea
+            id="track-editor-description"
+            rows="3"
+            placeholder="Optional description"
+          ></textarea>
+        </div>
+      </div>
+      <div class="sheet-actions">
+        <button id="track-editor-delete" class="btn-danger" style="display: none">Delete</button>
+        <button id="track-editor-save" class="btn-primary">Save</button>
+      </div>
+    </div>
+
+    <!-- Track Info Modal -->
+    <div id="track-info-backdrop" class="modal-backdrop"></div>
+    <div id="track-info" class="info-modal" role="dialog" aria-label="Track Information">
+      <div id="track-info-header" class="info-modal-header">
+        <h2 id="track-info-name"></h2>
+        <button id="track-info-close" class="icon-btn" aria-label="Close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="info-modal-content">
+        <div class="track-type-badge">
+          <span id="track-info-type-icon" class="material-symbols-outlined"></span>
+          <span id="track-info-type-label"></span>
+        </div>
+        <div id="track-info-stats" class="track-stats"></div>
+        <div id="track-info-checkpoints" class="track-checkpoints"></div>
+        <span id="track-info-group" class="tag"></span>
+        <p id="track-info-description" class="info-description"></p>
+      </div>
+      <div class="info-modal-actions">
+        <button id="track-info-map" class="btn-secondary">
+          <span class="material-symbols-outlined">location_on</span>
+          View
+        </button>
+        <button id="track-info-edit" class="btn-primary">
+          <span class="material-symbols-outlined">edit</span>
+          Edit
+        </button>
+      </div>
+    </div>
+
+    <!-- Track Plot Bar -->
+    <div id="track-plot-bar" class="plot-bar" style="display: none">
+      <button id="plot-cancel-btn" class="btn-small btn-danger" aria-label="Cancel plotting">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+      <span id="plot-node-count" class="plot-count">0 nodes</span>
+      <button id="plot-undo-btn" class="btn-small" aria-label="Remove last node">
+        <span class="material-symbols-outlined">undo</span>
+      </button>
+      <button id="plot-node-btn" class="btn-small btn-primary" aria-label="Add node">
+        <span class="material-symbols-outlined">add</span>
+      </button>
+      <button id="plot-save-btn" class="btn-small btn-primary" aria-label="Save track">
+        <span class="material-symbols-outlined">save</span>
+      </button>
+    </div>
+
+    <!-- Start Track FAB -->
+    <button
+      id="start-track-btn"
+      class="fab fab-secondary"
+      aria-label="Start track plotting"
+      style="display: none"
+    >
+      <span class="material-symbols-outlined">show_chart</span>
+    </button>
+
+    <!-- Checkpoint Name Dialog -->
+    <div id="checkpoint-backdrop" class="modal-backdrop"></div>
+    <div id="checkpoint-dialog" class="dialog" role="dialog" aria-label="Checkpoint Name">
+      <div class="dialog-header">
+        <h2>Checkpoint Name</h2>
+        <button id="checkpoint-close" class="icon-btn" aria-label="Close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="dialog-content">
+        <div class="field">
+          <label for="checkpoint-name">Name (optional)</label>
+          <input
+            type="text"
+            id="checkpoint-name"
+            maxlength="20"
+            placeholder="Enter checkpoint name"
+          />
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button id="checkpoint-skip" class="btn-secondary">Skip</button>
+        <button id="checkpoint-confirm" class="btn-primary">Add</button>
       </div>
     </div>
 

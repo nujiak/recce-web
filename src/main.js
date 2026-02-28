@@ -2,10 +2,24 @@ import './style.css';
 import { init as initSettings } from './ui/settings.js';
 import { init as initOnboarding } from './ui/onboarding.js';
 import { init as initNav } from './ui/nav.js';
-import { init as initMap, addMarker, updateMarker, removeMarker } from './map/map.js';
+import {
+  init as initMap,
+  addMarker,
+  updateMarker,
+  removeMarker,
+  addTrack,
+  updateTrack,
+  removeTrack,
+} from './map/map.js';
 import { init as initSaved, render as renderSaved, refresh as refreshSaved } from './ui/saved.js';
 import { init as initPinEditor, openCreate, openEdit } from './ui/pin-editor.js';
 import { init as initPinInfo, open as openPinInfo } from './ui/pin-info.js';
+import {
+  init as initTrackEditor,
+  openCreate as openTrackCreate,
+  openEdit as openTrackEdit,
+} from './ui/track-editor.js';
+import { init as initTrackInfo, open as openTrackInfo } from './ui/track-info.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   initSettings();
@@ -13,6 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initSaved();
   initPinEditor();
   initPinInfo();
+  initTrackEditor();
+  initTrackInfo();
 
   const showingOnboarding = initOnboarding();
 
@@ -26,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSaved();
   });
 
+  // Pin events
   window.addEventListener('openPinEditor', (e) => {
     const { lat, lng } = e.detail;
     openCreate(lat, lng, async (pin, wasEdit, isDeleted) => {
@@ -62,6 +79,49 @@ document.addEventListener('DOMContentLoaded', () => {
           removeMarker(updatedPin.id);
         } else {
           updateMarker(updatedPin);
+        }
+        await refreshSaved();
+      });
+    });
+  });
+
+  // Track events
+  window.addEventListener('openTrackEditor', (e) => {
+    const { nodes } = e.detail;
+    openTrackCreate(nodes, async (track, wasEdit, isDeleted) => {
+      if (isDeleted) {
+        removeTrack(track.id);
+      } else if (wasEdit) {
+        updateTrack(track);
+      } else {
+        addTrack(track);
+      }
+      await refreshSaved();
+    });
+  });
+
+  window.addEventListener('trackClicked', (e) => {
+    const { track } = e.detail;
+    openTrackInfo(track, (trackToEdit) => {
+      openTrackEdit(trackToEdit, async (updatedTrack, wasEdit, isDeleted) => {
+        if (isDeleted) {
+          removeTrack(updatedTrack.id);
+        } else {
+          updateTrack(updatedTrack);
+        }
+        await refreshSaved();
+      });
+    });
+  });
+
+  window.addEventListener('trackCardClicked', (e) => {
+    const { track } = e.detail;
+    openTrackInfo(track, (trackToEdit) => {
+      openTrackEdit(trackToEdit, async (updatedTrack, wasEdit, isDeleted) => {
+        if (isDeleted) {
+          removeTrack(updatedTrack.id);
+        } else {
+          updateTrack(updatedTrack);
         }
         await refreshSaved();
       });

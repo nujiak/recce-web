@@ -1260,3 +1260,208 @@ input.error {
   display: flex;
   gap: var(--spacing-xs);
 }
+
+/* === Track Type Badge === */
+.track-type-badge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-md);
+  width: fit-content;
+}
+
+.track-type-badge .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.track-type-badge span:last-child {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* === Track Stats === */
+.track-stats {
+  margin-bottom: var(--spacing-md);
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  padding: var(--spacing-xs) 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.stat-row:last-child {
+  border-bottom: none;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* === Checkpoints === */
+.track-checkpoints {
+  margin-bottom: var(--spacing-md);
+}
+
+.track-checkpoints.hidden {
+  display: none;
+}
+
+.checkpoints-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-xs);
+}
+
+.checkpoints-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.checkpoints-list li {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--spacing-xs);
+  font-size: 0.85rem;
+}
+
+/* === Plot Bar === */
+.plot-bar {
+  position: fixed;
+  bottom: calc(var(--nav-height) + var(--spacing-md));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border);
+  z-index: 100;
+  box-shadow: 0 4px 12px oklch(0 0 0 / 30%);
+}
+
+.plot-count {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  min-width: 60px;
+  text-align: center;
+}
+
+/* === Secondary FAB === */
+.fab-secondary {
+  bottom: calc(var(--nav-height) + var(--fab-size) + var(--spacing-md) * 2);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.fab-secondary:hover {
+  background: var(--color-bg-tertiary);
+}
+
+/* === Checkbox Label === */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.checkbox-label input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-accent);
+}
+
+/* === Field Hint === */
+.field-hint {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-top: var(--spacing-xs);
+  margin-bottom: 0;
+}
+
+/* === Track Card === */
+.track-card {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.track-card:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.track-card.selected {
+  background: var(--color-accent-bg);
+  outline: 2px solid var(--color-accent);
+}
+
+.track-card-color {
+  width: 12px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  flex-shrink: 0;
+}
+
+.track-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.track-card-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  margin: 0 0 2px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.track-card-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+.track-card-type {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.track-card-type .material-symbols-outlined {
+  font-size: 14px;
+}

@@ -1,7 +1,7 @@
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { CoordinateTransformer } from '../coords/index.js';
-import { getAllPins } from '../db/db.js';
+import { getAllPins, getAllTracks } from '../db/db.js';
 import { getPrefs } from '../ui/settings.js';
 import {
   renderMarkers,
@@ -9,8 +9,14 @@ import {
   updateMarker as updateMarkerOnMap,
   removeMarker as removeMarkerFromMap,
 } from './markers.js';
+import * as tracksModule from './tracks.js';
 
 let map = null;
+
+// Track plotting state
+let isPlottingMode = false;
+let plotNodes = [];
+let plotColor = 'red';
 
 export function init() {
   map = new maplibregl.Map({
@@ -33,8 +39,10 @@ export function init() {
   updateCoordDisplay();
 
   map.on('load', async () => {
-    const pins = await getAllPins();
+    const [pins, tracks] = await Promise.all([getAllPins(), getAllTracks()]);
     renderMarkers(map, pins);
+    tracksModule.init(map);
+    tracksModule.loadTracks();
   });
 
   window.addEventListener('prefsChanged', (e) => {
@@ -48,11 +56,19 @@ export function init() {
     map.flyTo({ center: [lng, lat], zoom: 15 });
   });
 
+  window.addEventListener('flyToTrack', (e) => {
+    const { track } = e.detail;
+    tracksModule.fitToTrack(track);
+  });
+
   // Setup Go To dialog
   setupGotoDialog();
 
   // Setup Add button
   setupAddButton();
+
+  // Setup track plotting
+  setupTrackPlotting();
 }
 
 function setupGotoDialog() {
@@ -143,6 +159,195 @@ function setupAddButton() {
   }
 }
 
+// Track plotting mode
+function setupTrackPlotting() {
+  const startTrackBtn = document.getElementById('start-track-btn');
+  const plotBar = document.getElementById('track-plot-bar');
+  const plotNodeBtn = document.getElementById('plot-node-btn');
+  const plotUndoBtn = document.getElementById('plot-undo-btn');
+  const plotSaveBtn = document.getElementById('plot-save-btn');
+  const plotCancelBtn = document.getElementById('plot-cancel-btn');
+  const plotNodeCount = document.getElementById('plot-node-count');
+
+  // Show/hide start track button
+  updateStartTrackButton();
+
+  if (startTrackBtn) {
+    startTrackBtn.addEventListener('click', startPlotting);
+  }
+
+  if (plotNodeBtn) {
+    // Short press: add node without name
+    // Long press: add node with checkpoint name
+    let pressTimer = null;
+    let isLongPress = false;
+
+    plotNodeBtn.addEventListener('pointerdown', (e) => {
+      isLongPress = false;
+      pressTimer = setTimeout(() => {
+        isLongPress = true;
+        addNodeWithName();
+      }, 500);
+    });
+
+    plotNodeBtn.addEventListener('pointerup', () => {
+      clearTimeout(pressTimer);
+      if (!isLongPress) {
+        addNode();
+      }
+    });
+
+    plotNodeBtn.addEventListener('pointerleave', () => {
+      clearTimeout(pressTimer);
+    });
+  }
+
+  if (plotUndoBtn) {
+    plotUndoBtn.addEventListener('click', undoNode);
+  }
+
+  if (plotSaveBtn) {
+    plotSaveBtn.addEventListener('click', savePlot);
+  }
+
+  if (plotCancelBtn) {
+    plotCancelBtn.addEventListener('click', cancelPlot);
+  }
+}
+
+function updateStartTrackButton() {
+  const startTrackBtn = document.getElementById('start-track-btn');
+  if (startTrackBtn) {
+    startTrackBtn.style.display = isPlottingMode ? 'none' : 'flex';
+  }
+}
+
+function startPlotting() {
+  isPlottingMode = true;
+  plotNodes = [];
+  plotColor = 'red';
+
+  const plotBar = document.getElementById('track-plot-bar');
+  const startTrackBtn = document.getElementById('start-track-btn');
+
+  if (plotBar) plotBar.style.display = 'flex';
+  if (startTrackBtn) startTrackBtn.style.display = 'none';
+
+  updatePlotCount();
+}
+
+function addNode() {
+  if (!isPlottingMode) return;
+
+  const center = map.getCenter();
+  plotNodes.push({ lat: center.lat, lng: center.lng });
+  tracksModule.updateTempTrack(plotNodes, false, plotColor);
+  updatePlotCount();
+}
+
+function addNodeWithName() {
+  if (!isPlottingMode) return;
+
+  const center = map.getCenter();
+
+  // Show checkpoint dialog
+  const dialog = document.getElementById('checkpoint-dialog');
+  const backdrop = document.getElementById('checkpoint-backdrop');
+  const input = document.getElementById('checkpoint-name');
+  const confirmBtn = document.getElementById('checkpoint-confirm');
+  const skipBtn = document.getElementById('checkpoint-skip');
+  const closeBtn = document.getElementById('checkpoint-close');
+
+  if (input) input.value = '';
+  dialog?.classList.add('open');
+  backdrop?.classList.add('open');
+  input?.focus();
+
+  const handleConfirm = () => {
+    const name = input?.value.trim();
+    plotNodes.push({ lat: center.lat, lng: center.lng, name: name || undefined });
+    tracksModule.updateTempTrack(plotNodes, false, plotColor);
+    updatePlotCount();
+    closeCheckpointDialog();
+    cleanup();
+  };
+
+  const handleSkip = () => {
+    addNode();
+    closeCheckpointDialog();
+    cleanup();
+  };
+
+  const handleClose = () => {
+    closeCheckpointDialog();
+    cleanup();
+  };
+
+  const closeCheckpointDialog = () => {
+    dialog?.classList.remove('open');
+    backdrop?.classList.remove('open');
+  };
+
+  const cleanup = () => {
+    confirmBtn?.removeEventListener('click', handleConfirm);
+    skipBtn?.removeEventListener('click', handleSkip);
+    closeBtn?.removeEventListener('click', handleClose);
+  };
+
+  confirmBtn?.addEventListener('click', handleConfirm);
+  skipBtn?.addEventListener('click', handleSkip);
+  closeBtn?.addEventListener('click', handleClose);
+}
+
+function undoNode() {
+  if (!isPlottingMode || plotNodes.length === 0) return;
+
+  plotNodes.pop();
+  tracksModule.updateTempTrack(plotNodes, false, plotColor);
+  updatePlotCount();
+}
+
+function savePlot() {
+  if (!isPlottingMode || plotNodes.length < 2) return;
+
+  tracksModule.clearTempTrack();
+  exitPlottingMode();
+
+  window.dispatchEvent(
+    new CustomEvent('openTrackEditor', {
+      detail: { nodes: plotNodes },
+    })
+  );
+
+  plotNodes = [];
+}
+
+function cancelPlot() {
+  if (plotNodes.length > 0) {
+    if (!confirm('Discard track?')) return;
+  }
+
+  tracksModule.clearTempTrack();
+  exitPlottingMode();
+  plotNodes = [];
+}
+
+function exitPlottingMode() {
+  isPlottingMode = false;
+
+  const plotBar = document.getElementById('track-plot-bar');
+  if (plotBar) plotBar.style.display = 'none';
+
+  updateStartTrackButton();
+}
+
+function updatePlotCount() {
+  const plotNodeCount = document.getElementById('plot-node-count');
+  if (plotNodeCount) {
+    plotNodeCount.textContent = `${plotNodes.length} node${plotNodes.length !== 1 ? 's' : ''}`;
+  }
+}
+
 function updateCoordDisplay() {
   if (!map) return;
   const center = map.getCenter();
@@ -152,6 +357,7 @@ function updateCoordDisplay() {
   if (el) el.textContent = display;
 }
 
+// Pin marker functions
 export function addMarker(pin) {
   if (!map) return;
   addMarkerToMap(map, pin);
@@ -163,6 +369,19 @@ export function updateMarker(pin) {
 
 export function removeMarker(pinId) {
   removeMarkerFromMap(pinId);
+}
+
+// Track functions - delegate to tracks module
+export function addTrack(track) {
+  tracksModule.addTrack(track);
+}
+
+export function updateTrack(track) {
+  tracksModule.updateTrack(track);
+}
+
+export function removeTrack(trackId) {
+  tracksModule.removeTrack(trackId);
 }
 
 export function getMap() {
