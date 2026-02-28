@@ -1,3 +1,263 @@
+body {
+    background-color: black;
+    color: white;
+    font-family: "Geist Mono", monospace;
+    font-weight: 400;
+    font-style: normal;
+    height: 100vh;
+    width: 100vw;
+    margin: 0;
+}
+
+#body-container {
+    box-sizing: border-box;
+    display: flex;
+    align-items: stretch;
+    justify-content: stretch;
+    height: 100%;
+    width: 100%;
+    gap: 4px;
+    padding: 4px;
+}
+
+@media (orientation: portrait) {
+    #body-container {
+        flex-direction: column;
+    }
+}
+
+@media (orientation: landscape) {
+    #body-container {
+        flex-direction: row;
+    }
+}
+
+h2 {
+    margin: 0 0 4px 0;
+    text-transform: uppercase;
+    font-weight: 800;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    display: flex;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.icon-title {
+    margin-bottom: -1px;
+}
+
+button {
+    background-color: oklch(0.7 0.18 151 / 30%);
+    border-radius: 4px;
+    color: white;
+    border: 2px solid oklch(0.7 0.18 151 / 50%);
+    padding: 0rem 0.4rem;
+    font-family: "Geist Mono", monospace;
+    font-weight: 800;
+    font-style: normal;
+    font-size: 1rem;
+    text-transform: uppercase;
+}
+
+#map-container {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 0;
+}
+
 #map {
-    height: 50%;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+#crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 1rem;
+    height: 1rem;
+    margin-left: -0.5rem;
+    margin-top: -0.5rem;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+#crosshair::before,
+#crosshair::after {
+    content: '';
+    position: absolute;
+    background: black;
+}
+
+#crosshair::before {
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    transform: translateX(-50%);
+}
+
+#crosshair::after {
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 2px;
+    transform: translateY(-50%);
+}
+
+#coord-container {
+    display: flex;
+    flex-direction: column;
+}
+
+#target-coord-box {
+    display: flex;
+    flex-direction: row;
+    align-content: stretch;
+    gap: 1rem;
+}
+
+#target-coord-box > div {
+    flex: 2 1 0;
+    display: inline;
+}
+
+#add-button {
+    flex: 1 1 0;
+}
+
+.coords {
+    flex: 2 1 0;
+    margin: 0;
+}
+
+.coord-box {
+    border-color: oklch(0.8 0 0 / 80%);
+    padding: 0.2rem 0.4rem;
+    margin-bottom: 4px;
+}
+
+.large-container {
+    border-width: 2px;
+    border-style: solid;
+    border-radius: 8px;
+    padding: 16px;
+}
+
+#pins-section {
+    border-color: oklch(0.7 0.18 151 / 80%);
+    background-color: oklch(0.7 0.18 151 / 15%);
+    display: flex;
+    flex-direction: column;
+}
+
+#point-list {
+    overflow: scroll;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1 1 0;
+    min-height: 16rem;
+    position: relative;
+}
+
+#point-list:has(> template:only-child)::before {
+    content: "No pins added (yet)";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-style: italic;
+    pointer-events: none;
+}
+
+#point-list .list-item {
+    border: 1px solid oklch(0.8 0 0 / 80%);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    flex-direction: row;
+    justify-content: stretch;
+    gap: 1rem;
+}
+
+#point-list .list-item .name {
+    font-weight: 600;
+}
+
+#point-list .list-item p {
+    margin: 0 0 4px;
+}
+
+#point-list .list-item .list-item-content {
+    flex: 1 1 0;
+}
+
+#point-list .lng, #point-list .lat {
+    font-weight: 200;
+}
+
+#point-list .list-item > * {
+    display: inline;
+}
+
+#point-list .list-item button {
+    width: 100%;
+    flex: 0 1 0;
+    padding: 2px 8px;
+}
+
+dialog {
+    padding: 0;
+    border: 2px solid oklch(0.8 0 0 / 80%);
+    border-radius: 8px;
+    background: black;
+    color: white;
+}
+
+input[type=text] {
+    border: 1px solid oklch(0.8 0 0 / 50%);
+    border-radius: 4px;
+    margin: 2px;
+    background-color: #0000;
+    color: white;
+    padding: 4px;
+    font-family: "Geist Mono", monospace;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 1rem;
+}
+
+input:focus {
+    outline: none;
+}
+
+.dialog-container {
+    padding: 1rem;
+}
+
+#add-point-confirm {
+    margin-top: 4px;
+    width: 100%;
+}
+
+dialog::backdrop {
+    background-color: oklch(0 0 0 / 80%);
+}
+
+.field {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: center;
+}
+
+.material-symbols-outlined {
+    vertical-align: middle;
+    font-variation-settings: 'FILL' 0,
+    'wght' 600,
+    'GRAD' 0,
+    'opsz' 24
 }

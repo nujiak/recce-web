@@ -1,18 +1,108 @@
-<html>
-    <head>
-        <!-- MapLibre GL -->
-        <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
-        <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet" />
+<html lang="en">
+<head>
+    <!-- MapLibre GL -->
+    <script src="https://unpkg.com/maplibre-gl/dist/maplibre-gl.js"></script>
+    <link href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" rel="stylesheet"/>
 
-        <!-- JS & CSS -->
-        <link rel="stylesheet" href="style.css">
-        <script src="script.js" defer></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
 
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-    </head>
-    <body>
-        <div display="flex">
-            <div id="map"></div>
+    <!-- Proj4js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.19.10/proj4.js"
+            integrity="sha512-QXAXxYhXWvAc5fA3edU2rOQANjhwKAAlqz1WEhh/FXzODQoqVb9PkHqJcCG7aFoJpN0VQMNnxOBztoIQOcEO5w=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <!-- Dexie -->
+    <script src="https://unpkg.com/dexie/dist/dexie.js"></script>
+
+    <!-- JS & CSS -->
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@100..900&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
+          rel="stylesheet">
+
+    <!-- Icons -->
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add_location_alt,arrows_input,delete,pin_drop,satellite_alt"/>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+    <title>Recce Web</title>
+</head>
+<body>
+<div id="body-container">
+    <div id="map-container">
+        <div id="crosshair"></div>
+        <div id="map"></div>
+    </div>
+    <div id="coord-container">
+        <div id="user-coord-box" class="coord-box large-container" style="display: none;">
+            <h2>
+                <span class="material-symbols-outlined">satellite_alt</span>
+                <span class="icon-title">Location</span>
+            </h2>
+            <p id="user-coord-display" class="coords">Finding location...</p>
         </div>
-    </body>
-<html>
+        <div id="target-coord-box" class="coord-box large-container">
+            <div>
+                <h2>
+                    <span class="material-symbols-outlined">arrows_input</span>
+                    <span class="icon-title">Target</span>
+                </h2>
+                <p id="target-coord-display" class="coords"></p>
+            </div>
+            <button id="add-button">
+                <span class="material-symbols-outlined">add_location_alt</span>
+            </button>
+        </div>
+        <div id="pins-section" class="large-container">
+            <h2>
+                <span class="material-symbols-outlined">pin_drop</span>
+                <span class="icon-title">Pins</span>
+            </h2>
+            <div id="point-list">
+                <template>
+                    <div class="list-item">
+                        <div class="list-item-content">
+                            <p class="name"></p>
+                            <p>
+                                <span class="lng"></span>
+                                <span class="lat"></span>
+                            </p>
+                        </div>
+                        <button>
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+</div>
+<dialog id="add-point">
+    <div class="dialog-container">
+        <h2>ADD PIN</h2>
+        <div class="field">
+            <label for="dialog-name">Name</label>
+            <input type="text" name="name" id="dialog-name">
+        </div>
+        <div class="field">
+            <label for="dialog-lng">Longitude</label>
+            <input type="text" name="lng" id="dialog-lng">
+        </div>
+        <div class="field">
+            <label for="dialog-lat">Latitude</label>
+            <input type="text" name="lat" id="dialog-lat">
+        </div>
+        <div>
+            <button id="add-point-confirm">Add</button>
+        </div>
+    </div>
+</dialog>
+</body>
+</html>
