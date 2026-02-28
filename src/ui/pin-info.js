@@ -7,6 +7,7 @@ export function init() {
   const closeBtn = document.getElementById('pin-info-close');
   const mapBtn = document.getElementById('pin-info-map');
   const editBtn = document.getElementById('pin-info-edit');
+  const openMapsBtn = document.getElementById('pin-info-open-maps');
   const backdrop = document.getElementById('pin-info-backdrop');
 
   if (closeBtn) {
@@ -19,6 +20,10 @@ export function init() {
 
   if (editBtn) {
     editBtn.addEventListener('click', handleEdit);
+  }
+
+  if (openMapsBtn) {
+    openMapsBtn.addEventListener('click', handleOpenMaps);
   }
 
   if (backdrop) {
@@ -80,7 +85,9 @@ export function open(pin, onEdit) {
 function handleMap() {
   if (!currentPin) return;
 
-  window.dispatchEvent(new CustomEvent('flyToPin', { detail: { lat: currentPin.lat, lng: currentPin.lng } }));
+  window.dispatchEvent(
+    new CustomEvent('flyToPin', { detail: { lat: currentPin.lat, lng: currentPin.lng } })
+  );
   closeInfo();
 }
 
@@ -92,6 +99,32 @@ function handleEdit() {
 
   if (onEditCallback) {
     onEditCallback(pinToEdit);
+  }
+}
+
+function handleOpenMaps() {
+  if (!currentPin) return;
+
+  const { lat, lng, name } = currentPin;
+
+  // Try geo: URI first (works on mobile)
+  const geoUri = `geo:${lat},${lng}?q=${lat},${lng}${name ? ` (${encodeURIComponent(name)})` : ''}`;
+
+  // Fallback to Google Maps URL
+  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+
+  // Create a temporary link and try to open
+  const link = document.createElement('a');
+  link.href = geoUri;
+  link.target = '_blank';
+
+  // On mobile, geo: URI might work; on desktop, fall back to Google Maps
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    window.location.href = geoUri;
+  } else {
+    window.open(googleMapsUrl, '_blank', 'noopener');
   }
 }
 

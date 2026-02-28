@@ -19,7 +19,7 @@
     <!-- Icons -->
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add,add_location_alt,arrow_back,arrows_input,compass_calibration,delete,explore,map,pin_drop,ruler,satellite_alt,settings,straighten"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add,add_location_alt,arrow_back,arrows_input,checklist,close,compass_calibration,delete,edit,explore,location_on,map,pin_drop,ruler,share,satellite_alt,settings,straighten,trip_origin"
     />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -45,9 +45,14 @@
                 </h2>
                 <p id="target-coord-display" class="coords"></p>
               </div>
-              <button id="add-button" class="icon-btn" aria-label="Add pin">
-                <span class="material-symbols-outlined">add_location_alt</span>
-              </button>
+              <div class="coord-actions">
+                <button id="goto-btn" class="icon-btn" aria-label="Go to coordinates" title="Go To">
+                  <span class="material-symbols-outlined">straighten</span>
+                </button>
+                <button id="add-button" class="icon-btn" aria-label="Add pin">
+                  <span class="material-symbols-outlined">add_location_alt</span>
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -57,6 +62,36 @@
           <header class="surface-header">
             <h1>Saved</h1>
           </header>
+          <!-- Saved Toolbar -->
+          <div id="saved-toolbar" class="saved-toolbar">
+            <button id="saved-sort-btn" class="btn-small" aria-label="Sort">Newest</button>
+            <input
+              type="text"
+              id="saved-search"
+              class="search-input"
+              placeholder="Search..."
+              aria-label="Search saved items"
+            />
+            <button id="saved-multiselect-btn" class="btn-small" aria-label="Multi-select">
+              <span class="material-symbols-outlined">checklist</span>
+            </button>
+          </div>
+          <!-- Multi-select Toolbar -->
+          <div id="saved-multi-toolbar" class="saved-toolbar multi-toolbar" style="display: none">
+            <button id="saved-cancel-btn" class="btn-small" aria-label="Cancel">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+            <span class="multi-count">Selected: <span id="selected-count">0</span></span>
+            <button id="saved-ruler-btn" class="btn-small" aria-label="Add to Ruler">
+              <span class="material-symbols-outlined">straighten</span>
+            </button>
+            <button id="saved-share-btn" class="btn-small" aria-label="Share">
+              <span class="material-symbols-outlined">share</span>
+            </button>
+            <button id="saved-delete-btn" class="btn-small btn-danger" aria-label="Delete">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </div>
           <div id="saved-list" class="saved-content"></div>
         </section>
       </main>
@@ -113,23 +148,104 @@
       </aside>
     </div>
 
-    <!-- Add Pin Dialog -->
-    <dialog id="add-point">
-      <div class="dialog-container">
-        <h2>ADD PIN</h2>
+    <!-- Pin Editor Bottom Sheet -->
+    <div id="pin-editor-backdrop" class="sheet-backdrop"></div>
+    <div id="pin-editor" class="bottom-sheet" role="dialog" aria-label="Pin Editor">
+      <div class="sheet-header">
+        <h2 id="pin-editor-title">Add Pin</h2>
+        <button id="pin-editor-close" class="icon-btn" aria-label="Close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="sheet-content">
         <div class="field">
-          <label for="dialog-name">Name</label>
-          <input type="text" name="name" id="dialog-name" />
+          <label for="pin-editor-name">Name</label>
+          <input type="text" id="pin-editor-name" maxlength="20" placeholder="Enter name" />
         </div>
         <div class="field">
-          <label for="dialog-coord">Coordinates</label>
-          <input type="text" name="coord" id="dialog-coord" />
+          <label for="pin-editor-coord"
+            >Coordinates (<span id="pin-editor-coord-label">WGS84</span>)</label
+          >
+          <input type="text" id="pin-editor-coord" placeholder="Enter coordinates" />
         </div>
-        <div>
-          <button id="add-point-confirm">Add</button>
+        <div class="field">
+          <label>Colour</label>
+          <div id="pin-editor-colors" class="color-picker"></div>
+        </div>
+        <div class="field">
+          <label for="pin-editor-group">Group</label>
+          <input
+            type="text"
+            id="pin-editor-group"
+            list="pin-editor-groups"
+            placeholder="Optional group name"
+          />
+          <datalist id="pin-editor-groups"></datalist>
+        </div>
+        <div class="field">
+          <label for="pin-editor-description">Description</label>
+          <textarea
+            id="pin-editor-description"
+            rows="3"
+            placeholder="Optional description"
+          ></textarea>
         </div>
       </div>
-    </dialog>
+      <div class="sheet-actions">
+        <button id="pin-editor-delete" class="btn-danger" style="display: none">Delete</button>
+        <button id="pin-editor-save" class="btn-primary">Save</button>
+      </div>
+    </div>
+
+    <!-- Pin Info Modal -->
+    <div id="pin-info-backdrop" class="modal-backdrop"></div>
+    <div id="pin-info" class="info-modal" role="dialog" aria-label="Pin Information">
+      <div class="info-modal-header">
+        <h2 id="pin-info-name"></h2>
+        <button id="pin-info-close" class="icon-btn" aria-label="Close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="info-modal-content">
+        <span id="pin-info-group" class="tag"></span>
+        <p id="pin-info-description" class="info-description"></p>
+        <div id="pin-info-coord-list" class="coord-list"></div>
+      </div>
+      <div class="info-modal-actions">
+        <button id="pin-info-open-maps" class="btn-secondary">
+          <span class="material-symbols-outlined">map</span>
+          Open in Maps
+        </button>
+        <button id="pin-info-map" class="btn-secondary">
+          <span class="material-symbols-outlined">location_on</span>
+          Go To
+        </button>
+        <button id="pin-info-edit" class="btn-primary">
+          <span class="material-symbols-outlined">edit</span>
+          Edit
+        </button>
+      </div>
+    </div>
+
+    <!-- Go To Dialog -->
+    <div id="goto-backdrop" class="modal-backdrop"></div>
+    <div id="goto-dialog" class="dialog" role="dialog" aria-label="Go To Coordinates">
+      <div class="dialog-header">
+        <h2>Go To</h2>
+        <button id="goto-close" class="icon-btn" aria-label="Close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="dialog-content">
+        <div class="field">
+          <label for="goto-input">Coordinates</label>
+          <input type="text" id="goto-input" placeholder="Enter coordinates" />
+        </div>
+      </div>
+      <div class="dialog-actions">
+        <button id="goto-submit" class="btn-primary">Go</button>
+      </div>
+    </div>
 
     <script type="module" src="/main.js"></script>
   </body>

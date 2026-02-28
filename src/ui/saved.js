@@ -1,4 +1,4 @@
-import { getAllPins } from '../db/db.js';
+import { getAllPins, deletePin } from '../db/db.js';
 import { CoordinateTransformer } from '../coords/index.js';
 import { getPrefs } from './settings.js';
 
@@ -41,13 +41,11 @@ function setupToolbarEvents() {
   }
 
   if (shareBtn) {
-    shareBtn.addEventListener('click', () => {
-    });
+    shareBtn.addEventListener('click', () => {});
   }
 
   if (rulerBtn) {
-    rulerBtn.addEventListener('click', () => {
-    });
+    rulerBtn.addEventListener('click', () => {});
   }
 
   if (cancelBtn) {
@@ -78,7 +76,7 @@ async function handleBulkDelete() {
   if (selectedIds.size === 0) return;
 
   for (const id of selectedIds) {
-    await window.db.pins.delete(id);
+    await deletePin(id);
     window.dispatchEvent(new CustomEvent('pinDeleted', { detail: { id } }));
   }
 
@@ -220,6 +218,7 @@ function updateToolbar() {
   const sortBtn = document.getElementById('saved-sort-btn');
   const toolbar = document.getElementById('saved-toolbar');
   const multiToolbar = document.getElementById('saved-multi-toolbar');
+  const selectedCountEl = document.getElementById('selected-count');
 
   if (sortBtn) {
     const labels = {
@@ -238,6 +237,10 @@ function updateToolbar() {
 
   if (multiToolbar) {
     multiToolbar.style.display = isMultiSelectMode ? '' : 'none';
+  }
+
+  if (selectedCountEl) {
+    selectedCountEl.textContent = selectedIds.size;
   }
 }
 
