@@ -2,6 +2,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { CoordinateTransformer } from '../coords/index.js';
 import { getAllPins, addPin } from '../db/db.js';
+import { getPrefs } from '../ui/settings.js';
 import { renderMarkers, addMarker } from './markers.js';
 
 let map = null;
@@ -46,12 +47,19 @@ export function init() {
 
     addPointConfirm.addEventListener('click', handleAddConfirm);
   }
+
+  window.addEventListener('prefsChanged', (e) => {
+    if (e.detail.key === 'coordinateSystem') {
+      updateCoordDisplay();
+    }
+  });
 }
 
 function updateCoordDisplay() {
   if (!map) return;
   const center = map.getCenter();
-  const display = CoordinateTransformer.toDisplay(center.lat, center.lng, 'KERTAU');
+  const prefs = getPrefs();
+  const display = CoordinateTransformer.toDisplay(center.lat, center.lng, prefs.coordinateSystem);
   const el = document.getElementById('target-coord-display');
   if (el) el.textContent = display;
 }
@@ -59,17 +67,17 @@ function updateCoordDisplay() {
 function openAddDialog() {
   if (!map) return;
   const center = map.getCenter();
-  const display = CoordinateTransformer.toDisplay(center.lat, center.lng, 'KERTAU');
-  const [easting, northing] = display.split(' ');
+  const prefs = getPrefs();
+  const display = CoordinateTransformer.toDisplay(center.lat, center.lng, prefs.coordinateSystem);
 
   const dialog = document.getElementById('add-point');
   const nameInput = dialog.querySelector('[name="name"]');
-  const lngInput = dialog.querySelector('[name="lng"]');
-  const latInput = dialog.querySelector('[name="lat"]');
+  const coordInput = dialog.querySelector('[name="coord"]');
+  const coordLabel = dialog.querySelector('label[for="dialog-coord"]');
 
   if (nameInput) nameInput.value = '';
-  if (lngInput) lngInput.value = easting;
-  if (latInput) latInput.value = northing;
+  if (coordInput) coordInput.value = display;
+  if (coordLabel) coordLabel.textContent = prefs.coordinateSystem;
 
   dialog.showModal();
 }
@@ -77,16 +85,15 @@ function openAddDialog() {
 async function handleAddConfirm() {
   const dialog = document.getElementById('add-point');
   const nameInput = dialog.querySelector('[name="name"]');
-  const lngInput = dialog.querySelector('[name="lng"]');
-  const latInput = dialog.querySelector('[name="lat"]');
+  const coordInput = dialog.querySelector('[name="coord"]');
 
   const name = nameInput.value.trim();
-  const easting = parseFloat(lngInput.value);
-  const northing = parseFloat(latInput.value);
+  const coordStr = coordInput.value.trim();
 
-  if (!name || isNaN(easting) || isNaN(northing)) return;
+  if (!name || !coordStr) return;
 
-  const parsed = CoordinateTransformer.parse(`${easting} ${northing}`, 'KERTAU');
+  const prefs = getPrefs();
+  const parsed = CoordinateTransformer.parse(coordStr, prefs.coordinateSystem);
   if (!parsed) return;
 
   const pin = {

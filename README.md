@@ -435,8 +435,8 @@ is accessible offline.
 | Feature | Phase | Status |
 |---------|-------|--------|
 | Map with crosshair + coordinate display | 0 / 2 | done |
-| Six coordinate systems (WGS84, UTM, MGRS, BNG, QTH, Kertau) | 2 | — |
-| Settings (coord system, units, theme, map type) | 2 | — |
+| Six coordinate systems (WGS84, UTM, MGRS, BNG, QTH, Kertau) | 2 | done |
+| Settings (coord system, units, theme, map type) | 2 | done |
 | Onboarding flow | 3 | — |
 | Pin creation / editing / deletion | 4 | partial |
 | Pin colour + group + description | 4 | — |
@@ -455,7 +455,7 @@ is accessible offline.
 | Ruler (multi-point distance + bearing) | 9 | — |
 | Add to Ruler from Saved | 9 | — |
 | PWA (installable, offline-capable) | 10 | stub |
-| Dark / light / system theme | 2 / 11 | partial |
+| Dark / light / system theme | 2 / 11 | done |
 | Responsive layout (mobile + desktop) | 1 | done |
 | Keyboard navigation + ARIA | 11 | — |
 
