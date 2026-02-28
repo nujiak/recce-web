@@ -437,7 +437,7 @@ is accessible offline.
 | Map with crosshair + coordinate display | 0 / 2 | done |
 | Six coordinate systems (WGS84, UTM, MGRS, BNG, QTH, Kertau) | 2 | done |
 | Settings (coord system, units, theme, map type) | 2 | done |
-| Onboarding flow | 3 | — |
+| Onboarding flow | 3 | done |
 | Pin creation / editing / deletion | 4 | partial |
 | Pin colour + group + description | 4 | — |
 | Pin info modal (all coord representations) | 4 | — |

@@ -535,6 +535,162 @@ input:focus {
   border-color: var(--color-accent);
 }
 
+/* Onboarding */
+.onboarding {
+  position: fixed;
+  inset: 0;
+  background: var(--color-bg);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+}
+
+.onboarding-content {
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.onboarding-step {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.onboarding-step.hidden {
+  display: none;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.onboarding-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: 2px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.onboarding-heading {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-sm);
+}
+
+.onboarding-subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xl);
+}
+
+.onboarding-desc {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.onboarding-icon {
+  margin: var(--spacing-xl) 0;
+}
+
+.onboarding-icon .material-symbols-outlined {
+  font-size: 64px;
+  color: var(--color-accent);
+}
+
+.onboarding-form {
+  text-align: left;
+  margin-top: var(--spacing-lg);
+}
+
+.onboarding-field {
+  margin-bottom: var(--spacing-md);
+}
+
+.onboarding-field label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.onboarding-field select {
+  width: 100%;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  padding: var(--spacing-sm);
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.onboarding-nav {
+  margin-top: var(--spacing-xl);
+}
+
+.onboarding-dots {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-border);
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.dot.active {
+  background: var(--color-accent);
+  transform: scale(1.25);
+}
+
+.onboarding-buttons {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.onboarding-buttons button {
+  flex: 1;
+  padding: var(--spacing-md);
+  font-size: 0.9rem;
+}
+
+.btn-primary {
+  background: var(--color-accent);
+  border: none;
+  color: var(--color-bg);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.btn-secondary:hover {
+  background: var(--color-bg-secondary);
+}
+
 /* Desktop Layout */
 @media (min-width: 768px) {
   #app {
