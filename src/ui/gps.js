@@ -111,6 +111,12 @@ export function init() {
     copyBtn.addEventListener('click', handleCopyCoord);
   }
 
+  // Make coord value tappable to copy
+  if (coordValue) {
+    coordValue.style.cursor = 'pointer';
+    coordValue.addEventListener('click', handleCopyCoord);
+  }
+
   // Start GPS
   startGPS();
 

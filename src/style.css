@@ -192,6 +192,14 @@ body {
   color: var(--color-text-secondary);
 }
 
+#target-coord-display {
+  cursor: pointer;
+}
+
+#target-coord-display:active {
+  opacity: 0.6;
+}
+
 .icon-title {
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1053,6 +1061,16 @@ input:focus {
   align-items: baseline;
   padding: var(--spacing-xs) 0;
   border-bottom: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.pin-info-coord-row:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.pin-info-coord-row:active {
+  opacity: 0.6;
 }
 
 .pin-info-coord-row:last-child {

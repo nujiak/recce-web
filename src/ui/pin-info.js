@@ -1,4 +1,5 @@
 import { CoordinateTransformer } from '../coords/index.js';
+import { showToast } from '../utils/toast.js';
 
 let currentPin = null;
 let onEditCallback = null;
@@ -74,6 +75,16 @@ export function open(pin, onEdit) {
         <span class="pin-info-coord-name">${system}</span>
         <span class="pin-info-coord-value">${display}</span>
       `;
+      row.addEventListener('click', async () => {
+        const value = row.querySelector('.pin-info-coord-value')?.textContent.trim();
+        if (!value) return;
+        try {
+          await navigator.clipboard.writeText(value);
+          showToast('Coordinates copied', 'success');
+        } catch {
+          showToast('Failed to copy', 'error');
+        }
+      });
       coordListEl.appendChild(row);
     }
   }

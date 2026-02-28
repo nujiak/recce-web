@@ -3,6 +3,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { CoordinateTransformer } from '../coords/index.js';
 import { getAllPins, getAllTracks } from '../db/db.js';
 import { getPrefs } from '../ui/settings.js';
+import { showToast } from '../utils/toast.js';
 import {
   renderMarkers,
   addMarker as addMarkerToMap,
@@ -424,7 +425,20 @@ function updateCoordDisplay() {
   const prefs = getPrefs();
   const display = CoordinateTransformer.toDisplay(center.lat, center.lng, prefs.coordinateSystem);
   const el = document.getElementById('target-coord-display');
-  if (el) el.textContent = display;
+  if (el) {
+    el.textContent = display;
+    if (!el.dataset.clickHandler) {
+      el.dataset.clickHandler = 'true';
+      el.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(el.textContent.trim());
+          showToast('Coordinates copied', 'success');
+        } catch {
+          showToast('Failed to copy', 'error');
+        }
+      });
+    }
+  }
 }
 
 // Pin marker functions
