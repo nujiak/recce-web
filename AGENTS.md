@@ -1,6 +1,7 @@
 # AGENTS.md — Recce Web
 
 ## Core Rules
+
 - IMPORTANT: Never commit without explicit permission
 - IMPORTANT: Never commit directly on main/master; create a branch first
 - IMPORTANT: Never force push to main/master
@@ -9,17 +10,20 @@
 - Prefer existing files and patterns over new ones
 
 ## LLM Behaviour
+
 - Reply succinctly; minimise verbosity and file reads
 - Use @file references; run single tests, not full suites
 - Course-correct early to avoid context pollution
 
 ## Git Practices
+
 - Short commit messages; break into atomic commits
 - Run lint/typecheck before committing; stage only relevant files
 - Branch naming: `type/description` (e.g. `feature/track-creation`, `fix/coord-display`)
 - Verify author before amending; never amend pushed commits
 
 ## Pull Requests
+
 - Explain context/motivation; describe solution approach
 - Use section names: Summary, Changes, Motivation, Testing
 
@@ -32,6 +36,7 @@ It is built with Vite (no framework) and outputs a fully static `dist/` folder s
 any HTTP server.
 
 **Key constraints:**
+
 - Output must be a static site — no server-side rendering, no backend
 - Must work on mobile browsers and desktop browsers (adaptive/responsive UI)
 - Offline-first via a PWA service worker
@@ -43,16 +48,16 @@ any HTTP server.
 
 ### Stack
 
-| Concern | Choice | Reason |
-|---------|--------|--------|
-| Build | Vite | Fast HMR, static `dist/` output, good CI story |
-| Map | MapLibre GL JS | Already integrated; vector tiles; free |
-| Map tiles | OpenFreeMap | No API key needed |
-| Database | Dexie (IndexedDB) | Already integrated; typed, promise-based |
-| Coordinates | proj4js + custom parsers | Already integrated; handles all 6 systems |
-| Compression | pako (zlib) | Share-code compression |
-| Icons | Material Symbols (CDN) | Already in use |
-| Font | Geist Mono (Google Fonts) | Already in use |
+| Concern     | Choice                    | Reason                                         |
+| ----------- | ------------------------- | ---------------------------------------------- |
+| Build       | Vite                      | Fast HMR, static `dist/` output, good CI story |
+| Map         | MapLibre GL JS            | Already integrated; vector tiles; free         |
+| Map tiles   | OpenFreeMap               | No API key needed                              |
+| Database    | Dexie (IndexedDB)         | Already integrated; typed, promise-based       |
+| Coordinates | proj4js + custom parsers  | Already integrated; handles all 6 systems      |
+| Compression | pako (zlib)               | Share-code compression                         |
+| Icons       | Material Symbols (CDN)    | Already in use                                 |
+| Font        | Geist Mono (Google Fonts) | Already in use                                 |
 
 ### File Layout
 
@@ -107,14 +112,14 @@ imperatively by the module that owns the relevant section of the UI.
 
 ```js
 {
-  id,          // auto-increment integer
-  createdAt,   // ms timestamp
-  name,        // string, max 20 chars
-  lat,         // WGS84 decimal degrees
-  lng,         // WGS84 decimal degrees
-  color,       // 'red' | 'orange' | 'green' | 'azure' | 'violet'
-  group,       // string (empty string = ungrouped)
-  description  // string
+  (id, // auto-increment integer
+    createdAt, // ms timestamp
+    name, // string, max 20 chars
+    lat, // WGS84 decimal degrees
+    lng, // WGS84 decimal degrees
+    color, // 'red' | 'orange' | 'green' | 'azure' | 'violet'
+    group, // string (empty string = ungrouped)
+    description); // string
 }
 ```
 
@@ -122,14 +127,14 @@ imperatively by the module that owns the relevant section of the UI.
 
 ```js
 {
-  id,
-  createdAt,
-  name,        // string, max 20 chars
-  nodes,       // Array<{ lat, lng, name? }>  — name marks a named waypoint/checkpoint
-  isCyclical,  // boolean — false = open path, true = closed area/polygon
-  color,       // 'red' | 'orange' | 'green' | 'azure' | 'violet'
-  group,       // string
-  description  // string
+  (id,
+    createdAt,
+    name, // string, max 20 chars
+    nodes, // Array<{ lat, lng, name? }>  — name marks a named waypoint/checkpoint
+    isCyclical, // boolean — false = open path, true = closed area/polygon
+    color, // 'red' | 'orange' | 'green' | 'azure' | 'violet'
+    group, // string
+    description); // string
 }
 ```
 
@@ -137,22 +142,21 @@ imperatively by the module that owns the relevant section of the UI.
 
 ```js
 {
-  coordinateSystem, // 'WGS84' | 'UTM' | 'MGRS' | 'BNG' | 'QTH' | 'KERTAU'
-  angleUnit,        // 'degrees' | 'mils'
-  lengthUnit,       // 'metric' | 'imperial' | 'nautical'
-  mapType,          // 'normal' | 'satellite' | 'hybrid'
-  theme,            // 'light' | 'dark' | 'system'
-  onboardingDone    // boolean
+  (coordinateSystem, // 'WGS84' | 'UTM' | 'MGRS' | 'BNG' | 'QTH' | 'KERTAU'
+    angleUnit, // 'degrees' | 'mils'
+    lengthUnit, // 'metric' | 'imperial' | 'nautical'
+    theme, // 'light' | 'dark' | 'system'
+    onboardingDone); // boolean
 }
 ```
 
 ### Navigation Model
 
-| Surface | Mobile | Desktop |
-|---------|--------|---------|
-| **Map** (default) | Full screen | Left pane (flexible width) |
-| **Saved** | Full screen, tab-switched | Right pane (fixed width, scrollable) |
-| **Toolbox** | FAB → modal overlay | FAB → modal overlay |
+| Surface           | Mobile                    | Desktop                              |
+| ----------------- | ------------------------- | ------------------------------------ |
+| **Map** (default) | Full screen               | Left pane (flexible width)           |
+| **Saved**         | Full screen, tab-switched | Right pane (fixed width, scrollable) |
+| **Toolbox**       | FAB → modal overlay       | FAB → modal overlay                  |
 
 Map/Saved toggle is a bottom tab bar on mobile. On desktop the two panes sit side-by-side
 via CSS Grid. The Toolbox FAB is always visible on the map surface and opens a modal
@@ -164,26 +168,27 @@ containing GPS, Ruler, and Settings panels.
 
 ### Map Screen
 
-| Element | Behaviour |
-|---------|-----------|
-| Full-screen MapLibre map | Default view on launch |
-| Crosshair | Fixed centre reticle; coordinate display updates on every `move` event |
-| Coordinate display | Shows crosshair position in the active coordinate system |
+| Element                  | Behaviour                                                                              |
+| ------------------------ | -------------------------------------------------------------------------------------- |
+| Full-screen MapLibre map | Default view on launch                                                                 |
+| Crosshair                | Fixed centre reticle; coordinate display updates on every `move` event                 |
+| Coordinate display       | Shows crosshair position in the active coordinate system                               |
 | Live measurement overlay | Distance and bearing from current GPS location to crosshair (shown when GPS is active) |
-| Map type toggle | Switch between Normal / Satellite / Hybrid tiles |
-| Compass button | Shows current bearing; click resets map rotation to north |
-| Location button | Centres map on current GPS position; long-press also resets rotation |
-| Main FAB (➕) | Opens pin editor pre-filled with crosshair coordinates |
-| Go To button | Opens coordinate input → flies map to entered position |
-| Track plot FAB | Starts/appends track plotting mode (secondary FAB, visible during plotting) |
+| Compass button           | Shows current bearing; click resets map rotation to north                              |
+| Location button          | Centres map on current GPS position; long-press also resets rotation                   |
+| Main FAB (➕)            | Opens pin editor pre-filled with crosshair coordinates                                 |
+| Go To button             | Opens coordinate input → flies map to entered position                                 |
+| Track plot FAB           | Starts/appends track plotting mode (secondary FAB, visible during plotting)            |
 
 **Track plotting mode** (active while building a track):
+
 - Tapping the plot FAB appends the current crosshair position as a node
 - Long-pressing the FAB appends the node and prompts for a checkpoint name
 - Undo button removes the last node
 - Save button opens the track editor; Cancel discards the session
 
 **Map interactions:**
+
 - Click a pin marker → opens Pin Info modal
 - Click a track polyline/polygon → opens Track Info modal
 
@@ -191,15 +196,16 @@ containing GPS, Ruler, and Settings panels.
 
 **Colours and their semantic intent:**
 
-| Value | Colour | Intent |
-|-------|--------|--------|
-| `red` | Red | Default / attention |
+| Value    | Colour | Intent                 |
+| -------- | ------ | ---------------------- |
+| `red`    | Red    | Default / attention    |
 | `orange` | Orange | Warning / intermediate |
-| `green` | Green | Safe / completed |
-| `azure` | Azure | Water / special |
-| `violet` | Violet | Unique / marked |
+| `green`  | Green  | Safe / completed       |
+| `azure`  | Azure  | Water / special        |
+| `violet` | Violet | Unique / marked        |
 
 **Pin Editor** (bottom sheet on mobile, centred dialog on desktop):
+
 - Name — required, max 20 chars
 - Coordinates — single input field, parsed in the active coordinate system
 - Colour — 5-option colour picker
@@ -208,6 +214,7 @@ containing GPS, Ruler, and Settings panels.
 - Actions: Save (create or update), Delete (edit mode only)
 
 **Pin Info modal:**
+
 - Header: name + colour theming
 - Group tag
 - Description
@@ -217,10 +224,12 @@ containing GPS, Ruler, and Settings panels.
 ### Track System
 
 A **Track** is an ordered list of `{ lat, lng, name? }` nodes rendered on the map.
+
 - `isCyclical = false` → open **Path** (polyline A→B→C)
 - `isCyclical = true` → closed **Area** (filled polygon A→B→C→A)
 
 **Calculations:**
+
 - Path: total distance = sum of Haversine distances between consecutive nodes
 - Area: perimeter (same as path, plus closing segment) + enclosed area via the
   spherical excess formula or the shoelace formula on projected coordinates
@@ -229,6 +238,7 @@ A **Track** is an ordered list of `{ lat, lng, name? }` nodes rendered on the ma
 markers on the map and listed in the Track Info modal.
 
 **Track Editor** (same sheet pattern as Pin Editor):
+
 - Name — required, max 20 chars
 - Type — Path / Area toggle (`isCyclical`)
 - Colour
@@ -237,6 +247,7 @@ markers on the map and listed in the Track Info modal.
 - Actions: Save, Delete (edit mode only)
 
 **Track Info modal:**
+
 - Header: name + colour theming
 - Type icon (path vs area)
 - Total distance (path) or perimeter + area (area), in user's preferred length unit
@@ -252,6 +263,7 @@ Track cards additionally show: Path/Area icon, total distance, node count.
 **Sort options:** Name A–Z, Name Z–A, Time newest, Time oldest, Group.
 
 **Multi-select mode** (entered via long-press or checkbox):
+
 - Delete selected items
 - Share selected items (generates a share code)
 - Add selected items to Ruler
@@ -261,6 +273,7 @@ Track cards additionally show: Path/Area icon, total distance, node count.
 ### GPS & Compass Panel (Toolbox)
 
 **Location card:**
+
 - Current position in active coordinate system
 - GPS accuracy in metres
 - Altitude in metres (or feet when `lengthUnit = 'imperial'`)
@@ -269,6 +282,7 @@ Track cards additionally show: Path/Area icon, total distance, node count.
 Implementation: `navigator.geolocation.watchPosition` with `enableHighAccuracy: true`.
 
 **Compass card:**
+
 - Azimuth (0–360° or 0–6400 NATO mils depending on `angleUnit`)
 - Pitch (forward/backward tilt in degrees)
 - Roll (side tilt in degrees)
@@ -291,13 +305,12 @@ Implementation: `DeviceOrientationEvent` (`webkitCompassHeading` on iOS;
 
 ### Settings Panel (Toolbox)
 
-| Setting | Options |
-|---------|---------|
+| Setting           | Options                            |
+| ----------------- | ---------------------------------- |
 | Coordinate system | WGS84, UTM, MGRS, BNG, QTH, Kertau |
-| Angle unit | Degrees, NATO Mils |
-| Length unit | Metric, Imperial, Nautical |
-| Theme | Light, Dark, System |
-| Map type | Normal, Satellite, Hybrid |
+| Angle unit        | Degrees, NATO Mils                 |
+| Length unit       | Metric, Imperial, Nautical         |
+| Theme             | Light, Dark, System                |
 
 Changes apply immediately. Persisted to `localStorage` under key `recce_prefs`.
 
@@ -313,10 +326,12 @@ Dark theme enforced regardless of system preference during the flow.
 ### Share Code Format
 
 Codes must survive copy-paste through messaging apps (WhatsApp, Telegram, SMS):
+
 - Alphabet `0-9A-Za-z` only — no `+`, `/`, `=`, or whitespace
 - Version prefix `R1` enables future format changes without breaking old clients
 
 **Encoding:**
+
 1. Build `{ pins: [...], tracks: [...] }` with only essential fields
    (omit `id`; keep `createdAt` as the deduplication key)
 2. `JSON.stringify` → `pako.deflate` (raw deflate, no zlib header)
@@ -324,6 +339,7 @@ Codes must survive copy-paste through messaging apps (WhatsApp, Telegram, SMS):
 4. Prepend `R1`
 
 **Decoding:**
+
 1. Strip `R1` prefix; Base62 decode → byte array
 2. `pako.inflate` → JSON string → `JSON.parse`
 3. Merge into DB; skip any item whose `createdAt` already exists
@@ -339,13 +355,13 @@ user input. All six systems share a unified API in `src/coords/index.js`:
 
 ```js
 // Convert WGS84 → display string in the given system
-CoordinateTransformer.toDisplay(lat, lng, system)   // → string | null
+CoordinateTransformer.toDisplay(lat, lng, system); // → string | null
 
 // Parse a user-input string in the given system → { lat, lng } or null
-CoordinateTransformer.parse(input, system)           // → { lat, lng } | null
+CoordinateTransformer.parse(input, system); // → { lat, lng } | null
 
 // Get display strings for all systems at once (for Pin Info modal)
-CoordinateTransformer.allSystems(lat, lng)           // → Map<system, string>
+CoordinateTransformer.allSystems(lat, lng); // → Map<system, string>
 ```
 
 ---
@@ -362,6 +378,7 @@ Format 2 (signed decimal):    "1.3521 103.8198"          or  "-1.3521 -103.8198"
 ```
 
 **Regex patterns:**
+
 ```
 // Format 1
 /^\s*([0-9.,]+)\s*°?\s*([NSns])\s*([0-9.,]+)\s*°?\s*([EWew])\s*$/
@@ -389,6 +406,7 @@ Format 2 (signed decimal):    "1.3521 103.8198"          or  "-1.3521 -103.8198"
 **EPSG codes:** Northern `zone + 32600`; Southern `zone + 32700`
 
 **Projection constants:**
+
 ```
 k0 = 0.9996
 False easting        = 500 000 m
@@ -397,6 +415,7 @@ False northing South = 10 000 000 m
 ```
 
 **WGS84 ellipsoid constants used throughout UTM/MGRS:**
+
 ```
 a  = 6 378 137.0 m          (semi-major axis)
 f  = 1 / 298.257223563      (flattening)
@@ -405,6 +424,7 @@ e² = 2f − f²                (first eccentricity squared)
 ```
 
 **WGS84 → UTM (Transverse Mercator forward):**
+
 ```
 latRad = lat × π/180
 lngRad = lng × π/180
@@ -424,6 +444,7 @@ northing = k0·(M + N·tan(latRad)·(A²/2 + (5−T+9C+4C²)·A⁴/24
 ```
 
 **UTM → WGS84 (reverse):**
+
 ```
 // Remove false offsets
 x = easting − 500000
@@ -470,6 +491,7 @@ lng = centralMeridian + (
 Derived from UTM. Adds a latitude band letter and a 100 km grid-square designator.
 
 **Display format:** `48PWW 12345 67890`
+
 - `48` = UTM zone, `P` = MGRS latitude band, `WW` = 100 km square (column + row letters)
 - `12345` / `67890` = easting / northing within the 100 km square (5 digits = 1 m precision)
 
@@ -477,54 +499,75 @@ Derived from UTM. Adds a latitude band letter and a 100 km grid-square designato
 
 **Precision levels:**
 
-| Digit pairs | Precision |
-|-------------|-----------|
-| 1 (2 digits) | 10 km |
-| 2 (4 digits) | 1 km |
-| 3 (6 digits) | 100 m |
-| 4 (8 digits) | 10 m |
-| 5 (10 digits) | 1 m |
+| Digit pairs   | Precision |
+| ------------- | --------- |
+| 1 (2 digits)  | 10 km     |
+| 2 (4 digits)  | 1 km      |
+| 3 (6 digits)  | 100 m     |
+| 4 (8 digits)  | 10 m      |
+| 5 (10 digits) | 1 m       |
 
 **Latitude band letters** (C–X, skipping I and O):
 
-| Latitude | Band | Latitude | Band |
-|----------|------|----------|------|
-| −80 to −72 | C | 0 to 8 | N |
-| −72 to −64 | D | 8 to 16 | P |
-| −64 to −56 | E | 16 to 24 | Q |
-| −56 to −48 | F | 24 to 32 | R |
-| −48 to −40 | G | 32 to 40 | S |
-| −40 to −32 | H | 40 to 48 | T |
-| −32 to −24 | J | 48 to 56 | U |
-| −24 to −16 | K | 56 to 64 | V |
-| −16 to −8  | L | 64 to 72 | W |
-| −8 to 0    | M | 72 to 84 | X |
+| Latitude   | Band | Latitude | Band |
+| ---------- | ---- | -------- | ---- |
+| −80 to −72 | C    | 0 to 8   | N    |
+| −72 to −64 | D    | 8 to 16  | P    |
+| −64 to −56 | E    | 16 to 24 | Q    |
+| −56 to −48 | F    | 24 to 32 | R    |
+| −48 to −40 | G    | 32 to 40 | S    |
+| −40 to −32 | H    | 40 to 48 | T    |
+| −32 to −24 | J    | 48 to 56 | U    |
+| −24 to −16 | K    | 56 to 64 | V    |
+| −16 to −8  | L    | 64 to 72 | W    |
+| −8 to 0    | M    | 72 to 84 | X    |
 
 `index = min(floor((lat + 80) / 8), 19)`; band = `'CDEFGHJKLMNPQRSTUVWX'[index]`
 
 **100 km column letters** (by `zone % 3`):
+
 ```
 zone % 3 === 1: A B C D E F G H
 zone % 3 === 2: J K L M N P Q R
 zone % 3 === 0: S T U V W X Y Z
 ```
+
 `columnIndex = floor(easting / 100000) − 1` (0-based into the array above)
 
 **100 km row letters** (by `zone % 2`, repeating every 2 000 000 m northing):
+
 ```
 zone % 2 === 1: A B C D E F G H J K L M N P Q R S T U V
 zone % 2 === 0: F G H J K L M N P Q R S T U V A B C D E
 ```
+
 `rowIndex = floor((northing % 2000000) / 100000)`
 
 **Y-band disambiguation** (when converting MGRS → UTM, multiple northing offsets are
 possible; try each and accept the one whose derived MGRS band matches):
+
 ```js
 const Y_BANDS = {
-  C:[1,0], D:[1,0], E:[1],   F:[2,1], G:[2],   H:[3,2],
-  J:[3],   K:[4,3], L:[4],   M:[4,4], N:[0],   P:[0],
-  Q:[0,1], R:[1],   S:[1,2], T:[2],   U:[2,3], V:[3],
-  W:[3,4], X:[3,4]
+  C: [1, 0],
+  D: [1, 0],
+  E: [1],
+  F: [2, 1],
+  G: [2],
+  H: [3, 2],
+  J: [3],
+  K: [4, 3],
+  L: [4],
+  M: [4, 4],
+  N: [0],
+  P: [0],
+  Q: [0, 1],
+  R: [1],
+  S: [1, 2],
+  T: [2],
+  U: [2, 3],
+  V: [3],
+  W: [3, 4],
+  X: [3, 4],
 };
 // utmNorthing = 2000000 × yBand + preliminaryNorthing
 ```
@@ -538,6 +581,7 @@ const Y_BANDS = {
 **EPSG:** 27700
 
 **Proj4 string:**
+
 ```
 +proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000
 +ellps=airy +towgs84=446.448,-125.157,542.06,0.1502,0.247,0.8421,-20.4894
@@ -548,6 +592,7 @@ Use `proj4(wgs84, bngProj, [lng, lat])` and its inverse. Do not implement the
 Transverse Mercator manually for BNG.
 
 **Display format:** `TQ 12345 67890`
+
 - Two letters = 500 km major square + 100 km minor square
 - 5-digit easting + 5-digit northing within the 100 km square
 
@@ -598,32 +643,36 @@ Northing offsets from minor letter:
 
 **Precision:**
 
-| Length | Precision |
-|--------|-----------|
+| Length  | Precision                      |
+| ------- | ------------------------------ |
 | 2 chars | ±10° lat, ±20° lng (~1 200 km) |
-| 4 chars | ±1° lat, ±2° lng (~120 km) |
-| 6 chars | ±2.5′ lat, ±5′ lng (~5 km) |
-| 8 chars | ±15″ lat, ±30″ lng (~500 m) |
+| 4 chars | ±1° lat, ±2° lng (~120 km)     |
+| 6 chars | ±2.5′ lat, ±5′ lng (~5 km)     |
+| 8 chars | ±15″ lat, ±30″ lng (~500 m)    |
 
 **WGS84 → QTH algorithm:**
+
 ```js
-let lng = coord.lng + 180;  // shift to 0–360
-let lat = coord.lat + 90;   // shift to 0–180
+let lng = coord.lng + 180; // shift to 0–360
+let lat = coord.lat + 90; // shift to 0–180
 
 // Field (20° × 10°)  — uppercase letters A–R
 field[0] = charFromIndex(floor(lng / 20));
 field[1] = charFromIndex(floor(lat / 10));
-lng %= 20; lat %= 10;
+lng %= 20;
+lat %= 10;
 
 // Square (2° × 1°) — digits 0–9
 square[0] = floor(lng / 2);
 square[1] = floor(lat);
-lng %= 2; lat %= 1;
+lng %= 2;
+lat %= 1;
 
 // Subsquare (1/12° × 1/24°) — lowercase letters a–x
 subsquare[0] = lowercaseFromIndex(floor(lng * 12));
 subsquare[1] = lowercaseFromIndex(floor(lat * 24));
-lng %= 1/12; lat %= 1/24;
+lng %= 1 / 12;
+lat %= 1 / 24;
 
 // Extended square (1/120° × 1/240°) — digits 0–9
 extended[0] = floor(lng * 120);
@@ -642,6 +691,7 @@ Use the centre of each cell (add half the cell size) for the most accurate point
 Covers Peninsular Malaysia and Singapore.
 
 **Proj4 string:**
+
 ```
 +proj=omerc +lat_0=4 +lonc=102.25 +alpha=323.0257905 +k=0.99984
 +x_0=804670.24 +y_0=0 +no_uoff +gamma=323.1301023611111
@@ -655,6 +705,7 @@ Use `proj4(wgs84, kertauProj, [lng, lat])` and its inverse.
 **Input:** two integers separated by space, comma, or semicolon.
 
 **Valid geographic bounds:**
+
 - Latitude 1.12° N to 6.72° N
 - Longitude 99.59° E to 104.60° E
 
