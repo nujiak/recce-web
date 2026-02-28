@@ -148,15 +148,13 @@ tracks.
 **Goal:** Multi-point paths and areas on the map (called "Chains" in the original Android
 app, renamed to **Tracks** in recce-web).
 
-**Status:** JS modules are written (`track-editor.js`, `track-info.js`, `tracks.js`,
-`utils/geo.js`). However:
+**Status:** Not started. All files need to be created from scratch:
 
 - `db.js` is schema **version 1** with only a `pins` table — no `tracks` table and no
   `getAllTracks` / `addTrack` / `updateTrack` / `deleteTrack` / `getAllGroups` exports
 - `index.html` has no track editor, track info, or track plotting UI elements
 - `main.js` does not import or initialise any track module
-- `map.js` does not initialise `tracks.js`, does not handle `flyToTrack`, and has no
-  track plotting mode
+- `map.js` has no track rendering, `flyToTrack` handler, or plotting mode
 
 **What still needs to be done:**
 
@@ -186,13 +184,42 @@ app, renamed to **Tracks** in recce-web).
    - Checkpoint name popover/sheet: `id="checkpoint-name-dialog"` with a text input and
      confirm/cancel buttons
 
-3. **`src/map/map.js`** — add:
-   - `import { init as initTracks, loadTracks, addTrack, updateTrack, removeTrack,
-updateTempTrack, clearTempTrack, getTrackBounds } from './tracks.js'`
-   - Call `initTracks(map)` and `loadTracks()` inside `map.on('load', ...)`
-   - Handle `flyToTrack` event: call `map.fitBounds(getTrackBounds(track), { padding: 50 })`
-   - Export `addTrack`, `updateTrack`, `removeTrack` (wrapping the tracks module) for use
-     by `main.js`
+3. **`src/map/tracks.js`** — create new file:
+   - `init(mapInstance)` — add GeoJSON sources and line/fill/checkpoint layers to the map;
+     attach click handlers on track layers that dispatch `trackClicked`
+   - `loadTracks()` — fetch all tracks from DB and call `renderTracks()`
+   - `renderTracks()` — rebuild GeoJSON features from in-memory track array and push to
+     MapLibre sources; paths → `LineString`, areas → `Polygon` + fill layer
+   - `addTrack(track)` / `updateTrack(track)` / `removeTrack(trackId)` — mutate in-memory
+     array and call `renderTracks()`
+   - `updateTempTrack(nodes, isCyclical, color)` — update a separate dashed preview source
+     during plotting mode
+   - `clearTempTrack()` — clear the preview source
+   - `getTrackBounds(track)` → `[[minLng, minLat], [maxLng, maxLat]]`
+
+4. **`src/utils/geo.js`** — create new file with shared geometry helpers:
+   - `haversineDistance(lat1, lng1, lat2, lng2) → metres`
+   - `calculateTotalDistance(nodes, isCyclical) → metres`
+   - `calculateArea(nodes) → square metres` (spherical excess / shoelace approximation)
+   - `calculateBearing(lat1, lng1, lat2, lng2) → degrees`
+   - `formatDistance(metres, lengthUnit) → string`
+   - `formatArea(sqMetres, lengthUnit) → string`
+   - `formatBearing(degrees, angleUnit) → string`
+
+5. **`src/ui/track-editor.js`** — create new file (same sheet pattern as `pin-editor.js`):
+   - `init()` — wire close/save/delete button events
+   - `openCreate(nodes, onSave)` — open sheet pre-filled with node count; name/type/colour/group/desc fields
+   - `openEdit(track, onSave)` — open sheet with track data; show delete button
+
+6. **`src/ui/track-info.js`** — create new file:
+   - `init()` — wire close/map/edit button events
+   - `open(track, onEdit)` — populate header colour, name, type icon, stats (distance or
+     perimeter + area from `utils/geo.js`), checkpoint list, group, description
+
+7. **`src/map/map.js`** — add:
+   - Import and initialise `tracks.js` inside `map.on('load', ...)`
+   - Handle `flyToTrack` event: `map.fitBounds(getTrackBounds(track), { padding: 50 })`
+   - Export `addTrack`, `updateTrack`, `removeTrack` (delegating to `tracks.js`) for `main.js`
    - Implement track plotting mode state machine:
      - `start-track-btn` click → show `track-plot-bar`, enter plotting mode
      - `plot-node-btn` click → append `{ lat, lng }` to session nodes; call `updateTempTrack`
@@ -202,7 +229,7 @@ updateTempTrack, clearTempTrack, getTrackBounds } from './tracks.js'`
      - `plot-save-btn` click → call `clearTempTrack`, open track editor with session nodes
      - `plot-cancel-btn` click → confirm discard; call `clearTempTrack`, hide `track-plot-bar`
 
-4. **`src/main.js`** — add:
+8. **`src/main.js`** — add:
    - Imports for `track-editor.js` (`initTrackEditor`, `openTrackCreate`, `openTrackEdit`)
      and `track-info.js` (`initTrackInfo`, `openTrackInfo`)
    - Call `initTrackEditor()` and `initTrackInfo()` in `DOMContentLoaded`
@@ -213,7 +240,7 @@ updateTempTrack, clearTempTrack, getTrackBounds } from './tracks.js'`
    - On track save/edit/delete: call `addTrack`/`updateTrack`/`removeTrack` from `map.js`
      and `refreshSaved()`
 
-5. **`src/style.css`** — add styles for track editor sheet, track info modal, track plot
+9. **`src/style.css`** — add styles for track editor sheet, track info modal, track plot
    bar, checkpoint name dialog, track cards in Saved
 
 **Exit criteria:** A 5-node path and a 4-node area can each be plotted, saved, displayed
