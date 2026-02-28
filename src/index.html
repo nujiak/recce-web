@@ -35,6 +35,12 @@
           <div id="map-container">
             <div id="crosshair"></div>
             <div id="map"></div>
+            <!-- GPS Overlay -->
+            <div id="gps-overlay" class="gps-overlay hidden">
+              <div class="gps-overlay-label">From GPS</div>
+              <div id="gps-overlay-distance" class="gps-overlay-value">--</div>
+              <div id="gps-overlay-bearing" class="gps-overlay-value">--</div>
+            </div>
           </div>
           <div id="coord-container">
             <div id="target-coord-box" class="coord-box">
@@ -72,6 +78,9 @@
               placeholder="Search..."
               aria-label="Search saved items"
             />
+            <button id="saved-import-btn" class="btn-small" aria-label="Import">
+              <span class="material-symbols-outlined">add</span>
+            </button>
             <button id="saved-multiselect-btn" class="btn-small" aria-label="Multi-select">
               <span class="material-symbols-outlined">checklist</span>
             </button>
@@ -378,6 +387,31 @@
       <div class="dialog-actions">
         <button id="checkpoint-skip" class="btn-secondary">Skip</button>
         <button id="checkpoint-confirm" class="btn-primary">Add</button>
+      </div>
+    </div>
+
+    <!-- Import Dialog -->
+    <div id="import-backdrop" class="modal-backdrop"></div>
+    <div id="import-dialog" class="dialog" role="dialog" aria-label="Import Share Code">
+      <div class="dialog-header">
+        <h2>Import</h2>
+        <button id="import-close" class="icon-btn" aria-label="Close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="dialog-content">
+        <div class="field">
+          <label for="import-input">Share Code</label>
+          <textarea id="import-input" rows="4" placeholder="Paste share code here..."></textarea>
+        </div>
+        <div id="import-preview" class="import-preview" style="display: none">
+          <p class="import-preview-text"></p>
+        </div>
+        <p id="import-error" class="import-error" style="display: none"></p>
+      </div>
+      <div class="dialog-actions">
+        <button id="import-cancel" class="btn-secondary">Cancel</button>
+        <button id="import-confirm" class="btn-primary" disabled>Import</button>
       </div>
     </div>
 

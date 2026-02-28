@@ -20,8 +20,14 @@ import {
   openEdit as openTrackEdit,
 } from './ui/track-editor.js';
 import { init as initTrackInfo, open as openTrackInfo } from './ui/track-info.js';
+import { init as initGPS } from './ui/gps.js';
+import { init as initRuler } from './ui/ruler.js';
+import { initToast } from './utils/toast.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Initialize toast system
+  initToast();
+
   initSettings();
   initNav();
   initSaved();
@@ -29,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initPinInfo();
   initTrackEditor();
   initTrackInfo();
+  initGPS();
+  initRuler();
 
   const showingOnboarding = initOnboarding();
 
@@ -126,5 +134,11 @@ document.addEventListener('DOMContentLoaded', () => {
         await refreshSaved();
       });
     });
+  });
+
+  // Import event - reload map markers and tracks
+  window.addEventListener('dataImported', async () => {
+    // Dispatch events to reload map
+    window.dispatchEvent(new CustomEvent('reloadMapData'));
   });
 });

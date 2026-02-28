@@ -1,7 +1,9 @@
-import { getAllPins, getAllTracks, deletePin, deleteTrack } from '../db/db.js';
+import { getAllPins, getAllTracks, deletePin, deleteTrack, addPin, addTrack } from '../db/db.js';
 import { CoordinateTransformer } from '../coords/index.js';
 import { getPrefs } from './settings.js';
 import { formatDistance } from '../utils/geo.js';
+import { encode, decode } from '../share/share.js';
+import { showToast } from '../utils/toast.js';
 
 let pins = [];
 let tracks = [];
@@ -12,6 +14,7 @@ let isMultiSelectMode = false;
 
 export function init() {
   setupToolbarEvents();
+  setupImportDialog();
 }
 
 function setupToolbarEvents() {
@@ -22,6 +25,7 @@ function setupToolbarEvents() {
   const shareBtn = document.getElementById('saved-share-btn');
   const rulerBtn = document.getElementById('saved-ruler-btn');
   const cancelBtn = document.getElementById('saved-cancel-btn');
+  const importBtn = document.getElementById('saved-import-btn');
 
   if (sortBtn) {
     sortBtn.addEventListener('click', cycleSort);
@@ -43,19 +47,19 @@ function setupToolbarEvents() {
   }
 
   if (shareBtn) {
-    shareBtn.addEventListener('click', () => {
-      // TODO: Phase 7 - Share functionality
-    });
+    shareBtn.addEventListener('click', handleShare);
   }
 
   if (rulerBtn) {
-    rulerBtn.addEventListener('click', () => {
-      // TODO: Phase 9 - Add to Ruler
-    });
+    rulerBtn.addEventListener('click', handleAddToRuler);
   }
 
   if (cancelBtn) {
     cancelBtn.addEventListener('click', exitMultiSelect);
+  }
+
+  if (importBtn) {
+    importBtn.addEventListener('click', openImportDialog);
   }
 }
 
@@ -337,4 +341,289 @@ function haversine(lat1, lng1, lat2, lng2) {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return R * c;
+}
+
+// === Share functionality ===
+async function handleShare() {
+  if (selectedIds.size === 0) return;
+
+  const selectedPins = [];
+  const selectedTracks = [];
+
+  for (const key of selectedIds) {
+    const [type, idStr] = key.split(':');
+    const id = parseInt(idStr);
+
+    if (type === 'pin') {
+      const pin = pins.find((p) => p.id === id);
+      if (pin) selectedPins.push(pin);
+    } else if (type === 'track') {
+      const track = tracks.find((t) => t.id === id);
+      if (track) selectedTracks.push(track);
+    }
+  }
+
+  if (selectedPins.length === 0 && selectedTracks.length === 0) return;
+
+  try {
+    const code = encode(selectedPins, selectedTracks);
+    await copyToClipboard(code);
+    showToast(
+      `Share code copied (${selectedPins.length} pin${selectedPins.length !== 1 ? 's' : ''}, ${selectedTracks.length} track${selectedTracks.length !== 1 ? 's' : ''})`,
+      'success'
+    );
+    exitMultiSelect();
+  } catch (err) {
+    console.error('Share error:', err);
+    showToast('Failed to copy share code', 'error');
+  }
+}
+
+async function copyToClipboard(text) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(text);
+  } else {
+    // Fallback for older browsers
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  }
+}
+
+// === Import functionality ===
+let importPreviewData = null;
+
+function setupImportDialog() {
+  const dialog = document.getElementById('import-dialog');
+  const backdrop = document.getElementById('import-backdrop');
+  const closeBtn = document.getElementById('import-close');
+  const cancelBtn = document.getElementById('import-cancel');
+  const confirmBtn = document.getElementById('import-confirm');
+  const input = document.getElementById('import-input');
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', closeImportDialog);
+  }
+
+  if (backdrop) {
+    backdrop.addEventListener('click', closeImportDialog);
+  }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener('click', closeImportDialog);
+  }
+
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', handleImportConfirm);
+  }
+
+  if (input) {
+    input.addEventListener('input', handleImportInput);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && dialog?.classList.contains('open')) {
+      closeImportDialog();
+    }
+  });
+}
+
+function openImportDialog() {
+  const dialog = document.getElementById('import-dialog');
+  const backdrop = document.getElementById('import-backdrop');
+  const input = document.getElementById('import-input');
+  const preview = document.getElementById('import-preview');
+  const error = document.getElementById('import-error');
+  const confirmBtn = document.getElementById('import-confirm');
+
+  if (input) input.value = '';
+  if (preview) preview.style.display = 'none';
+  if (error) error.style.display = 'none';
+  if (confirmBtn) confirmBtn.disabled = true;
+
+  importPreviewData = null;
+
+  dialog?.classList.add('open');
+  backdrop?.classList.add('open');
+  input?.focus();
+}
+
+function closeImportDialog() {
+  const dialog = document.getElementById('import-dialog');
+  const backdrop = document.getElementById('import-backdrop');
+
+  dialog?.classList.remove('open');
+  backdrop?.classList.remove('open');
+
+  importPreviewData = null;
+}
+
+function handleImportInput() {
+  const input = document.getElementById('import-input');
+  const preview = document.getElementById('import-preview');
+  const previewText = preview?.querySelector('.import-preview-text');
+  const error = document.getElementById('import-error');
+  const confirmBtn = document.getElementById('import-confirm');
+
+  const code = input?.value.trim();
+
+  if (!code) {
+    if (preview) preview.style.display = 'none';
+    if (error) error.style.display = 'none';
+    if (confirmBtn) confirmBtn.disabled = true;
+    importPreviewData = null;
+    return;
+  }
+
+  const decoded = decode(code);
+
+  if (!decoded) {
+    if (preview) preview.style.display = 'none';
+    if (error) {
+      error.textContent = 'Invalid share code. Please check and try again.';
+      error.style.display = 'block';
+    }
+    if (confirmBtn) confirmBtn.disabled = true;
+    importPreviewData = null;
+    return;
+  }
+
+  // Valid code - show preview
+  importPreviewData = decoded;
+
+  if (error) error.style.display = 'none';
+  if (previewText) {
+    const pinCount = decoded.pins.length;
+    const trackCount = decoded.tracks.length;
+    previewText.textContent = `Found ${pinCount} pin${pinCount !== 1 ? 's' : ''} and ${trackCount} track${trackCount !== 1 ? 's' : ''}`;
+  }
+  if (preview) preview.style.display = 'block';
+  if (confirmBtn) confirmBtn.disabled = false;
+}
+
+async function handleImportConfirm() {
+  if (!importPreviewData) return;
+
+  const { pins: importPins, tracks: importTracks } = importPreviewData;
+
+  // Get existing items to check for duplicates
+  const existingPins = await getAllPins();
+  const existingTracks = await getAllTracks();
+  const existingPinTimestamps = new Set(existingPins.map((p) => p.createdAt));
+  const existingTrackTimestamps = new Set(existingTracks.map((t) => t.createdAt));
+
+  let addedPins = 0;
+  let addedTracks = 0;
+  let skippedPins = 0;
+  let skippedTracks = 0;
+
+  // Import pins (skip duplicates by createdAt)
+  for (const pin of importPins) {
+    if (existingPinTimestamps.has(pin.createdAt)) {
+      skippedPins++;
+    } else {
+      await addPin(pin);
+      addedPins++;
+    }
+  }
+
+  // Import tracks (skip duplicates by createdAt)
+  for (const track of importTracks) {
+    if (existingTrackTimestamps.has(track.createdAt)) {
+      skippedTracks++;
+    } else {
+      await addTrack(track);
+      addedTracks++;
+    }
+  }
+
+  closeImportDialog();
+
+  // Show result
+  const messages = [];
+  if (addedPins > 0 || addedTracks > 0) {
+    messages.push(
+      `Imported ${addedPins} pin${addedPins !== 1 ? 's' : ''}, ${addedTracks} track${addedTracks !== 1 ? 's' : ''}`
+    );
+  }
+  if (skippedPins > 0 || skippedTracks > 0) {
+    messages.push(
+      `Skipped ${skippedPins + skippedTracks} duplicate${skippedPins + skippedTracks !== 1 ? 's' : ''}`
+    );
+  }
+
+  showToast(messages.join('. '), addedPins > 0 || addedTracks > 0 ? 'success' : 'info');
+
+  // Refresh the list and map
+  await render();
+  window.dispatchEvent(new CustomEvent('dataImported'));
+}
+
+// === Ruler functionality ===
+function handleAddToRuler() {
+  if (selectedIds.size === 0) return;
+
+  const items = [];
+
+  for (const key of selectedIds) {
+    const [type, idStr] = key.split(':');
+    const id = parseInt(idStr);
+
+    if (type === 'pin') {
+      const pin = pins.find((p) => p.id === id);
+      if (pin) {
+        items.push({
+          label: pin.name,
+          lat: pin.lat,
+          lng: pin.lng,
+          color: pin.color,
+        });
+      }
+    } else if (type === 'track') {
+      const track = tracks.find((t) => t.id === id);
+      if (track && track.nodes) {
+        // Add all track nodes
+        track.nodes.forEach((node, index) => {
+          const isFirst = index === 0;
+          const isLast = index === track.nodes.length - 1;
+          const hasName = node.name && node.name.trim();
+
+          let label;
+          if (hasName) {
+            label = node.name;
+          } else if (track.nodes.length === 1) {
+            label = track.name;
+          } else if (isFirst) {
+            label = `${track.name} (start)`;
+          } else if (isLast) {
+            label = `${track.name} (end)`;
+          } else {
+            // Intermediate node - show coordinates
+            const prefs = getPrefs();
+            label =
+              CoordinateTransformer.toDisplay(node.lat, node.lng, prefs.coordinateSystem) ||
+              `Point ${index + 1}`;
+          }
+
+          items.push({
+            label,
+            lat: node.lat,
+            lng: node.lng,
+            color: track.color,
+          });
+        });
+      }
+    }
+  }
+
+  if (items.length > 0) {
+    window.dispatchEvent(new CustomEvent('addToRuler', { detail: { items } }));
+    showToast(`Added ${items.length} point${items.length !== 1 ? 's' : ''} to Ruler`, 'success');
+    exitMultiSelect();
+  }
 }

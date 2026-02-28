@@ -10,6 +10,12 @@ import {
   removeMarker as removeMarkerFromMap,
 } from './markers.js';
 import * as tracksModule from './tracks.js';
+import {
+  haversineDistance,
+  calculateBearing,
+  formatDistance,
+  formatBearing,
+} from '../utils/geo.js';
 
 let map = null;
 
@@ -17,6 +23,9 @@ let map = null;
 let isPlottingMode = false;
 let plotNodes = [];
 let plotColor = 'red';
+
+// GPS state
+let gpsPosition = null;
 
 export function init() {
   map = new maplibregl.Map({
@@ -38,10 +47,20 @@ export function init() {
   map.on('move', updateCoordDisplay);
   updateCoordDisplay();
 
+  // Update GPS overlay on map move
+  map.on('move', updateGPSOverlay);
+
   map.on('load', async () => {
     const [pins, tracks] = await Promise.all([getAllPins(), getAllTracks()]);
     renderMarkers(map, pins);
     tracksModule.init(map);
+    tracksModule.loadTracks();
+  });
+
+  // Reload map data after import
+  window.addEventListener('reloadMapData', async () => {
+    const [pins, tracks] = await Promise.all([getAllPins(), getAllTracks()]);
+    renderMarkers(map, pins);
     tracksModule.loadTracks();
   });
 
@@ -69,6 +88,12 @@ export function init() {
 
   // Setup track plotting
   setupTrackPlotting();
+
+  // Listen for GPS position updates
+  window.addEventListener('gpsPositionUpdate', (e) => {
+    gpsPosition = e.detail.position;
+    updateGPSOverlay();
+  });
 }
 
 function setupGotoDialog() {
@@ -346,6 +371,34 @@ function updatePlotCount() {
   if (plotNodeCount) {
     plotNodeCount.textContent = `${plotNodes.length} node${plotNodes.length !== 1 ? 's' : ''}`;
   }
+}
+
+// === GPS Overlay ===
+function updateGPSOverlay() {
+  const overlay = document.getElementById('gps-overlay');
+  const distanceEl = document.getElementById('gps-overlay-distance');
+  const bearingEl = document.getElementById('gps-overlay-bearing');
+
+  if (!gpsPosition || !map) {
+    overlay?.classList.add('hidden');
+    return;
+  }
+
+  const center = map.getCenter();
+  const distance = haversineDistance(gpsPosition.lat, gpsPosition.lng, center.lat, center.lng);
+  const bearing = calculateBearing(gpsPosition.lat, gpsPosition.lng, center.lat, center.lng);
+
+  const prefs = getPrefs();
+
+  if (distanceEl) {
+    distanceEl.textContent = formatDistance(distance, prefs.lengthUnit);
+  }
+
+  if (bearingEl) {
+    bearingEl.textContent = formatBearing(bearing, prefs.angleUnit);
+  }
+
+  overlay?.classList.remove('hidden');
 }
 
 function updateCoordDisplay() {

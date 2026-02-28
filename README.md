@@ -4,9 +4,9 @@ A mapping and reconnaissance utility for the browser — a feature-complete rewr
 Recce Android app in plain HTML, JavaScript, and CSS, built with Vite and deployed as a
 fully static site.
 
-**Current state:** Phases 0–3 complete. Map, crosshair, all six coordinate systems, settings,
-onboarding, and nav shell are working. Phases 4–6 JS logic is written but not functional —
-the HTML shell is missing all required UI elements.
+**Current state:** Phases 0–9 complete. Map, crosshair, all six coordinate systems, settings,
+onboarding, pin system, track system, share codes, GPS & compass, and ruler are all working.
+Phases 10–11 (PWA & Polish) remain.
 
 ---
 
@@ -249,7 +249,7 @@ on the map and in Track Info; track cards appear in the Saved list.
 
 ---
 
-### Phase 7 — Share Codes
+### Phase 7 — Share Codes ✅ DONE
 
 **Goal:** Compact codes that survive copy-paste through WhatsApp, Telegram, or SMS.
 
@@ -285,7 +285,7 @@ correctly; an invalid paste shows a clear error.
 
 ---
 
-### Phase 8 — GPS & Compass Panel
+### Phase 8 — GPS & Compass Panel ✅ DONE
 
 **Goal:** Real-time location and device orientation data in the Toolbox.
 
@@ -324,7 +324,7 @@ sensors.
 
 ---
 
-### Phase 9 — Ruler
+### Phase 9 — Ruler ✅ DONE
 
 **Goal:** Measure distances and bearings along an ordered sequence of points.
 
@@ -412,24 +412,24 @@ is accessible offline.
 | Six coordinate systems (WGS84, UTM, MGRS, BNG, QTH, Kertau) | 2      | ✅ done                                    |
 | Settings (coord system, units, theme, map type)             | 2      | ✅ done                                    |
 | Onboarding flow                                             | 3      | ✅ done                                    |
-| Pin creation / editing / deletion                           | 4      | 🔴 JS done, HTML missing                   |
-| Pin colour + group + description                            | 4      | 🔴 JS done, HTML missing                   |
-| Pin info modal (all coord representations)                  | 4      | 🔴 JS done, HTML missing                   |
-| "Open in Maps" from pin info                                | 4      | 🔴 not wired                               |
-| "Go To" coordinate navigation                               | 4      | 🔴 not implemented                         |
-| Saved list pins (sort, filter, multi-select, bulk delete)   | 5      | 🔴 JS done, HTML missing                   |
-| Saved list tracks                                           | 5      | 🔴 not implemented                         |
-| Track DB schema (version 2)                                 | 6      | 🔴 not done (still v1, pins only)          |
-| Track (path & area) plotting on map                         | 6      | 🔴 JS done, HTML + wiring missing          |
-| Track creation / editing / deletion                         | 6      | 🔴 JS done, HTML + wiring missing          |
-| Named checkpoints within tracks                             | 6      | 🔴 JS done, wiring missing                 |
-| Track info modal (distance / perimeter / area)              | 6      | 🔴 JS done, HTML + wiring missing          |
-| Share codes (export + import, Base62 + zlib)                | 7      | 🔴 not started (`pako` installed)          |
-| GPS panel (position, accuracy, altitude)                    | 8      | 🔴 not started                             |
-| Compass panel (azimuth, pitch, roll)                        | 8      | 🔴 not started                             |
-| Live distance/bearing overlay on map                        | 8      | 🔴 not started                             |
-| Ruler (multi-point distance + bearing)                      | 9      | 🔴 not started                             |
-| Add to Ruler from Saved                                     | 9      | 🔴 not started                             |
+| Pin creation / editing / deletion                           | 4      | ✅ done                                    |
+| Pin colour + group + description                            | 4      | ✅ done                                    |
+| Pin info modal (all coord representations)                  | 4      | ✅ done                                    |
+| "Open in Maps" from pin info                                | 4      | ✅ done                                    |
+| "Go To" coordinate navigation                               | 4      | ✅ done                                    |
+| Saved list pins (sort, filter, multi-select, bulk delete)   | 5      | ✅ done                                    |
+| Saved list tracks                                           | 5      | ✅ done                                    |
+| Track DB schema (version 2)                                 | 6      | ✅ done                                    |
+| Track (path & area) plotting on map                         | 6      | ✅ done                                    |
+| Track creation / editing / deletion                         | 6      | ✅ done                                    |
+| Named checkpoints within tracks                             | 6      | ✅ done                                    |
+| Track info modal (distance / perimeter / area)              | 6      | ✅ done                                    |
+| Share codes (export + import, Base62 + zlib)                | 7      | ✅ done                                    |
+| GPS panel (position, accuracy, altitude)                    | 8      | ✅ done                                    |
+| Compass panel (azimuth, pitch, roll)                        | 8      | ✅ done                                    |
+| Live distance/bearing overlay on map                        | 8      | ✅ done                                    |
+| Ruler (multi-point distance + bearing)                      | 9      | ✅ done                                    |
+| Add to Ruler from Saved                                     | 9      | ✅ done                                    |
 | PWA (installable, offline-capable)                          | 10     | 🟡 stub only (`vite-plugin-pwa` installed) |
 | Dark / light / system theme                                 | 2 / 11 | ✅ done                                    |
 | Responsive layout (mobile + desktop)                        | 1      | ✅ done                                    |
