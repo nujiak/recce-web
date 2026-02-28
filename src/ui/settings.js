@@ -92,14 +92,6 @@ function setupSettingsPanel() {
           <option value="system">System</option>
         </select>
       </div>
-      <div class="setting-row">
-        <label for="pref-map-type">Map Type</label>
-        <select id="pref-map-type">
-          <option value="normal">Normal</option>
-          <option value="satellite">Satellite</option>
-          <option value="hybrid">Hybrid</option>
-        </select>
-      </div>
     </div>
   `;
 
@@ -107,13 +99,11 @@ function setupSettingsPanel() {
   const angleSelect = document.getElementById('pref-angle-unit');
   const lengthSelect = document.getElementById('pref-length-unit');
   const themeSelect = document.getElementById('pref-theme');
-  const mapTypeSelect = document.getElementById('pref-map-type');
 
   coordSelect.value = prefs.coordinateSystem;
   angleSelect.value = prefs.angleUnit;
   lengthSelect.value = prefs.lengthUnit;
   themeSelect.value = prefs.theme;
-  mapTypeSelect.value = prefs.mapType;
 
   coordSelect.addEventListener('change', () => {
     savePrefs({ coordinateSystem: coordSelect.value });
@@ -134,13 +124,6 @@ function setupSettingsPanel() {
 
   themeSelect.addEventListener('change', () => {
     savePrefs({ theme: themeSelect.value });
-  });
-
-  mapTypeSelect.addEventListener('change', () => {
-    savePrefs({ mapType: mapTypeSelect.value });
-    window.dispatchEvent(
-      new CustomEvent('prefsChanged', { detail: { key: 'mapType', value: mapTypeSelect.value } })
-    );
   });
 }
 

@@ -94,7 +94,7 @@ export async function openCreate(lat, lng, onSave) {
 
   if (title) title.textContent = 'Add Pin';
   if (nameInput) nameInput.value = '';
-  if (coordInput) coordInput.value = coordDisplay;
+  if (coordInput) coordInput.value = coordDisplay ?? '';
   if (coordLabel) coordLabel.textContent = prefs.coordinateSystem;
   if (groupInput) groupInput.value = '';
   if (descInput) descInput.value = '';
@@ -127,7 +127,7 @@ export async function openEdit(pin, onSave) {
 
   if (title) title.textContent = 'Edit Pin';
   if (nameInput) nameInput.value = pin.name;
-  if (coordInput) coordInput.value = coordDisplay;
+  if (coordInput) coordInput.value = coordDisplay ?? '';
   if (coordLabel) coordLabel.textContent = prefs.coordinateSystem;
   if (groupInput) groupInput.value = pin.group || '';
   if (descInput) descInput.value = pin.description || '';
@@ -169,8 +169,23 @@ async function handleSave() {
   const parsed = CoordinateTransformer.parse(coordStr, prefs.coordinateSystem);
   if (!parsed) return;
 
-  if (isEditMode && currentPin) {
-    await updatePin(currentPin.id, {
+  // Close immediately for snappy UX, then persist in background
+  const wasEdit = isEditMode;
+  const callback = onSaveCallback;
+  const pinSnapshot = currentPin;
+  closeEditor();
+
+  if (wasEdit && pinSnapshot) {
+    const updated = {
+      ...pinSnapshot,
+      name,
+      lat: parsed.lat,
+      lng: parsed.lng,
+      color,
+      group,
+      description,
+    };
+    await updatePin(pinSnapshot.id, {
       name,
       lat: parsed.lat,
       lng: parsed.lng,
@@ -178,7 +193,7 @@ async function handleSave() {
       group,
       description,
     });
-    currentPin = { ...currentPin, name, lat: parsed.lat, lng: parsed.lng, color, group, description };
+    if (callback) callback(updated, true, false);
   } else {
     const pin = {
       createdAt: Date.now(),
@@ -191,15 +206,7 @@ async function handleSave() {
     };
     const id = await addPin(pin);
     pin.id = id;
-    currentPin = pin;
-  }
-
-  const savedPin = currentPin;
-  const wasEdit = isEditMode;
-  closeEditor();
-
-  if (onSaveCallback) {
-    onSaveCallback(savedPin, wasEdit, false);
+    if (callback) callback(pin, false, false);
   }
 }
 
@@ -207,11 +214,12 @@ async function handleDelete() {
   if (!currentPin) return;
 
   const deletedPin = currentPin;
+  const callback = onSaveCallback;
   await deletePin(currentPin.id);
   closeEditor();
 
-  if (onSaveCallback) {
-    onSaveCallback(deletedPin, false, true);
+  if (callback) {
+    callback(deletedPin, false, true);
   }
 }
 

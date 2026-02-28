@@ -19,7 +19,7 @@
     <!-- Icons -->
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=add,add_location_alt,arrow_back,arrows_input,checklist,close,compass_calibration,delete,edit,explore,location_on,map,pin_drop,ruler,save,share,show_chart,satellite_alt,settings,straighten,trip_origin,undo"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
     />
 
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -36,7 +36,7 @@
             <div id="crosshair"></div>
             <div id="map"></div>
             <!-- GPS Overlay -->
-            <div id="gps-overlay" class="gps-overlay hidden">
+            <div id="gps-overlay" class="gps-overlay hidden" role="status" aria-live="polite">
               <div class="gps-overlay-label">From GPS</div>
               <div id="gps-overlay-distance" class="gps-overlay-value">--</div>
               <div id="gps-overlay-bearing" class="gps-overlay-value">--</div>
@@ -49,7 +49,7 @@
                   <span class="material-symbols-outlined">arrows_input</span>
                   <span class="icon-title">Target</span>
                 </h2>
-                <p id="target-coord-display" class="coords"></p>
+                <p id="target-coord-display" class="coords" role="status" aria-live="polite"></p>
               </div>
               <div class="coord-actions">
                 <button id="goto-btn" class="icon-btn" aria-label="Go to coordinates" title="Go To">
@@ -124,7 +124,13 @@
 
       <!-- Toolbox Modal -->
       <div id="toolbox-backdrop" class="modal-backdrop"></div>
-      <aside id="toolbox-modal" class="toolbox-modal" role="dialog" aria-label="Toolbox">
+      <aside
+        id="toolbox-modal"
+        class="toolbox-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Toolbox"
+      >
         <header class="toolbox-header">
           <h2>Toolbox</h2>
           <button id="toolbox-close" class="icon-btn" aria-label="Close">
@@ -159,7 +165,13 @@
 
     <!-- Pin Editor Bottom Sheet -->
     <div id="pin-editor-backdrop" class="sheet-backdrop"></div>
-    <div id="pin-editor" class="bottom-sheet" role="dialog" aria-label="Pin Editor">
+    <div
+      id="pin-editor"
+      class="bottom-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Pin Editor"
+    >
       <div class="sheet-header">
         <h2 id="pin-editor-title">Add Pin</h2>
         <button id="pin-editor-close" class="icon-btn" aria-label="Close">
@@ -208,7 +220,13 @@
 
     <!-- Pin Info Modal -->
     <div id="pin-info-backdrop" class="modal-backdrop"></div>
-    <div id="pin-info" class="info-modal" role="dialog" aria-label="Pin Information">
+    <div
+      id="pin-info"
+      class="info-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Pin Information"
+    >
       <div class="info-modal-header">
         <h2 id="pin-info-name"></h2>
         <button id="pin-info-close" class="icon-btn" aria-label="Close">
@@ -238,7 +256,13 @@
 
     <!-- Go To Dialog -->
     <div id="goto-backdrop" class="modal-backdrop"></div>
-    <div id="goto-dialog" class="dialog" role="dialog" aria-label="Go To Coordinates">
+    <div
+      id="goto-dialog"
+      class="dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Go To Coordinates"
+    >
       <div class="dialog-header">
         <h2>Go To</h2>
         <button id="goto-close" class="icon-btn" aria-label="Close">
@@ -258,7 +282,13 @@
 
     <!-- Track Editor Bottom Sheet -->
     <div id="track-editor-backdrop" class="sheet-backdrop"></div>
-    <div id="track-editor" class="bottom-sheet" role="dialog" aria-label="Track Editor">
+    <div
+      id="track-editor"
+      class="bottom-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Track Editor"
+    >
       <div class="sheet-header">
         <h2 id="track-editor-title">New Track</h2>
         <button id="track-editor-close" class="icon-btn" aria-label="Close">
@@ -308,7 +338,13 @@
 
     <!-- Track Info Modal -->
     <div id="track-info-backdrop" class="modal-backdrop"></div>
-    <div id="track-info" class="info-modal" role="dialog" aria-label="Track Information">
+    <div
+      id="track-info"
+      class="info-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Track Information"
+    >
       <div id="track-info-header" class="info-modal-header">
         <h2 id="track-info-name"></h2>
         <button id="track-info-close" class="icon-btn" aria-label="Close">
@@ -366,7 +402,13 @@
 
     <!-- Checkpoint Name Dialog -->
     <div id="checkpoint-backdrop" class="modal-backdrop"></div>
-    <div id="checkpoint-dialog" class="dialog" role="dialog" aria-label="Checkpoint Name">
+    <div
+      id="checkpoint-dialog"
+      class="dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Checkpoint Name"
+    >
       <div class="dialog-header">
         <h2>Checkpoint Name</h2>
         <button id="checkpoint-close" class="icon-btn" aria-label="Close">
@@ -392,7 +434,13 @@
 
     <!-- Import Dialog -->
     <div id="import-backdrop" class="modal-backdrop"></div>
-    <div id="import-dialog" class="dialog" role="dialog" aria-label="Import Share Code">
+    <div
+      id="import-dialog"
+      class="dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Import Share Code"
+    >
       <div class="dialog-header">
         <h2>Import</h2>
         <button id="import-close" class="icon-btn" aria-label="Close">
@@ -412,6 +460,18 @@
       <div class="dialog-actions">
         <button id="import-cancel" class="btn-secondary">Cancel</button>
         <button id="import-confirm" class="btn-primary" disabled>Import</button>
+      </div>
+    </div>
+
+    <!-- Install Prompt Banner -->
+    <div id="install-banner" class="install-banner" style="display: none">
+      <div class="install-banner-content">
+        <span class="material-symbols-outlined">download</span>
+        <span>Add Recce to your home screen</span>
+      </div>
+      <div class="install-banner-actions">
+        <button id="install-dismiss" class="btn-small">Not now</button>
+        <button id="install-accept" class="btn-small btn-primary">Install</button>
       </div>
     </div>
 

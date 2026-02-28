@@ -161,29 +161,22 @@ async function handleSave() {
   if (!name) return;
   if (sessionNodes.length < 2) return;
 
-  if (isEditMode && currentTrack) {
-    await updateTrack(currentTrack.id, {
-      name,
-      nodes: sessionNodes,
-      isCyclical,
-      color,
-      group,
-      description,
-    });
-    currentTrack = {
-      ...currentTrack,
-      name,
-      nodes: sessionNodes,
-      isCyclical,
-      color,
-      group,
-      description,
-    };
+  // Close immediately for snappy UX, then persist in background
+  const wasEdit = isEditMode;
+  const callback = onSaveCallback;
+  const trackSnapshot = currentTrack;
+  const nodes = sessionNodes;
+  closeEditor();
+
+  if (wasEdit && trackSnapshot) {
+    const updated = { ...trackSnapshot, name, nodes, isCyclical, color, group, description };
+    await updateTrack(trackSnapshot.id, { name, nodes, isCyclical, color, group, description });
+    if (callback) callback(updated, true, false);
   } else {
     const track = {
       createdAt: Date.now(),
       name,
-      nodes: sessionNodes,
+      nodes,
       isCyclical,
       color,
       group,
@@ -191,15 +184,7 @@ async function handleSave() {
     };
     const id = await addTrack(track);
     track.id = id;
-    currentTrack = track;
-  }
-
-  const savedTrack = currentTrack;
-  const wasEdit = isEditMode;
-  closeEditor();
-
-  if (onSaveCallback) {
-    onSaveCallback(savedTrack, wasEdit, false);
+    if (callback) callback(track, false, false);
   }
 }
 
@@ -207,11 +192,12 @@ async function handleDelete() {
   if (!currentTrack) return;
 
   const deletedTrack = currentTrack;
+  const callback = onSaveCallback;
   await deleteTrack(currentTrack.id);
   closeEditor();
 
-  if (onSaveCallback) {
-    onSaveCallback(deletedTrack, false, true);
+  if (callback) {
+    callback(deletedTrack, false, true);
   }
 }
 

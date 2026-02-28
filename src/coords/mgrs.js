@@ -88,9 +88,12 @@ export function format(lat, lng) {
   const utmStr = utm.format(lat, lng);
   if (!utmStr) return null;
 
-  const [, _utmBand, eastingStr, northingStr] = utmStr.split(/(\D)/);
-  const easting = parseInt(eastingStr);
-  const northing = parseInt(northingStr);
+  // UTM format: "48N 0361234 0149234"
+  const utmMatch = /^(\d+)([NS])\s+(\d+)\s+(\d+)$/.exec(utmStr);
+  if (!utmMatch) return null;
+
+  const easting = parseInt(utmMatch[3]);
+  const northing = parseInt(utmMatch[4]);
 
   const columnIndex = Math.floor(easting / 100000) - 1;
   const rowIndex = Math.floor((northing % 2000000) / 100000);

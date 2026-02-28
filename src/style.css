@@ -118,6 +118,7 @@ body {
   flex: 1;
   position: relative;
   min-height: 200px;
+  isolation: isolate;
 }
 
 #map {
@@ -1036,19 +1037,19 @@ input:focus {
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 3px solid transparent;
+  border: none;
   cursor: pointer;
+  outline: 3px solid transparent;
+  outline-offset: 2px;
+  appearance: none;
+  -webkit-appearance: none;
   transition:
     transform 0.15s,
-    border-color 0.15s;
-}
-
-.color-swatch:hover {
-  transform: scale(1.1);
+    outline-color 0.15s;
 }
 
 .color-swatch.selected {
-  border-color: var(--color-text);
+  outline-color: var(--color-text);
   transform: scale(1.1);
 }
 
@@ -1056,20 +1057,50 @@ input:focus {
   background: oklch(0.55 0.22 25);
 }
 
+.color-red:hover,
+.color-red:focus-visible {
+  outline-color: oklch(0.55 0.22 25);
+  transform: scale(1.1);
+}
+
 .color-orange {
   background: oklch(0.7 0.18 50);
+}
+
+.color-orange:hover,
+.color-orange:focus-visible {
+  outline-color: oklch(0.7 0.18 50);
+  transform: scale(1.1);
 }
 
 .color-green {
   background: oklch(0.6 0.18 145);
 }
 
+.color-green:hover,
+.color-green:focus-visible {
+  outline-color: oklch(0.6 0.18 145);
+  transform: scale(1.1);
+}
+
 .color-azure {
   background: oklch(0.65 0.18 230);
 }
 
+.color-azure:hover,
+.color-azure:focus-visible {
+  outline-color: oklch(0.65 0.18 230);
+  transform: scale(1.1);
+}
+
 .color-violet {
   background: oklch(0.6 0.2 300);
+}
+
+.color-violet:hover,
+.color-violet:focus-visible {
+  outline-color: oklch(0.6 0.2 300);
+  transform: scale(1.1);
 }
 
 /* === Saved Toolbar === */
@@ -1693,20 +1724,45 @@ input.error {
 }
 
 .compass-needle {
-  width: 4px;
-  height: 60px;
-  background: linear-gradient(to bottom, var(--color-danger) 50%, var(--color-text) 50%);
-  border-radius: 2px;
+  position: relative;
+  width: 24px;
+  height: 72px;
   transition: transform 0.1s ease-out;
 }
 
-.compass-needle::before {
-  content: 'N';
+.compass-needle-north {
   position: absolute;
-  top: 4px;
-  font-size: 0.65rem;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 36px;
+  background: var(--color-danger);
+  clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compass-needle-north-label {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
   font-weight: 700;
-  color: var(--color-text-muted);
+  color: #fff;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.compass-needle-south {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 24px;
+  height: 36px;
+  background: var(--color-text-muted);
+  clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
 }
 
 .compass-values {
@@ -1849,4 +1905,214 @@ input.error {
 
 .ruler-actions button {
   width: 100%;
+}
+
+/* === Install Banner === */
+.install-banner {
+  position: fixed;
+  bottom: calc(var(--nav-height) + var(--spacing-md));
+  left: var(--spacing-md);
+  right: var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  z-index: 500;
+  box-shadow: 0 4px 12px oklch(0 0 0 / 30%);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.install-banner-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.install-banner-content .material-symbols-outlined {
+  color: var(--color-accent);
+}
+
+.install-banner-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+@media (min-width: 768px) {
+  .install-banner {
+    bottom: var(--spacing-md);
+    right: calc(320px + var(--spacing-md));
+    left: auto;
+    max-width: 350px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .install-banner {
+    right: calc(360px + var(--spacing-md));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .install-banner {
+    animation: none;
+  }
+}
+
+/* === Touch Targets (44x44 px minimum) === */
+@media (pointer: coarse) {
+  /* Ensure icon buttons meet touch target requirements */
+  .icon-btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Nav tabs */
+  .nav-tab {
+    min-height: 44px;
+  }
+
+  /* FAB already 56px, no change needed */
+
+  /* Color swatches */
+  .color-swatch {
+    width: 44px;
+    height: 44px;
+  }
+
+  /* Small buttons */
+  .btn-small {
+    min-height: 44px;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  /* Checkbox labels */
+  .checkbox-label {
+    min-height: 44px;
+    padding: var(--spacing-sm) 0;
+  }
+
+  .checkbox-label input[type='checkbox'] {
+    width: 24px;
+    height: 24px;
+  }
+
+  /* Pin/track cards */
+  .pin-card,
+  .track-card {
+    min-height: 44px;
+    padding: var(--spacing-sm) var(--spacing-md);
+  }
+
+  /* Saved toolbar buttons */
+  .saved-toolbar .btn-small {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Search input */
+  .search-input {
+    min-height: 44px;
+  }
+
+  /* Coordinate actions */
+  .coord-actions .icon-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Ruler point rows */
+  .ruler-point {
+    min-height: 44px;
+  }
+}
+
+/* === Reduced Motion (Global) === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Disable specific animations */
+  .onboarding-step {
+    animation: none;
+  }
+
+  .toast {
+    transition: none;
+  }
+
+  .bottom-sheet {
+    transition: none;
+  }
+
+  .info-modal {
+    transition: none;
+  }
+
+  .dialog {
+    transition: none;
+  }
+
+  .toolbox-modal {
+    transition: none;
+  }
+
+  .modal-backdrop,
+  .sheet-backdrop {
+    transition: none;
+  }
+
+  .compass-needle {
+    transition: none;
+  }
+
+  .color-swatch {
+    transition: none;
+  }
+
+  .nav-tab {
+    transition: none;
+  }
+
+  .fab {
+    transition: none;
+  }
+
+  .dot {
+    transition: none;
+  }
+
+  /* Disable shake animation */
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+  }
 }

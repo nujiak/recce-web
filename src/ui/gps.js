@@ -68,7 +68,11 @@ export function init() {
       </div>
       <div class="compass-container">
         <div class="compass-dial">
-          <div id="compass-needle" class="compass-needle"></div>
+          <div id="compass-needle" class="compass-needle">
+            <div class="compass-needle-north"></div>
+            <span class="compass-needle-north-label">N</span>
+            <div class="compass-needle-south"></div>
+          </div>
         </div>
         <div class="compass-values">
           <div class="compass-value-row">
@@ -332,9 +336,9 @@ function updateCompassDisplay() {
   const prefs = getPrefs();
 
   if (azimuth !== null && hasOrientation) {
-    // Update needle rotation
+    // Needle always points north: rotate opposite to device heading
     if (compassNeedle) {
-      compassNeedle.style.transform = `rotate(${azimuth}deg)`;
+      compassNeedle.style.transform = `rotate(${-azimuth}deg)`;
     }
 
     // Update azimuth display

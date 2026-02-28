@@ -95,10 +95,11 @@ function handleEdit() {
   if (!currentPin) return;
 
   const pinToEdit = currentPin;
+  const callback = onEditCallback;
   closeInfo();
 
-  if (onEditCallback) {
-    onEditCallback(pinToEdit);
+  if (callback) {
+    callback(pinToEdit);
   }
 }
 
