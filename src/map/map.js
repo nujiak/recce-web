@@ -240,6 +240,16 @@ function setupTrackPlotting() {
   }
 }
 
+function updatePreview() {
+  if (!isPlottingMode || plotNodes.length === 0) return;
+  const center = map.getCenter();
+  tracksModule.updatePreviewLine(
+    plotNodes[plotNodes.length - 1],
+    { lat: center.lat, lng: center.lng },
+    plotColor
+  );
+}
+
 function updateStartTrackButton() {
   const startTrackBtn = document.getElementById('start-track-btn');
   if (startTrackBtn) {
@@ -256,6 +266,7 @@ function startPlotting() {
 
   if (plotBar) plotBar.style.display = 'flex';
 
+  map.on('move', updatePreview);
   updatePlotCount();
 }
 
@@ -326,7 +337,12 @@ function undoNode() {
   if (!isPlottingMode || plotNodes.length === 0) return;
 
   plotNodes.pop();
-  tracksModule.updateTempTrack(plotNodes, false, plotColor);
+  if (plotNodes.length === 0) {
+    tracksModule.clearTempTrack();
+    tracksModule.clearPreviewLine();
+  } else {
+    tracksModule.updateTempTrack(plotNodes, false, plotColor);
+  }
   updatePlotCount();
 }
 
@@ -357,6 +373,9 @@ function cancelPlot() {
 
 function exitPlottingMode() {
   isPlottingMode = false;
+
+  map.off('move', updatePreview);
+  tracksModule.clearPreviewLine();
 
   const plotBar = document.getElementById('track-plot-bar');
   if (plotBar) plotBar.style.display = 'none';
