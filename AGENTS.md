@@ -1147,3 +1147,277 @@ Phase 1 → must land first (all others depend on the events being dispatched)
 Phase 2, 3, 4 → independent of each other; all depend on Phase 1
 Phase 4 → zero DB cost only after Change 3 Phase 1 is implemented
 ```
+
+---
+
+### Change 7 — Desktop Tools Bar Visibility
+
+**Goal:** Fix the desktop tools bar not appearing on desktop viewports due to a CSS
+cascade issue.
+
+#### Key facts
+
+- `.desktop-tools-bar` is defined in the `@media (min-width: 768px)` block (lines 789-796) with `display: flex`
+- Later in the file (lines 1534-1537), `.desktop-tools-bar` is set to `display: none` OUTSIDE any media query
+- Same-specicity rules cascade, so the later `display: none` wins at all viewport sizes
+
+#### Phase 1 — Wrap mobile-hidden rules in media query
+
+**Files:** `src/style.css`
+
+- Find lines 1534-1541 (mobile-hidden rules for desktop tools):
+
+  ```css
+  .desktop-tools-bar {
+    display: none;
+  }
+
+  .desktop-tools-accordion {
+    display: none;
+  }
+  ```
+
+- Wrap them in a mobile-only media query:
+
+  ```css
+  @media (max-width: 767px) {
+    .desktop-tools-bar {
+      display: none;
+    }
+
+    .desktop-tools-accordion {
+      display: none;
+    }
+  }
+  ```
+
+**Dependency order:**
+
+```
+Single phase — no dependencies
+```
+
+---
+
+### Change 8 — Crosshair SVG Replacement
+
+**Goal:** Replace the CSS-based crosshair with an SVG matching the Android app's
+reticle design for consistent visibility on all map backgrounds.
+
+#### Key facts
+
+- Current crosshair uses `::before` and `::after` pseudo-elements with `mix-blend-mode: difference`
+- `mix-blend-mode` doesn't work reliably with MapLibre's WebGL canvas
+- Android app uses `ic_map_reticle.xml` vector drawable with white fill and dark gray outline
+
+#### Phase 1 — Create crosshair SVG
+
+**Files:** `public/crosshair.svg` (new file)
+
+- Convert Android vector drawable `ic_map_reticle.xml` to SVG format
+- viewBox="0 0 6.35 6.35", width="24", height="24"
+- Two paths:
+  1. Dark gray outline (`#404040`) — drawn first
+  2. White cross fill (`#f8f8f8`) — drawn on top
+- Center remains transparent
+
+SVG content:
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 6.35 6.35">
+  <!-- Dark gray outline -->
+  <path d="M3.17578,0C2.91949,0 2.71094,0.2066 2.71094,0.46289L2.71094,2.71094L0.46289,2.71094C0.2066,2.71094 0,2.91949 0,3.17578 0,3.43208 0.2066,3.63867 0.46289,3.63867L2.71094,3.63867v2.24805c0,0.25629 0.20855,0.46484 0.46484,0.46484 0.25629,0 0.46289,-0.20855 0.46289,-0.46484L3.63867,3.63867h2.24805c0.25629,0 0.46484,-0.2066 0.46484,-0.46289 0,-0.25629 -0.20855,-0.46484 -0.46484,-0.46484L3.63867,2.71094L3.63867,0.46289C3.63867,0.2066 3.43208,0 3.17578,0ZM3.17578,0.09961c0.20265,0 0.36328,0.16063 0.36328,0.36328L3.53906,2.81055L5.88672,2.81055C6.08937,2.81055 6.25,2.97313 6.25,3.17578 6.25,3.37843 6.08937,3.53906 5.88672,3.53906L3.53906,3.53906L3.53906,5.88672C3.53906,6.08937 3.37843,6.25 3.17578,6.25 2.97313,6.25 2.81055,6.08937 2.81055,5.88672L2.81055,3.53906L0.46289,3.53906c-0.20265,0 -0.36328,-0.16063 -0.36328,-0.36328 0,-0.20265 0.16063,-0.36523 0.36328,-0.36523L2.81055,2.81055L2.81055,0.46289c0,-0.20265 0.16259,-0.36328 0.36523,-0.36328z" fill="#404040"/>
+  <!-- White cross fill -->
+  <path d="m3.175,0.04922c-0.22947,0 -0.41412,0.18465 -0.41412,0.41412L2.76088,2.76088L3.58912,2.76088L3.58912,0.46335C3.58912,0.23388 3.40447,0.04922 3.175,0.04922ZM3.58912,2.76088v0.82825h2.29753c0.22947,0 0.41412,-0.18465 0.41412,-0.41412 0,-0.22947 -0.18465,-0.41412 -0.41412,-0.41412zM3.58912,3.58912L2.76088,3.58912v2.29753c0,0.22947 0.18465,0.41412 0.41412,0.41412 0.22947,0 0.41412,-0.18465 0.41412,-0.41412zM2.76088,3.58912L2.76088,2.76088L0.46335,2.76088c-0.22947,0 -0.41412,0.18465 -0.41412,0.41412 0,0.22947 0.18465,0.41412 0.41412,0.41412z" fill="#f8f8f8"/>
+</svg>
+```
+
+#### Phase 2 — Replace HTML element
+
+**Files:** `src/index.html`
+
+- Line 36: Replace `<div id="crosshair"></div>` with:
+  ```html
+  <img id="crosshair" src="/crosshair.svg" alt="" />
+  ```
+
+#### Phase 3 — Update CSS
+
+**Files:** `src/style.css`
+
+- Remove lines 141-163 (`#crosshair::before` and `#crosshair::after` rules)
+- Keep only the positioning on `#crosshair`:
+  ```css
+  #crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 24px;
+    height: 24px;
+    margin-left: -12px;
+    margin-top: -12px;
+    pointer-events: none;
+    z-index: 1000;
+  }
+  ```
+
+**Dependency order:**
+
+```
+Phase 1 → must exist before Phase 2
+Phase 2 → must precede Phase 3 (CSS changes)
+Phase 3 → independent of Phase 1, depends on Phase 2
+```
+
+---
+
+### Change 9 — Import Button Icon
+
+**Goal:** Replace the ambiguous `add` icon on the import button with a clearer `download`
+icon.
+
+#### Key facts
+
+- Import button at `src/index.html:85` uses `add` icon
+- The `add` icon can be confused with the "add pin" action
+- Import functionality imports share codes, better represented by download icon
+
+#### Phase 1 — Update icon
+
+**Files:** `src/index.html`
+
+- Line 85: Change:
+  ```html
+  <span class="material-symbols-outlined">add</span>
+  ```
+  to:
+  ```html
+  <span class="material-symbols-outlined">download</span>
+  ```
+
+**Dependency order:**
+
+```
+Single phase — no dependencies
+```
+
+---
+
+### Change 10 — Sort Button Icon Replacement
+
+**Goal:** Replace the sort button's text label with cycling icons to prevent layout
+shifts when cycling through sort modes.
+
+#### Key facts
+
+- Sort button at `src/index.html:76` displays text ("Newest", "Oldest", etc.)
+- Text changes cause button resize and layout shift
+- `saved.js:cycleSort()` cycles through 5 modes: `newest`, `oldest`, `name-az`, `name-za`, `group`
+- `saved.js:updateToolbar()` updates button text
+
+#### Phase 1 — Update HTML
+
+**Files:** `src/index.html`
+
+- Line 76: Replace:
+  ```html
+  <button id="saved-sort-btn" class="btn-small" aria-label="Sort">Newest</button>
+  ```
+  with:
+  ```html
+  <button id="saved-sort-btn" class="btn-small" aria-label="Sort" title="Sort by: Newest">
+    <span class="material-symbols-outlined">arrow_downward</span>
+  </button>
+  ```
+
+#### Phase 2 — Update JavaScript
+
+**Files:** `src/ui/saved.js`
+
+- Update `updateToolbar()` function (lines 325-334) to change icon and title instead of text:
+
+```js
+if (sortBtn) {
+  const icons = {
+    newest: 'arrow_downward',
+    oldest: 'arrow_upward',
+    'name-az': 'sort_by_alpha',
+    'name-za': 'sort_by_alpha',
+    group: 'folder',
+  };
+  const titles = {
+    newest: 'Sort by: Newest',
+    oldest: 'Sort by: Oldest',
+    'name-az': 'Sort by: Name A-Z',
+    'name-za': 'Sort by: Name Z-A',
+    group: 'Sort by: Group',
+  };
+  const iconEl = sortBtn.querySelector('.material-symbols-outlined');
+  if (iconEl) iconEl.textContent = icons[sortBy];
+  sortBtn.title = titles[sortBy];
+}
+```
+
+**Icon mapping:**
+| Mode | Icon | Tooltip |
+|------|------|---------|
+| `newest` | `arrow_downward` | "Sort by: Newest" |
+| `oldest` | `arrow_upward` | "Sort by: Oldest" |
+| `name-az` | `sort_by_alpha` | "Sort by: Name A-Z" |
+| `name-za` | `sort_by_alpha` | "Sort by: Name Z-A" |
+| `group` | `folder` | "Sort by: Group" |
+
+**Dependency order:**
+
+```
+Phase 1 → must precede Phase 2 (JS needs icon element to target)
+Phase 2 → depends on Phase 1
+```
+
+---
+
+### Change 11 — Desktop Saved Panel Width Fix
+
+**Goal:** Fix the Saved panel taking up too much space on desktop by enforcing a fixed
+width instead of flex growth.
+
+#### Key facts
+
+- `.surface` class has `flex: 1` (line 87 of style.css)
+- On desktop, `#main-content` switches to `flex-direction: row`
+- `#saved-surface` has `width: 320px` but `flex: 1` causes it to grow
+- The `flex: 1` from `.surface` overrides the fixed width
+
+#### Phase 1 — Add flex: none to saved surface
+
+**Files:** `src/style.css`
+
+- In the `@media (min-width: 768px)` block, update `#saved-surface` rule:
+  ```css
+  #saved-surface {
+    width: 320px;
+    flex: none;
+    border-left: 1px solid var(--color-border-subtle);
+  }
+  ```
+
+#### Phase 2 — Remove redundant large desktop width override
+
+**Files:** `src/style.css`
+
+- In the `@media (min-width: 1024px)` block, remove the `#saved-surface` width override
+  (lines 854-856) since we're keeping a consistent 320px:
+  ```css
+  /* Large Desktop */
+  @media (min-width: 1024px) {
+    #main-content {
+      grid-column: 1 / 3;
+    }
+  }
+  ```
+
+**Dependency order:**
+
+```
+Phase 1, 2 → independent of each other
+```
