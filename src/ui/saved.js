@@ -7,20 +7,25 @@ import { showToast } from '../utils/toast.js';
 
 let pins = [];
 let tracks = [];
+let cachedItems = [];
 let sortBy = 'newest';
 let searchQuery = '';
-let selectedIds = new Set(); // stores 'pin:id' or 'track:id' strings
+let selectedIds = new Set();
 let isMultiSelectMode = false;
+let longPressTimer = null;
+let longPressStart = null;
+let longPressHandled = false;
 
 export function init() {
   setupToolbarEvents();
   setupImportDialog();
+  window.addEventListener('prefsChanged', () => render());
+  render(true);
 }
 
 function setupToolbarEvents() {
   const sortBtn = document.getElementById('saved-sort-btn');
   const searchInput = document.getElementById('saved-search');
-  const multiSelectBtn = document.getElementById('saved-multiselect-btn');
   const deleteBtn = document.getElementById('saved-delete-btn');
   const shareBtn = document.getElementById('saved-share-btn');
   const rulerBtn = document.getElementById('saved-ruler-btn');
@@ -36,10 +41,6 @@ function setupToolbarEvents() {
       searchQuery = e.target.value.toLowerCase();
       render();
     });
-  }
-
-  if (multiSelectBtn) {
-    multiSelectBtn.addEventListener('click', toggleMultiSelect);
   }
 
   if (deleteBtn) {
@@ -70,12 +71,6 @@ function cycleSort() {
   render();
 }
 
-function toggleMultiSelect() {
-  isMultiSelectMode = !isMultiSelectMode;
-  selectedIds.clear();
-  render();
-}
-
 function exitMultiSelect() {
   isMultiSelectMode = false;
   selectedIds.clear();
@@ -100,20 +95,23 @@ async function handleBulkDelete() {
 
   selectedIds.clear();
   isMultiSelectMode = false;
-  await render();
+  cachedItems = [];
+  await render(true);
 }
 
-export async function render() {
+export async function render(forceRefetch = false) {
   const container = document.getElementById('saved-list');
   if (!container) return;
 
-  [pins, tracks] = await Promise.all([getAllPins(), getAllTracks()]);
+  if (forceRefetch || cachedItems.length === 0) {
+    [pins, tracks] = await Promise.all([getAllPins(), getAllTracks()]);
+    cachedItems = [
+      ...pins.map((p) => ({ ...p, itemType: 'pin' })),
+      ...tracks.map((t) => ({ ...t, itemType: 'track' })),
+    ];
+  }
 
-  // Create unified list with type markers
-  const items = [
-    ...pins.map((p) => ({ ...p, itemType: 'pin' })),
-    ...tracks.map((t) => ({ ...t, itemType: 'track' })),
-  ];
+  const items = cachedItems;
 
   let filtered = items;
 
@@ -146,9 +144,52 @@ export async function render() {
     container.innerHTML = filtered.map((item) => renderCard(item, prefs)).join('');
   }
 
-  // Attach click handlers
+  // Attach event handlers
   container.querySelectorAll('.pin-card, .track-card').forEach((card) => {
+    card.addEventListener('pointerdown', (e) => {
+      longPressStart = { x: e.clientX, y: e.clientY };
+      longPressHandled = false;
+      longPressTimer = setTimeout(() => {
+        const type = card.dataset.type;
+        const id = parseInt(card.dataset.id);
+        const key = `${type}:${id}`;
+        isMultiSelectMode = true;
+        selectedIds.add(key);
+        render();
+        navigator.vibrate?.(30);
+        longPressHandled = true;
+      }, 300);
+    });
+
+    card.addEventListener('pointermove', (e) => {
+      if (!longPressStart || !longPressTimer) return;
+      const dx = e.clientX - longPressStart.x;
+      const dy = e.clientY - longPressStart.y;
+      if (Math.sqrt(dx * dx + dy * dy) > 8) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+    });
+
+    card.addEventListener('pointerup', () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+      longPressStart = null;
+    });
+
+    card.addEventListener('pointercancel', () => {
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+      longPressStart = null;
+    });
+
     card.addEventListener('click', () => {
+      if (longPressHandled) return;
+
       const type = card.dataset.type;
       const id = parseInt(card.dataset.id);
       const key = `${type}:${id}`;
@@ -159,7 +200,14 @@ export async function render() {
         } else {
           selectedIds.add(key);
         }
-        render();
+        card.classList.toggle('selected');
+        const checkbox = card.querySelector('input[type="checkbox"]');
+        if (checkbox) checkbox.checked = selectedIds.has(key);
+        if (selectedIds.size === 0) {
+          exitMultiSelect();
+        } else {
+          updateToolbar();
+        }
       } else {
         if (type === 'pin') {
           const pin = pins.find((p) => p.id === id);
@@ -272,6 +320,7 @@ function updateToolbar() {
   const toolbar = document.getElementById('saved-toolbar');
   const multiToolbar = document.getElementById('saved-multi-toolbar');
   const selectedCountEl = document.getElementById('selected-count');
+  const hintEl = document.getElementById('saved-hint');
 
   if (sortBtn) {
     const labels = {
@@ -295,10 +344,15 @@ function updateToolbar() {
   if (selectedCountEl) {
     selectedCountEl.textContent = selectedIds.size;
   }
+
+  if (hintEl) {
+    hintEl.style.display = isMultiSelectMode ? 'none' : '';
+  }
 }
 
 export async function refresh() {
-  await render();
+  cachedItems = [];
+  await render(true);
 }
 
 function escapeHtml(str) {
@@ -559,8 +613,8 @@ async function handleImportConfirm() {
 
   showToast(messages.join('. '), addedPins > 0 || addedTracks > 0 ? 'success' : 'info');
 
-  // Refresh the list and map
-  await render();
+  cachedItems = [];
+  await render(true);
   window.dispatchEvent(new CustomEvent('dataImported'));
 }
 

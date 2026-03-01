@@ -53,10 +53,13 @@
               </div>
               <div class="coord-actions">
                 <button id="goto-btn" class="icon-btn" aria-label="Go to coordinates" title="Go To">
-                  <span class="material-symbols-outlined">straighten</span>
+                  <span class="material-symbols-outlined">near_me</span>
                 </button>
                 <button id="add-button" class="icon-btn" aria-label="Add pin">
                   <span class="material-symbols-outlined">add_location_alt</span>
+                </button>
+                <button id="start-track-btn" class="icon-btn" aria-label="Start track plotting">
+                  <span class="material-symbols-outlined">show_chart</span>
                 </button>
               </div>
             </div>
@@ -81,10 +84,8 @@
             <button id="saved-import-btn" class="btn-small" aria-label="Import">
               <span class="material-symbols-outlined">add</span>
             </button>
-            <button id="saved-multiselect-btn" class="btn-small" aria-label="Multi-select">
-              <span class="material-symbols-outlined">checklist</span>
-            </button>
           </div>
+          <p class="saved-hint" id="saved-hint">Hold an item to select</p>
           <!-- Multi-select Toolbar -->
           <div id="saved-multi-toolbar" class="saved-toolbar multi-toolbar" style="display: none">
             <button id="saved-cancel-btn" class="btn-small" aria-label="Cancel">
@@ -102,6 +103,30 @@
             </button>
           </div>
           <div id="saved-list" class="saved-content"></div>
+          <!-- Desktop Tools Bar -->
+          <div id="desktop-tools-bar" class="desktop-tools-bar">
+            <button id="dt-gps-btn" class="desktop-tools-btn" data-tool="gps" aria-label="GPS">
+              <span class="material-symbols-outlined">explore</span>
+            </button>
+            <button
+              id="dt-ruler-btn"
+              class="desktop-tools-btn"
+              data-tool="ruler"
+              aria-label="Ruler"
+            >
+              <span class="material-symbols-outlined">straighten</span>
+            </button>
+            <button
+              id="dt-settings-btn"
+              class="desktop-tools-btn"
+              data-tool="settings"
+              aria-label="Settings"
+            >
+              <span class="material-symbols-outlined">settings</span>
+            </button>
+          </div>
+          <!-- Desktop Tools Accordion -->
+          <div id="desktop-tools-accordion" class="desktop-tools-accordion"></div>
         </section>
       </main>
 
@@ -115,12 +140,11 @@
           <span class="material-symbols-outlined">pin_drop</span>
           <span class="nav-label">Saved</span>
         </button>
+        <button class="nav-tab" data-tab="tools" aria-label="Tools">
+          <span class="material-symbols-outlined">construction</span>
+          <span class="nav-label">Tools</span>
+        </button>
       </nav>
-
-      <!-- Toolbox FAB -->
-      <button id="toolbox-fab" class="fab" aria-label="Open toolbox">
-        <span class="material-symbols-outlined">explore</span>
-      </button>
 
       <!-- Toolbox Modal -->
       <div id="toolbox-backdrop" class="modal-backdrop"></div>
@@ -132,27 +156,46 @@
         aria-label="Toolbox"
       >
         <header class="toolbox-header">
-          <h2>Toolbox</h2>
-          <button id="toolbox-close" class="icon-btn" aria-label="Close">
+          <button id="toolbox-back" class="icon-btn" aria-label="Back" style="display: none">
             <span class="material-symbols-outlined">arrow_back</span>
+          </button>
+          <h2 id="toolbox-title">Tools</h2>
+          <button id="toolbox-close" class="icon-btn" aria-label="Close">
+            <span class="material-symbols-outlined">close</span>
           </button>
         </header>
         <div class="toolbox-content">
-          <section class="toolbox-panel" id="gps-panel">
+          <!-- Grid View -->
+          <div id="toolbox-grid" class="toolbox-grid">
+            <button class="toolbox-grid-card" data-tool="gps">
+              <span class="material-symbols-outlined">explore</span>
+              <span class="toolbox-grid-label">GPS / Compass</span>
+            </button>
+            <button class="toolbox-grid-card" data-tool="ruler">
+              <span class="material-symbols-outlined">straighten</span>
+              <span class="toolbox-grid-label">Ruler</span>
+            </button>
+            <button class="toolbox-grid-card" data-tool="settings">
+              <span class="material-symbols-outlined">settings</span>
+              <span class="toolbox-grid-label">Settings</span>
+            </button>
+          </div>
+          <!-- Tool Panels -->
+          <section class="toolbox-panel" id="gps-panel" style="display: none">
             <h3>
               <span class="material-symbols-outlined">satellite_alt</span>
               GPS
             </h3>
             <p class="panel-placeholder">GPS panel coming soon</p>
           </section>
-          <section class="toolbox-panel" id="ruler-panel">
+          <section class="toolbox-panel" id="ruler-panel" style="display: none">
             <h3>
               <span class="material-symbols-outlined">straighten</span>
               Ruler
             </h3>
             <p class="panel-placeholder">Ruler panel coming soon</p>
           </section>
-          <section class="toolbox-panel" id="settings-panel">
+          <section class="toolbox-panel" id="settings-panel" style="display: none">
             <h3>
               <span class="material-symbols-outlined">settings</span>
               Settings
@@ -389,16 +432,6 @@
         <span class="material-symbols-outlined">save</span>
       </button>
     </div>
-
-    <!-- Start Track FAB -->
-    <button
-      id="start-track-btn"
-      class="fab fab-secondary"
-      aria-label="Start track plotting"
-      style="display: none"
-    >
-      <span class="material-symbols-outlined">show_chart</span>
-    </button>
 
     <!-- Checkpoint Name Dialog -->
     <div id="checkpoint-backdrop" class="modal-backdrop"></div>

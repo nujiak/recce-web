@@ -3,6 +3,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { CoordinateTransformer } from '../coords/index.js';
 import { getAllPins, getAllTracks } from '../db/db.js';
 import { getPrefs } from '../ui/settings.js';
+import { showToast } from '../utils/toast.js';
 import {
   renderMarkers,
   addMarker as addMarkerToMap,
@@ -67,6 +68,9 @@ export function init() {
   window.addEventListener('prefsChanged', (e) => {
     if (e.detail.key === 'coordinateSystem') {
       updateCoordDisplay();
+    }
+    if (e.detail.key === 'angleUnit' || e.detail.key === 'lengthUnit') {
+      updateGPSOverlay();
     }
   });
 
@@ -240,10 +244,20 @@ function setupTrackPlotting() {
   }
 }
 
+function updatePreview() {
+  if (!isPlottingMode || plotNodes.length === 0) return;
+  const center = map.getCenter();
+  tracksModule.updatePreviewLine(
+    plotNodes[plotNodes.length - 1],
+    { lat: center.lat, lng: center.lng },
+    plotColor
+  );
+}
+
 function updateStartTrackButton() {
   const startTrackBtn = document.getElementById('start-track-btn');
   if (startTrackBtn) {
-    startTrackBtn.style.display = isPlottingMode ? 'none' : 'flex';
+    startTrackBtn.disabled = isPlottingMode;
   }
 }
 
@@ -253,11 +267,10 @@ function startPlotting() {
   plotColor = 'red';
 
   const plotBar = document.getElementById('track-plot-bar');
-  const startTrackBtn = document.getElementById('start-track-btn');
 
   if (plotBar) plotBar.style.display = 'flex';
-  if (startTrackBtn) startTrackBtn.style.display = 'none';
 
+  map.on('move', updatePreview);
   updatePlotCount();
 }
 
@@ -328,7 +341,12 @@ function undoNode() {
   if (!isPlottingMode || plotNodes.length === 0) return;
 
   plotNodes.pop();
-  tracksModule.updateTempTrack(plotNodes, false, plotColor);
+  if (plotNodes.length === 0) {
+    tracksModule.clearTempTrack();
+    tracksModule.clearPreviewLine();
+  } else {
+    tracksModule.updateTempTrack(plotNodes, false, plotColor);
+  }
   updatePlotCount();
 }
 
@@ -359,6 +377,9 @@ function cancelPlot() {
 
 function exitPlottingMode() {
   isPlottingMode = false;
+
+  map.off('move', updatePreview);
+  tracksModule.clearPreviewLine();
 
   const plotBar = document.getElementById('track-plot-bar');
   if (plotBar) plotBar.style.display = 'none';
@@ -407,7 +428,20 @@ function updateCoordDisplay() {
   const prefs = getPrefs();
   const display = CoordinateTransformer.toDisplay(center.lat, center.lng, prefs.coordinateSystem);
   const el = document.getElementById('target-coord-display');
-  if (el) el.textContent = display;
+  if (el) {
+    el.textContent = display;
+    if (!el.dataset.clickHandler) {
+      el.dataset.clickHandler = 'true';
+      el.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(el.textContent.trim());
+          showToast('Coordinates copied', 'success');
+        } catch {
+          showToast('Failed to copy', 'error');
+        }
+      });
+    }
+  }
 }
 
 // Pin marker functions

@@ -142,7 +142,8 @@ body {
 #crosshair::after {
   content: '';
   position: absolute;
-  background: var(--color-text);
+  background: #ffffff;
+  mix-blend-mode: difference;
 }
 
 #crosshair::before {
@@ -189,6 +190,14 @@ body {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--color-text-secondary);
+}
+
+#target-coord-display {
+  cursor: pointer;
+}
+
+#target-coord-display:active {
+  opacity: 0.6;
 }
 
 .icon-title {
@@ -391,6 +400,54 @@ body {
   color: var(--color-text-muted);
   font-size: 0.85rem;
   font-style: italic;
+}
+
+/* Toolbox Grid */
+.toolbox-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+}
+
+.toolbox-grid-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg) var(--spacing-md);
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    transform 0.15s;
+}
+
+.toolbox-grid-card:hover {
+  background: var(--color-bg-tertiary);
+  border-color: var(--color-border);
+}
+
+.toolbox-grid-card:active {
+  transform: scale(0.97);
+}
+
+.toolbox-grid-card .material-symbols-outlined {
+  font-size: 32px;
+  color: var(--color-accent);
+}
+
+.toolbox-grid-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-secondary);
+  text-align: center;
 }
 
 /* Buttons */
@@ -724,9 +781,67 @@ input:focus {
     border-left: 1px solid var(--color-border-subtle);
   }
 
-  .fab {
-    bottom: var(--spacing-md);
-    right: calc(320px + var(--spacing-md));
+  #saved-surface {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .desktop-tools-bar {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm);
+    border-top: 1px solid var(--color-border-subtle);
+    background: var(--color-bg);
+  }
+
+  .desktop-tools-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition:
+      background-color 0.2s,
+      color 0.2s;
+  }
+
+  .desktop-tools-btn:hover {
+    background: var(--color-bg-tertiary);
+    color: var(--color-text);
+  }
+
+  .desktop-tools-btn.active {
+    background: var(--color-accent-bg);
+    color: var(--color-accent);
+  }
+
+  .desktop-tools-accordion {
+    display: none;
+    max-height: 300px;
+    overflow-y: auto;
+    border-top: 1px solid var(--color-border-subtle);
+    background: var(--color-bg-secondary);
+  }
+
+  .desktop-tools-accordion.open {
+    display: block;
+  }
+
+  .desktop-tools-accordion .toolbox-panel {
+    margin: 0;
+    border-radius: 0;
+    border: none;
+    border-bottom: 1px solid var(--color-border-subtle);
+  }
+
+  .desktop-tools-accordion .toolbox-panel:last-child {
+    border-bottom: none;
   }
 }
 
@@ -738,10 +853,6 @@ input:focus {
 
   #saved-surface {
     width: 360px;
-  }
-
-  .fab {
-    right: calc(360px + var(--spacing-md));
   }
 }
 
@@ -950,6 +1061,16 @@ input:focus {
   align-items: baseline;
   padding: var(--spacing-xs) 0;
   border-bottom: 1px solid var(--color-border-subtle);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.pin-info-coord-row:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.pin-info-coord-row:active {
+  opacity: 0.6;
 }
 
 .pin-info-coord-row:last-child {
@@ -1157,6 +1278,16 @@ input.error {
   font-size: 0.85rem;
   color: var(--color-text-secondary);
   margin-right: auto;
+}
+
+.saved-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--spacing-xs) var(--spacing-md);
+  margin: 0;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border-subtle);
 }
 
 /* === Pin Card === */
@@ -1400,16 +1531,13 @@ input.error {
   text-align: center;
 }
 
-/* === Secondary FAB === */
-.fab-secondary {
-  bottom: calc(var(--nav-height) + var(--fab-size) + var(--spacing-md) * 2);
-  background: var(--color-bg-secondary);
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
+/* === Desktop Tools Bar (Mobile Hidden) === */
+.desktop-tools-bar {
+  display: none;
 }
 
-.fab-secondary:hover {
-  background: var(--color-bg-tertiary);
+.desktop-tools-accordion {
+  display: none;
 }
 
 /* === Checkbox Label === */

@@ -11,6 +11,8 @@ const CHECKPOINTS_SOURCE = 'checkpoints-source';
 const CHECKPOINTS_LAYER = 'checkpoints-layer';
 const TEMP_TRACK_SOURCE = 'temp-track-source';
 const TEMP_TRACK_LAYER = 'temp-track-layer';
+const PREVIEW_SOURCE = 'preview-track-source';
+const PREVIEW_LAYER = 'preview-track-layer';
 
 export function init(mapInstance) {
   map = mapInstance;
@@ -80,10 +82,27 @@ export function init(mapInstance) {
     type: 'line',
     source: TEMP_TRACK_SOURCE,
     paint: {
-      'line-color': '#ffffff',
-      'line-width': 2,
-      'line-dasharray': [2, 2],
+      'line-color': ['get', 'color'],
+      'line-width': 3,
+      'line-dasharray': [4, 3],
       'line-opacity': 0.8,
+    },
+  });
+
+  map.addSource(PREVIEW_SOURCE, {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] },
+  });
+
+  map.addLayer({
+    id: PREVIEW_LAYER,
+    type: 'line',
+    source: PREVIEW_SOURCE,
+    paint: {
+      'line-color': ['get', 'color'],
+      'line-width': 3,
+      'line-dasharray': [4, 3],
+      'line-opacity': 0.4,
     },
   });
 
@@ -274,6 +293,46 @@ export function clearTempTrack() {
   if (!map) return;
 
   map.getSource(TEMP_TRACK_SOURCE)?.setData({
+    type: 'FeatureCollection',
+    features: [],
+  });
+}
+
+export function updatePreviewLine(lastNode, cursorLatLng, color) {
+  if (!map || !lastNode || !cursorLatLng) return;
+
+  const colorMap = {
+    red: '#c94444',
+    orange: '#d4863b',
+    green: '#4a9f5c',
+    azure: '#4a8fd4',
+    violet: '#8a4ad4',
+  };
+
+  map.getSource(PREVIEW_SOURCE)?.setData({
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: {
+          color: colorMap[color] || '#ffffff',
+        },
+        geometry: {
+          type: 'LineString',
+          coordinates: [
+            [lastNode.lng, lastNode.lat],
+            [cursorLatLng.lng, cursorLatLng.lat],
+          ],
+        },
+      },
+    ],
+  });
+}
+
+export function clearPreviewLine() {
+  if (!map) return;
+
+  map.getSource(PREVIEW_SOURCE)?.setData({
     type: 'FeatureCollection',
     features: [],
   });

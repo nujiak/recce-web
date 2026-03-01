@@ -116,14 +116,29 @@ function setupSettingsPanel() {
 
   angleSelect.addEventListener('change', () => {
     savePrefs({ angleUnit: angleSelect.value });
+    window.dispatchEvent(
+      new CustomEvent('prefsChanged', {
+        detail: { key: 'angleUnit', value: angleSelect.value },
+      })
+    );
   });
 
   lengthSelect.addEventListener('change', () => {
     savePrefs({ lengthUnit: lengthSelect.value });
+    window.dispatchEvent(
+      new CustomEvent('prefsChanged', {
+        detail: { key: 'lengthUnit', value: lengthSelect.value },
+      })
+    );
   });
 
   themeSelect.addEventListener('change', () => {
     savePrefs({ theme: themeSelect.value });
+    window.dispatchEvent(
+      new CustomEvent('prefsChanged', {
+        detail: { key: 'theme', value: themeSelect.value },
+      })
+    );
   });
 }
 
