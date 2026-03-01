@@ -824,11 +824,11 @@ The following improvements are to be implemented in phases. Each phase groups re
    font-variant-numeric: tabular-nums;
    ```
 
-#### 1.2 Increase Crosshair Outline Thickness
+#### 1.2 Replace Crosshair with Improved Version
 
-**File to modify:** `public/crosshair.svg`
+**File:** `public/crosshair.svg`
 
-**Change:** Widen the dark gray outline path (`#404040`) coordinates to extend ~2px beyond the white cross fill (vs current ~1px). Maintain existing cross shape and color.
+**Change:** The crosshair has been replaced with an improved version that has a more visible outline for better visibility on varied map backgrounds. No modification needed — file is already updated.
 
 ---
 
