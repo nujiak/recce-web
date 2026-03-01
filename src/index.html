@@ -33,7 +33,7 @@
         <!-- Map Surface -->
         <section id="map-surface" class="surface">
           <div id="map-container">
-            <div id="crosshair"></div>
+            <img id="crosshair" src="/crosshair.svg" alt="" />
             <div id="map"></div>
             <!-- GPS Overlay -->
             <div id="gps-overlay" class="gps-overlay hidden" role="status" aria-live="polite">
@@ -73,7 +73,9 @@
           </header>
           <!-- Saved Toolbar -->
           <div id="saved-toolbar" class="saved-toolbar">
-            <button id="saved-sort-btn" class="btn-small" aria-label="Sort">Newest</button>
+            <button id="saved-sort-btn" class="btn-small" aria-label="Sort" title="Sort by: Newest">
+              <span class="material-symbols-outlined">arrow_downward</span>
+            </button>
             <input
               type="text"
               id="saved-search"
@@ -82,7 +84,7 @@
               aria-label="Search saved items"
             />
             <button id="saved-import-btn" class="btn-small" aria-label="Import">
-              <span class="material-symbols-outlined">add</span>
+              <span class="material-symbols-outlined">download</span>
             </button>
           </div>
           <p class="saved-hint" id="saved-hint">Hold an item to select</p>
