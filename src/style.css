@@ -2000,6 +2000,61 @@ input.error {
   color: var(--color-accent);
 }
 
+/* Fixed-width dynamic value containers */
+#target-coord-display {
+  min-width: 25ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#gps-coord-value {
+  min-width: 25ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#gps-overlay-distance {
+  min-width: 12ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#gps-overlay-bearing {
+  min-width: 10ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#compass-azimuth {
+  min-width: 10ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#compass-pitch {
+  min-width: 8ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#compass-roll {
+  min-width: 7ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#gps-accuracy {
+  min-width: 20ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#gps-altitude {
+  min-width: 20ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 .ruler-actions {
   margin-top: var(--spacing-md);
   display: flex;

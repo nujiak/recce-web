@@ -170,7 +170,7 @@ export function formatBearing(degrees, angleUnit) {
     const mils = Math.round((degrees * 6400) / 360);
     return `${mils} mils`;
   }
-  return `${Math.round(degrees)}°`;
+  return `${degrees.toFixed(1)}°`;
 }
 
 /**
