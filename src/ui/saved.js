@@ -323,14 +323,23 @@ function updateToolbar() {
   const hintEl = document.getElementById('saved-hint');
 
   if (sortBtn) {
-    const labels = {
-      newest: 'Newest',
-      oldest: 'Oldest',
-      'name-az': 'A-Z',
-      'name-za': 'Z-A',
-      group: 'Group',
+    const icons = {
+      newest: 'arrow_downward',
+      oldest: 'arrow_upward',
+      'name-az': 'sort_by_alpha',
+      'name-za': 'sort_by_alpha',
+      group: 'folder',
     };
-    sortBtn.textContent = labels[sortBy];
+    const titles = {
+      newest: 'Sort by: Newest',
+      oldest: 'Sort by: Oldest',
+      'name-az': 'Sort by: Name A-Z',
+      'name-za': 'Sort by: Name Z-A',
+      group: 'Sort by: Group',
+    };
+    const iconEl = sortBtn.querySelector('.material-symbols-outlined');
+    if (iconEl) iconEl.textContent = icons[sortBy];
+    sortBtn.title = titles[sortBy];
   }
 
   if (toolbar) {

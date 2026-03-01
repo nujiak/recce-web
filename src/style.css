@@ -138,30 +138,6 @@ body {
   z-index: 1000;
 }
 
-#crosshair::before,
-#crosshair::after {
-  content: '';
-  position: absolute;
-  background: #ffffff;
-  mix-blend-mode: difference;
-}
-
-#crosshair::before {
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  transform: translateX(-50%);
-}
-
-#crosshair::after {
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 2px;
-  transform: translateY(-50%);
-}
-
 #coord-container {
   background: var(--color-bg-secondary);
   padding: var(--spacing-sm);
@@ -778,6 +754,7 @@ input:focus {
 
   #saved-surface {
     width: 320px;
+    flex: none;
     border-left: 1px solid var(--color-border-subtle);
   }
 
@@ -849,10 +826,6 @@ input:focus {
 @media (min-width: 1024px) {
   #main-content {
     grid-column: 1 / 3;
-  }
-
-  #saved-surface {
-    width: 360px;
   }
 }
 
@@ -1532,12 +1505,14 @@ input.error {
 }
 
 /* === Desktop Tools Bar (Mobile Hidden) === */
-.desktop-tools-bar {
-  display: none;
-}
+@media (max-width: 767px) {
+  .desktop-tools-bar {
+    display: none;
+  }
 
-.desktop-tools-accordion {
-  display: none;
+  .desktop-tools-accordion {
+    display: none;
+  }
 }
 
 /* === Checkbox Label === */
