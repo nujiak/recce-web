@@ -18,6 +18,7 @@ let hasOrientation = false;
 let azimuth = null;
 let pitch = null;
 let roll = null;
+let currentNeedleRotation = 0;
 
 // DOM elements (cached)
 let gpsPanel = null;
@@ -52,12 +53,14 @@ export function init() {
         <span class="gps-card-title">Location</span>
         <span id="gps-status" class="gps-status">Inactive</span>
       </div>
-      <div id="gps-coord-value" class="gps-value">--</div>
-      <div class="gps-meta">
-        <span id="gps-accuracy" class="gps-meta-item">Accuracy: --</span>
-        <span id="gps-altitude" class="gps-meta-item">Altitude: --</span>
+      <div class="label-value-grid">
+        <span class="label">Coordinates</span>
+        <span id="gps-coord-value" class="value">--</span>
+        <span class="label">Accuracy</span>
+        <span id="gps-accuracy" class="value">--</span>
+        <span class="label">Altitude</span>
+        <span id="gps-altitude" class="value">--</span>
       </div>
-      <button id="gps-copy-btn" class="gps-copy-btn" disabled>Copy</button>
     </div>
     
     <!-- Compass Card -->
@@ -75,15 +78,15 @@ export function init() {
           </div>
         </div>
         <div class="compass-values">
-          <div class="compass-value-row">
+          <div class="compass-value-item">
             <span class="compass-value-label">Azimuth</span>
             <span id="compass-azimuth" class="compass-value-number">--</span>
           </div>
-          <div class="compass-value-row">
+          <div class="compass-value-item">
             <span class="compass-value-label">Pitch</span>
             <span id="compass-pitch" class="compass-value-number">--</span>
           </div>
-          <div class="compass-value-row">
+          <div class="compass-value-item">
             <span class="compass-value-label">Roll</span>
             <span id="compass-roll" class="compass-value-number">--</span>
           </div>
@@ -104,12 +107,6 @@ export function init() {
   rollValue = document.getElementById('compass-roll');
   compassStatus = document.getElementById('compass-status');
   compassHint = document.getElementById('compass-hint');
-
-  // Setup copy button
-  const copyBtn = document.getElementById('gps-copy-btn');
-  if (copyBtn) {
-    copyBtn.addEventListener('click', handleCopyCoord);
-  }
 
   // Make coord value tappable to copy
   if (coordValue) {
@@ -164,9 +161,6 @@ function handlePosition(position) {
     gpsStatus.classList.add('active');
     gpsStatus.classList.remove('error');
   }
-
-  const copyBtn = document.getElementById('gps-copy-btn');
-  if (copyBtn) copyBtn.disabled = false;
 
   updateDisplay();
 
@@ -296,6 +290,73 @@ function handleOrientation(event) {
   updateCompassDisplay();
 }
 
+function getScreenOrientation() {
+  if (screen.orientation) {
+    return screen.orientation.angle;
+  }
+  if (window.orientation !== undefined) {
+    return window.orientation;
+  }
+  return 0;
+}
+
+function transformOrientationValues(azimuthVal, pitchVal, rollVal) {
+  const orientation = getScreenOrientation();
+
+  switch (orientation) {
+    case 90:
+      return {
+        azimuth: azimuthVal - 90,
+        pitch: -rollVal,
+        roll: pitchVal,
+      };
+    case -90:
+    case 270:
+      return {
+        azimuth: azimuthVal + 90,
+        pitch: rollVal,
+        roll: -pitchVal,
+      };
+    case 180:
+      return {
+        azimuth: azimuthVal + 180,
+        pitch: -pitchVal,
+        roll: -rollVal,
+      };
+    default:
+      return { azimuth: azimuthVal, pitch: pitchVal, roll: rollVal };
+  }
+}
+
+function updateNeedleRotation(targetAzimuth) {
+  const diff = targetAzimuth - (currentNeedleRotation % 360);
+
+  // Normalize to shortest path (-180 to 180)
+  let delta = ((diff + 180) % 360) - 180;
+  if (delta < -180) delta += 360;
+
+  // Add to cumulative rotation (unbounded)
+  currentNeedleRotation += delta;
+
+  // Apply rotation
+  if (compassNeedle) {
+    compassNeedle.style.transform = `rotate(${-currentNeedleRotation}deg)`;
+  }
+
+  // Snap back to normalized range after animation completes
+  setTimeout(() => {
+    const normalized = ((currentNeedleRotation % 360) + 360) % 360;
+    if (compassNeedle) {
+      compassNeedle.style.transition = 'none';
+      compassNeedle.style.transform = `rotate(${-normalized}deg)`;
+      currentNeedleRotation = normalized;
+      requestAnimationFrame(() => {
+        compassNeedle.style.transition = '';
+      });
+    }
+  }, 150);
+}
+
 function updateDisplay() {
   if (!currentPosition) return;
 
@@ -315,12 +376,12 @@ function updateDisplay() {
       const accMeters = Math.round(accuracy);
       if (prefs.lengthUnit === 'imperial') {
         const accFeet = Math.round(accMeters * 3.28084);
-        accuracyValue.textContent = `Accuracy: ±${accFeet} ft`;
+        accuracyValue.textContent = `±${accFeet} ft`;
       } else {
-        accuracyValue.textContent = `Accuracy: ±${accMeters} m`;
+        accuracyValue.textContent = `±${accMeters} m`;
       }
     } else {
-      accuracyValue.textContent = 'Accuracy: --';
+      accuracyValue.textContent = '--';
     }
   }
 
@@ -328,13 +389,13 @@ function updateDisplay() {
     if (altitude !== null) {
       if (prefs.lengthUnit === 'imperial') {
         const altFeet = Math.round(altitude * 3.28084);
-        altitudeValue.textContent = `Altitude: ${altFeet} ft`;
+        altitudeValue.textContent = `${altFeet} ft`;
       } else {
         const altMeters = Math.round(altitude);
-        altitudeValue.textContent = `Altitude: ${altMeters} m`;
+        altitudeValue.textContent = `${altMeters} m`;
       }
     } else {
-      altitudeValue.textContent = 'Altitude: --';
+      altitudeValue.textContent = '--';
     }
   }
 }
@@ -343,14 +404,18 @@ function updateCompassDisplay() {
   const prefs = getPrefs();
 
   if (azimuth !== null && hasOrientation) {
-    // Needle always points north: rotate opposite to device heading
-    if (compassNeedle) {
-      compassNeedle.style.transform = `rotate(${-azimuth}deg)`;
-    }
+    // Transform values based on screen orientation
+    const transformed = transformOrientationValues(azimuth, pitch, roll);
+
+    // Normalize azimuth to 0-360
+    let displayAzimuth = ((transformed.azimuth % 360) + 360) % 360;
+
+    // Update needle with smooth rotation
+    updateNeedleRotation(displayAzimuth);
 
     // Update azimuth display
     if (azimuthValue) {
-      azimuthValue.textContent = formatBearing(azimuth, prefs.angleUnit);
+      azimuthValue.textContent = formatBearing(displayAzimuth, prefs.angleUnit);
     }
 
     // Update calibration hint
@@ -367,8 +432,9 @@ function updateCompassDisplay() {
   }
 
   if (pitch !== null) {
+    const transformed = transformOrientationValues(azimuth || 0, pitch, roll || 0);
     if (pitchValue) {
-      pitchValue.textContent = `${pitch.toFixed(1)}°`;
+      pitchValue.textContent = `${transformed.pitch.toFixed(1)}°`;
     }
   } else {
     if (pitchValue) {
@@ -377,8 +443,9 @@ function updateCompassDisplay() {
   }
 
   if (roll !== null) {
+    const transformed = transformOrientationValues(azimuth || 0, pitch || 0, roll);
     if (rollValue) {
-      rollValue.textContent = `${roll.toFixed(1)}°`;
+      rollValue.textContent = `${transformed.roll.toFixed(1)}°`;
     }
   } else {
     if (rollValue) {

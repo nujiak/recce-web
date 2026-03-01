@@ -28,6 +28,38 @@ import { enableSwipeToDismissMultiple } from './utils/swipe.js';
 
 // PWA Install prompt
 let deferredInstallPrompt = null;
+let installTimeout = null;
+
+function showInstallBanner(banner) {
+  if (!banner.querySelector('.install-progress-bar')) {
+    const progressContainer = document.createElement('div');
+    progressContainer.className = 'install-progress-bar';
+    progressContainer.innerHTML = '<div class="install-progress-fill"></div>';
+    banner.appendChild(progressContainer);
+  }
+
+  const progressFill = banner.querySelector('.install-progress-fill');
+  if (progressFill) {
+    progressFill.style.animation = 'none';
+    void progressFill.offsetWidth;
+    progressFill.style.animation = '';
+  }
+
+  banner.classList.add('show');
+
+  installTimeout = setTimeout(() => {
+    hideInstallBanner(banner);
+    sessionStorage.setItem('recce_install_dismissed', 'true');
+  }, 10000);
+}
+
+function hideInstallBanner(banner) {
+  if (installTimeout) {
+    clearTimeout(installTimeout);
+    installTimeout = null;
+  }
+  banner.classList.remove('show');
+}
 
 function initInstallPrompt() {
   const installBanner = document.getElementById('install-banner');
@@ -36,20 +68,19 @@ function initInstallPrompt() {
 
   if (!installBanner || !installAccept || !installDismiss) return;
 
-  // Check if already dismissed in this session or permanently
   const dismissed = localStorage.getItem('recce_install_dismissed');
   if (dismissed === 'permanent') return;
 
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredInstallPrompt = e;
-    installBanner.style.display = 'flex';
+    showInstallBanner(installBanner);
   });
 
   installAccept.addEventListener('click', async () => {
     if (!deferredInstallPrompt) return;
 
-    installBanner.style.display = 'none';
+    hideInstallBanner(installBanner);
     const result = await deferredInstallPrompt.prompt();
 
     if (result.outcome === 'accepted') {
@@ -60,14 +91,12 @@ function initInstallPrompt() {
   });
 
   installDismiss.addEventListener('click', () => {
-    installBanner.style.display = 'none';
-    // Remember dismissal for this session
+    hideInstallBanner(installBanner);
     sessionStorage.setItem('recce_install_dismissed', 'true');
   });
 
-  // Handle successful installation
   window.addEventListener('appinstalled', () => {
-    installBanner.style.display = 'none';
+    hideInstallBanner(installBanner);
     localStorage.setItem('recce_install_dismissed', 'permanent');
     deferredInstallPrompt = null;
   });

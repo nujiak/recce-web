@@ -766,243 +766,611 @@ python3 -m http.server --directory dist
 
 ---
 
+## Chrome MCP Testing
+
+All UI-related changes and integration tests must be verified using Chrome MCP tools.
+
+**Prerequisites:**
+
+- Start the dev server: `npm run dev`
+- Ensure the app is accessible at `http://localhost:5173`
+
+**Testing Requirements:**
+
+- Test all UI changes in both mobile and desktop viewports
+- For changes targeting one viewport, test the other viewport for regression
+- Use `chrome-devtools_take_snapshot` to verify element presence and structure
+- Use `chrome-devtools_take_screenshot` for visual verification
+- Use `chrome-devtools_evaluate_script` for runtime state checks
+
+**Viewport Testing:**
+
+- Mobile: width < 768px (default viewport)
+- Desktop: width >= 768px (use `chrome-devtools_resize_page` or `chrome-devtools_emulate`)
+
+---
+
 ## Improvement Plan
 
 The following improvements are to be implemented in phases. Each phase groups related changes to minimize context switching and allow incremental testing.
 
 ---
 
-### Phase 1: UI Stability (Layout Shift Fixes)
+### Phase 1: Modal Visibility Fix
 
-**Goal:** Prevent dynamic value changes from causing layout shifts in coordinate displays and measurement overlays.
+**Goal:** Ensure all modals have `display: none` when dismissed, preventing them from appearing in Chrome MCP snapshots.
 
-#### 1.1 Fixed-Width Dynamic Value Containers
+**Problem:** Modals use `opacity`, `visibility`, and `transform` for animations but remain in the DOM with `display: flex/block`. This causes Chrome MCP to see them even when closed.
 
 **Files to modify:**
 
-- `src/utils/geo.js`
+- `src/style.css`
+- `src/ui/pin-editor.js`
+- `src/ui/track-editor.js`
+- `src/ui/pin-info.js`
+- `src/ui/track-info.js`
+- `src/ui/nav.js` (toolbox modal)
+- `src/map/map.js` (go-to dialog, checkpoint dialog)
+- `src/ui/saved.js` (import dialog)
+
+**CSS Changes (`src/style.css`):**
+
+Add `display: none` to base hidden state:
+
+```css
+/* Base hidden state */
+.bottom-sheet,
+.info-modal,
+.dialog,
+.toolbox-modal,
+.modal-backdrop {
+  display: none;
+}
+
+/* Open state */
+.bottom-sheet.open,
+.info-modal.open,
+.dialog.open,
+.toolbox-modal.open,
+.modal-backdrop.open {
+  display: flex; /* or block, depending on element */
+}
+```
+
+**JavaScript Changes:**
+
+For each modal/sheet, remove inline `style.display` manipulation and rely on `.open` class:
+
+```js
+// Before
+element.style.display = 'flex';
+element.style.display = 'none';
+
+// After
+element.classList.add('open');
+element.classList.remove('open');
+```
+
+**Affected modals:**
+
+| Modal             | JS File                  | Element ID          |
+| ----------------- | ------------------------ | ------------------- |
+| Pin Editor        | `src/ui/pin-editor.js`   | `pin-editor`        |
+| Pin Info          | `src/ui/pin-info.js`     | `pin-info`          |
+| Track Editor      | `src/ui/track-editor.js` | `track-editor`      |
+| Track Info        | `src/ui/track-info.js`   | `track-info`        |
+| Toolbox Modal     | `src/ui/nav.js`          | `toolbox-modal`     |
+| Go To Dialog      | `src/map/map.js`         | `goto-dialog`       |
+| Checkpoint Dialog | `src/map/map.js`         | `checkpoint-dialog` |
+| Import Dialog     | `src/ui/saved.js`        | `import-dialog`     |
+
+**Testing:**
+
+1. Open app in Chrome MCP
+2. Take snapshot before opening any modal
+3. Verify no modal content appears in snapshot
+4. Open each modal, take snapshot
+5. Close modal, take snapshot
+6. Verify modal content no longer appears
+
+---
+
+### Phase 2: Label-Value Alignment
+
+**Goal:** Use two-column grid layout for label-value pairs to improve visual alignment.
+
+**Problem:** Right-aligned values don't align visually with their left-aligned labels.
+
+**Files to modify:**
+
+- `src/style.css`
+- `src/ui/gps.js`
+- `src/map/map.js` (coord display if applicable)
+
+**CSS Changes (`src/style.css`):**
+
+```css
+/* Two-column grid for label-value pairs */
+.label-value-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacing-sm) var(--spacing-md);
+  align-items: baseline;
+}
+
+.label-value-grid .label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  text-align: left;
+}
+
+.label-value-grid .value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+```
+
+**HTML Changes (`src/ui/gps.js`):**
+
+Refactor Location card to use grid layout:
+
+```js
+<div class="gps-card">
+  <div class="gps-card-header">
+    <span class="gps-card-title">Location</span>
+    <span id="gps-status" class="gps-status">
+      Inactive
+    </span>
+  </div>
+  <div class="label-value-grid">
+    <span class="label">Coordinates</span>
+    <span id="gps-coord-value" class="value">
+      --
+    </span>
+    <span class="label">Accuracy</span>
+    <span id="gps-accuracy" class="value">
+      --
+    </span>
+    <span class="label">Altitude</span>
+    <span id="gps-altitude" class="value">
+      --
+    </span>
+  </div>
+</div>
+```
+
+**Testing:**
+
+1. Open GPS panel on mobile and desktop
+2. Verify labels are left-aligned column, values are right-aligned column
+3. Verify reasonable spacing between pairs
+
+---
+
+### Phase 3: GPS Panel Cleanup
+
+**Goal:** Remove redundant copy button and ensure consistent padding.
+
+**Problem:** Copy button is redundant since clicking coordinates already copies to clipboard.
+
+**Files to modify:**
+
 - `src/ui/gps.js`
 - `src/style.css`
 
 **Changes:**
 
-1. **`src/utils/geo.js` - Update formatting functions for fixed decimal places:**
+1. Remove copy button HTML from `gps.js`:
 
-   `formatDistance()`:
-   - Metric: Integer for metres (< 1000m), 2 dp for km
-   - Imperial: Integer for feet (< 5280ft), 2 dp for miles
-   - Nautical: Always 2 dp
-   - Max output length: ~12 chars (`40075.00 km`)
+```diff
+- <button id="gps-copy-btn" class="gps-copy-btn" disabled>Copy</button>
+```
 
-   `formatBearing()`:
-   - Degrees: `360.0°` (1 decimal place)
-   - Mils: `6400 mils` (0 decimal places)
-   - Max output length: ~9 chars
+2. Remove copy button event listener:
 
-2. **`src/ui/gps.js` - Update compass pitch/roll formatting:**
-   - Pitch: `${pitch.toFixed(1)}°` (1 decimal, range -180.0 to 180.0)
-   - Roll: `${roll.toFixed(1)}°` (1 decimal, range -90.0 to 90.0)
+```diff
+- // Setup copy button
+- const copyBtn = document.getElementById('gps-copy-btn');
+- if (copyBtn) {
+-   copyBtn.addEventListener('click', handleCopyCoord);
+- }
+```
 
-3. **`src/style.css` - Add fixed-width containers:**
+3. Remove `.gps-copy-btn` styles from `style.css` (if any).
 
-   | Selector                | Min-Width | Notes                                 |
-   | ----------------------- | --------- | ------------------------------------- |
-   | `#target-coord-display` | `25ch`    | WGS84 max: `90.00000° S 180.00000° W` |
-   | `#gps-coord-value`      | `25ch`    | Same as above                         |
-   | `#gps-overlay-distance` | `12ch`    | Max: `40075.00 km`                    |
-   | `#gps-overlay-bearing`  | `10ch`    | Max: `6400 mils`                      |
-   | `#compass-azimuth`      | `10ch`    | Max: `6400 mils`                      |
-   | `#compass-pitch`        | `8ch`     | Max: `-180.0°`                        |
-   | `#compass-roll`         | `7ch`     | Max: `-90.0°`                         |
-   | `#gps-accuracy`         | `20ch`    | Max: `Accuracy: ±9999 m`              |
-   | `#gps-altitude`         | `20ch`    | Max: `Altitude: 99999 ft`             |
+**Testing:**
 
-   All value containers use:
-
-   ```css
-   text-align: right;
-   font-variant-numeric: tabular-nums;
-   ```
-
-#### 1.2 Replace Crosshair with Improved Version
-
-**File:** `public/crosshair.svg`
-
-**Change:** The crosshair has been replaced with an improved version that has a more visible outline for better visibility on varied map backgrounds. No modification needed — file is already updated.
+1. Open GPS panel
+2. Verify copy button is removed
+3. Verify padding is consistent
+4. Verify clicking coordinates still copies to clipboard
 
 ---
 
-### Phase 2: UX Feedback Improvements
+### Phase 4: Compass Layout & Animation Overhaul
 
-**Goal:** Provide clearer feedback for user actions.
+**Goal:** Fix compass aspect ratio, reorganize layout, and implement smooth rotation across 0°/360°.
 
-#### 2.1 Show Toast on Sort Change
+**Problems:**
 
-**File to modify:** `src/ui/saved.js`
-
-**Change:** In `cycleSort()`, after updating `sortBy`, call `showToast()` with `'info'` type:
-
-| Sort Mode | Toast Message           |
-| --------- | ----------------------- |
-| `newest`  | `Sorting by Newest`     |
-| `oldest`  | `Sorting by Oldest`     |
-| `name-az` | `Sorting by Name (A-Z)` |
-| `name-za` | `Sorting by Name (Z-A)` |
-| `group`   | `Sorting by Group`      |
-
-#### 2.2 Auto-Open Ruler After Adding from Saved
+1. Compass is oval on desktop (no fixed aspect ratio)
+2. Azimuth/pitch/roll should be below compass, not beside it
+3. Compass rotation jumps the long way when crossing 0°/360°
+4. Compass values are flipped in landscape mode
 
 **Files to modify:**
 
-- `src/ui/nav.js`
-- `src/ui/saved.js`
+- `src/style.css`
+- `src/ui/gps.js`
 
-**Changes:**
+#### 4.1 Compass Layout
 
-1. **`src/ui/nav.js` - Export new helper functions:**
+**CSS Changes (`src/style.css`):**
 
-   ```js
-   export function openToolPanel(name) {
-     // Opens toolbox modal and shows specific tool panel (mobile)
-   }
-
-   export function openDesktopTool(name) {
-     // Expands specific desktop accordion (desktop)
-   }
-   ```
-
-2. **`src/ui/saved.js` - In `handleAddToRuler()`:**
-   - Detect viewport: `window.matchMedia('(min-width: 768px)').matches`
-   - Mobile: Exit multi-select, switch to tools tab, show ruler panel
-   - Desktop: Exit multi-select, expand ruler accordion
-
----
-
-### Phase 3: Desktop Bug Fixes
-
-**Goal:** Fix non-functional panels and buttons on desktop.
-
-#### 3.1 Fix Settings/GPS/Ruler Panels Not Working on Desktop
-
-**File to modify:** `src/ui/nav.js`
-
-**Change:** Modify `toggleDesktopTool()` to **move** panels instead of cloning. Event listeners remain attached to original elements.
-
-```js
-function returnPanelToToolbox(panel) {
-  const toolboxContent = document.querySelector('.toolbox-content');
-  if (toolboxContent && panel) {
-    toolboxContent.appendChild(panel);
-  }
+```css
+.compass-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
 }
 
-function toggleDesktopTool(tool) {
-  const accordion = document.getElementById('desktop-tools-accordion');
-  const panel = document.getElementById(`${tool}-panel`);
+.compass-dial {
+  width: 100%;
+  max-width: 200px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--color-bg-tertiary);
+  border: 2px solid var(--color-border);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  if (activeDesktopTool === tool) {
-    // Close: return panel to toolbox
-    activeDesktopTool = null;
-    returnPanelToToolbox(panel);
-    accordion.classList.remove('open');
-    // Update button states...
-  } else {
-    // Open: return previous panel, then move new panel
-    if (activeDesktopTool) {
-      const prevPanel = document.getElementById(`${activeDesktopTool}-panel`);
-      returnPanelToToolbox(prevPanel);
+.compass-values {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md);
+  width: 100%;
+  text-align: center;
+}
+
+.compass-value-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.compass-value-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+}
+
+.compass-value-number {
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+```
+
+**HTML Changes (`src/ui/gps.js`):**
+
+```js
+<div class="compass-container">
+  <div class="compass-dial">
+    <div id="compass-needle" class="compass-needle">
+      <div class="compass-needle-north"></div>
+      <span class="compass-needle-north-label">N</span>
+      <div class="compass-needle-south"></div>
+    </div>
+  </div>
+  <div class="compass-values">
+    <div class="compass-value-item">
+      <span class="compass-value-label">Azimuth</span>
+      <span id="compass-azimuth" class="compass-value-number">
+        --
+      </span>
+    </div>
+    <div class="compass-value-item">
+      <span class="compass-value-label">Pitch</span>
+      <span id="compass-pitch" class="compass-value-number">
+        --
+      </span>
+    </div>
+    <div class="compass-value-item">
+      <span class="compass-value-label">Roll</span>
+      <span id="compass-roll" class="compass-value-number">
+        --
+      </span>
+    </div>
+  </div>
+</div>
+```
+
+#### 4.2 Smooth Compass Rotation
+
+**Implementation (`src/ui/gps.js`):**
+
+```js
+let currentNeedleRotation = 0;
+
+function updateNeedleRotation(targetAzimuth) {
+  const diff = targetAzimuth - (currentNeedleRotation % 360);
+
+  // Normalize to shortest path (-180 to 180)
+  let delta = ((diff + 180) % 360) - 180;
+  if (delta < -180) delta += 360;
+
+  // Add to cumulative rotation (unbounded)
+  currentNeedleRotation += delta;
+
+  // Apply rotation
+  if (compassNeedle) {
+    compassNeedle.style.transform = `rotate(${-currentNeedleRotation}deg)`;
+  }
+
+  // Snap back to normalized range after animation completes
+  setTimeout(() => {
+    const normalized = ((currentNeedleRotation % 360) + 360) % 360;
+    if (compassNeedle) {
+      compassNeedle.style.transition = 'none';
+      compassNeedle.style.transform = `rotate(${-normalized}deg)`;
+      currentNeedleRotation = normalized;
+      // Re-enable transition
+      requestAnimationFrame(() => {
+        compassNeedle.style.transition = '';
+      });
     }
-    activeDesktopTool = tool;
-    accordion.innerHTML = '';
-    accordion.appendChild(panel); // Move, not clone
-    panel.style.display = 'block';
-    accordion.classList.add('open');
-    // Update button states...
+  }, 150); // Match CSS transition duration
+}
+```
+
+#### 4.3 Screen Orientation Transformation
+
+**Implementation (`src/ui/gps.js`):**
+
+```js
+function getScreenOrientation() {
+  // Modern API
+  if (screen.orientation) {
+    return screen.orientation.angle;
+  }
+  // Deprecated fallback
+  if (window.orientation !== undefined) {
+    return window.orientation;
+  }
+  return 0;
+}
+
+function transformOrientationValues(azimuth, pitch, roll) {
+  const orientation = getScreenOrientation();
+
+  switch (orientation) {
+    case 90: // Landscape left (rotated clockwise)
+      return {
+        azimuth: azimuth - 90,
+        pitch: -roll,
+        roll: pitch,
+      };
+    case -90: // Landscape right (rotated counter-clockwise)
+    case 270:
+      return {
+        azimuth: azimuth + 90,
+        pitch: roll,
+        roll: -pitch,
+      };
+    case 180: // Upside down
+      return {
+        azimuth: azimuth + 180,
+        pitch: -pitch,
+        roll: -roll,
+      };
+    default: // Portrait (0)
+      return { azimuth, pitch, roll };
   }
 }
 ```
 
-#### 3.2 Fix Track Edit Button Not Working
+**Orientation mapping table:**
 
-**File to modify:** `src/ui/track-info.js`
+| Screen Rotation             | Azimuth   | Pitch         | Roll           |
+| --------------------------- | --------- | ------------- | -------------- |
+| 0° (portrait)               | unchanged | unchanged     | unchanged      |
+| 90° (landscape left)        | -90°      | becomes -roll | becomes +pitch |
+| -90°/270° (landscape right) | +90°      | becomes +roll | becomes -pitch |
+| 180° (upside down)          | ±180°     | sign flip     | sign flip      |
 
-**Change:** In `handleEdit()`, call `onEditCallback` before `closeInfo()`:
+**Testing:**
 
-```js
-function handleEdit() {
-  if (!currentTrack) return;
+1. Verify compass is circular on desktop
+2. Verify azimuth/pitch/roll are displayed below compass
+3. Verify smooth rotation when crossing 0°/360°
+4. Test on mobile in portrait and both landscape orientations
+5. Verify values transform correctly for each orientation
 
-  const trackToEdit = currentTrack;
-  const callback = onEditCallback;
+---
 
-  if (callback) {
-    callback(trackToEdit); // Call before closeInfo() clears it
+### Phase 5: Install Banner Auto-Dismiss
+
+**Goal:** Auto-dismiss install banner after 10s with progress bar.
+
+**Files to modify:**
+
+- `src/main.js`
+- `src/style.css`
+
+**CSS Changes (`src/style.css`):**
+
+```css
+.install-banner {
+  position: fixed;
+  bottom: calc(var(--nav-height) + var(--spacing-md));
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  flex-direction: column;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm) var(--spacing-md);
+  z-index: 500;
+  box-shadow: 0 4px 12px oklch(0 0 0 / 30%);
+  min-width: min(90vw, 350px);
+}
+
+.install-banner.show {
+  display: flex;
+}
+
+.install-banner-content {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+
+.install-banner-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+}
+
+.install-progress-bar {
+  height: 3px;
+  background: var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: var(--spacing-xs);
+}
+
+.install-progress-fill {
+  height: 100%;
+  background: var(--color-accent);
+  width: 100%;
+  transform-origin: left;
+  animation: install-progress 10s linear forwards;
+}
+
+@keyframes install-progress {
+  from {
+    transform: scaleX(1);
   }
-
-  closeInfo();
+  to {
+    transform: scaleX(0);
+  }
 }
 ```
 
----
-
-### Phase 4: Modal Consistency
-
-**Goal:** Ensure consistent modal appearance and fix visual bugs.
-
-#### 4.1 Remove Color Class from Track Modal Header
-
-**File to modify:** `src/ui/track-info.js`
-
-**Change:** In `open()` function, remove `color-${track.color}` and `track-header` from header class:
-
-**Before:**
+**JavaScript Changes (`src/main.js`):**
 
 ```js
-headerEl.className = `info-modal-header track-header color-${track.color || 'red'}`;
+let installTimeout = null;
+
+function initInstallPrompt() {
+  const installBanner = document.getElementById('install-banner');
+  const installAccept = document.getElementById('install-accept');
+  const installDismiss = document.getElementById('install-dismiss');
+
+  if (!installBanner || !installAccept || !installDismiss) return;
+
+  const dismissed = localStorage.getItem('recce_install_dismissed');
+  if (dismissed === 'permanent') return;
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    showInstallBanner(installBanner);
+  });
+
+  installAccept.addEventListener('click', async () => {
+    hideInstallBanner(installBanner);
+    // ... existing prompt logic
+  });
+
+  installDismiss.addEventListener('click', () => {
+    hideInstallBanner(installBanner);
+    sessionStorage.setItem('recce_install_dismissed', 'true');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    hideInstallBanner(installBanner);
+    localStorage.setItem('recce_install_dismissed', 'permanent');
+    deferredInstallPrompt = null;
+  });
+}
+
+function showInstallBanner(banner) {
+  // Add progress bar if not present
+  if (!banner.querySelector('.install-progress-bar')) {
+    const progressContainer = document.createElement('div');
+    progressContainer.className = 'install-progress-bar';
+    progressContainer.innerHTML = '<div class="install-progress-fill"></div>';
+    banner.appendChild(progressContainer);
+  }
+
+  banner.classList.add('show');
+
+  // Auto-dismiss after 10s
+  installTimeout = setTimeout(() => {
+    hideInstallBanner(banner);
+    sessionStorage.setItem('recce_install_dismissed', 'true');
+  }, 10000);
+}
+
+function hideInstallBanner(banner) {
+  if (installTimeout) {
+    clearTimeout(installTimeout);
+    installTimeout = null;
+  }
+  banner.classList.remove('show');
+}
 ```
 
-**After:**
+**Testing:**
 
-```js
-headerEl.className = 'info-modal-header';
-```
-
-This fixes:
-
-- Unintended colored background on header
-- Header scaling up 10% on hover (from `.color-{color}:hover { transform: scale(1.1) }`)
-
----
-
-### Implementation Order
-
-1. **Phase 1** (UI Stability) - Independent, foundational fixes
-2. **Phase 3** (Desktop Bug Fixes) - Unblocks desktop testing
-3. **Phase 2** (UX Feedback) - Enhancements that benefit from Phase 3 fixes
-4. **Phase 4** (Modal Consistency) - Polish, independent of other phases
+1. Trigger install banner (clear `recce_install_dismissed` from localStorage)
+2. Verify progress bar appears and animates
+3. Verify banner auto-dismisses after 10s
+4. Verify manual dismiss still works
+5. Verify banner doesn't reappear in same session after dismiss
 
 ---
 
 ### Testing Checklist
 
-After each phase, verify:
+After each phase, verify using Chrome MCP:
 
-- [ ] **Phase 1:**
-  - [ ] Target coord display doesn't shift when panning map
-  - [ ] GPS overlay distance/bearing don't shift when values update
-  - [ ] Compass values don't shift when device moves
-  - [ ] GPS panel coordinate display is stable
-  - [ ] Crosshair is clearly visible on light and dark map backgrounds
+- [ ] **Phase 1 (Modal Visibility):**
+  - [ ] All modals not visible in snapshot when closed
+  - [ ] All modals visible in snapshot when open
 
-- [ ] **Phase 2:**
-  - [ ] Sort button shows toast with current sort mode
-  - [ ] Adding to ruler from saved opens ruler panel (mobile and desktop)
+- [ ] **Phase 2 (Label-Value Alignment):**
+  - [ ] Labels form left-aligned column
+  - [ ] Values form right-aligned column
+  - [ ] Works on both mobile and desktop viewports
 
-- [ ] **Phase 3:**
-  - [ ] Settings dropdowns work on desktop and persist
-  - [ ] GPS panel interactions work on desktop
-  - [ ] Ruler clear button works on desktop
-  - [ ] Track edit button opens editor correctly
+- [ ] **Phase 3 (GPS Panel Cleanup):**
+  - [ ] Copy button removed
+  - [ ] Padding consistent
+  - [ ] Clicking coordinates copies to clipboard
 
-- [ ] **Phase 4:**
-  - [ ] Track info modal header matches pin info modal (no color, no hover effect)
+- [ ] **Phase 4 (Compass Layout & Animation):**
+  - [ ] Compass is circular on desktop
+  - [ ] Azimuth/pitch/roll below compass
+  - [ ] Smooth rotation crossing 0°/360°
+  - [ ] Values transform correctly in landscape orientations
+
+- [ ] **Phase 5 (Install Banner):**
+  - [ ] Progress bar shows and animates
+  - [ ] Auto-dismisses after 10s
+  - [ ] Manual dismiss works

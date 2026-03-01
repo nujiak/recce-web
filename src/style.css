@@ -300,6 +300,7 @@ body {
   inset: 0;
   background: var(--color-overlay);
   z-index: 200;
+  display: none;
   opacity: 0;
   visibility: hidden;
   transition:
@@ -308,6 +309,7 @@ body {
 }
 
 .modal-backdrop.open {
+  display: block;
   opacity: 1;
   visibility: visible;
 }
@@ -320,14 +322,15 @@ body {
   width: min(100%, 400px);
   background: var(--color-bg-secondary);
   z-index: 201;
+  display: none;
   transform: translateX(100%);
   transition: transform 0.3s ease-out;
-  display: flex;
   flex-direction: column;
   border-left: 1px solid var(--color-border);
 }
 
 .toolbox-modal.open {
+  display: flex;
   transform: translateX(0);
 }
 
@@ -835,6 +838,7 @@ input:focus {
   inset: 0;
   background: var(--color-overlay);
   z-index: 300;
+  display: none;
   opacity: 0;
   visibility: hidden;
   transition:
@@ -843,6 +847,7 @@ input:focus {
 }
 
 .sheet-backdrop.open {
+  display: block;
   opacity: 1;
   visibility: visible;
 }
@@ -856,14 +861,15 @@ input:focus {
   background: var(--color-bg-secondary);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   z-index: 301;
+  display: none;
   transform: translateY(100%);
   transition: transform 0.3s ease-out;
-  display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .bottom-sheet.open {
+  display: flex;
   transform: translateY(0);
 }
 
@@ -935,19 +941,20 @@ input:focus {
   background: var(--color-bg-secondary);
   border-radius: var(--radius-lg);
   z-index: 301;
+  display: none;
   opacity: 0;
   visibility: hidden;
   transition:
     opacity 0.2s,
     visibility 0.2s,
     transform 0.2s;
-  display: flex;
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--color-border);
 }
 
 .info-modal.open {
+  display: flex;
   opacity: 1;
   visibility: visible;
   transform: translate(-50%, -50%) scale(1);
@@ -1076,6 +1083,7 @@ input:focus {
   background: var(--color-bg-secondary);
   border-radius: var(--radius-lg);
   z-index: 301;
+  display: none;
   opacity: 0;
   visibility: hidden;
   transition:
@@ -1086,6 +1094,7 @@ input:focus {
 }
 
 .dialog.open {
+  display: block;
   opacity: 1;
   visibility: visible;
   transform: translate(-50%, -50%) scale(1);
@@ -1800,23 +1809,43 @@ input.error {
   gap: var(--spacing-xs);
 }
 
-.gps-copy-btn {
-  padding: var(--spacing-xs);
+/* === Label-Value Grid === */
+.label-value-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--spacing-sm) var(--spacing-md);
+  align-items: baseline;
+}
+
+.label-value-grid .label {
   font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+  text-align: left;
+}
+
+.label-value-grid .value {
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 
 /* === Compass === */
 .compass-container {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: var(--spacing-lg);
+  gap: var(--spacing-md);
   margin-top: var(--spacing-sm);
 }
 
 .compass-dial {
-  width: 100px;
-  height: 100px;
+  width: 100%;
+  max-width: 200px;
+  aspect-ratio: 1;
   border-radius: 50%;
   background: var(--color-bg-tertiary);
   border: 2px solid var(--color-border);
@@ -1830,7 +1859,7 @@ input.error {
   position: relative;
   width: 24px;
   height: 72px;
-  transition: transform 0.1s ease-out;
+  transition: transform 0.15s ease-out;
 }
 
 .compass-needle-north {
@@ -1869,14 +1898,16 @@ input.error {
 }
 
 .compass-values {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md);
+  width: 100%;
+  text-align: center;
 }
 
-.compass-value-row {
+.compass-value-item {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: var(--spacing-xs);
 }
 
@@ -1886,7 +1917,6 @@ input.error {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--color-text-muted);
-  min-width: 50px;
 }
 
 .compass-value-number {
@@ -1900,6 +1930,7 @@ input.error {
   color: var(--color-text-muted);
   font-style: italic;
   margin-top: var(--spacing-xs);
+  text-align: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2025,21 +2056,9 @@ input.error {
   font-variant-numeric: tabular-nums;
 }
 
-#compass-azimuth {
-  min-width: 10ch;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-#compass-pitch {
-  min-width: 8ch;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
+#compass-azimuth,
+#compass-pitch,
 #compass-roll {
-  min-width: 7ch;
-  text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2069,29 +2088,32 @@ input.error {
 .install-banner {
   position: fixed;
   bottom: calc(var(--nav-height) + var(--spacing-md));
-  left: var(--spacing-md);
-  right: var(--spacing-md);
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  flex-direction: column;
   background: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--spacing-sm) var(--spacing-md);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-md);
   z-index: 500;
   box-shadow: 0 4px 12px oklch(0 0 0 / 30%);
+  min-width: min(90vw, 350px);
+}
+
+.install-banner.show {
+  display: flex;
   animation: slideUp 0.3s ease-out;
 }
 
 @keyframes slideUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateX(-50%) translateY(20px);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(0);
   }
 }
 
@@ -2101,6 +2123,7 @@ input.error {
   gap: var(--spacing-sm);
   font-size: 0.85rem;
   font-weight: 500;
+  margin-bottom: var(--spacing-sm);
 }
 
 .install-banner-content .material-symbols-outlined {
@@ -2109,16 +2132,56 @@ input.error {
 
 .install-banner-actions {
   display: flex;
-  gap: var(--spacing-xs);
-  flex-shrink: 0;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+}
+
+.install-progress-bar {
+  height: 3px;
+  background: var(--color-border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: var(--spacing-xs);
+}
+
+.install-progress-fill {
+  height: 100%;
+  background: var(--color-accent);
+  width: 100%;
+  transform-origin: left;
+  animation: install-progress 10s linear forwards;
+}
+
+@keyframes install-progress {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
 }
 
 @media (min-width: 768px) {
   .install-banner {
     bottom: var(--spacing-md);
-    right: calc(320px + var(--spacing-md));
     left: auto;
-    max-width: 350px;
+    right: calc(320px + var(--spacing-md));
+    transform: none;
+  }
+
+  .install-banner.show {
+    transform: none;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 
@@ -2130,6 +2193,10 @@ input.error {
 
 @media (prefers-reduced-motion: reduce) {
   .install-banner {
+    animation: none;
+  }
+
+  .install-progress-fill {
     animation: none;
   }
 }
