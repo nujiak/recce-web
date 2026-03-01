@@ -169,3 +169,12 @@ function applyInitialLayout() {
 export function getCurrentTab() {
   return currentTab;
 }
+
+export function openToolPanel(name) {
+  openToolbox();
+  showToolPanel(name);
+}
+
+export function openDesktopTool(name) {
+  toggleDesktopTool(name);
+}

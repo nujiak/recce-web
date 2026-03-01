@@ -4,6 +4,7 @@ import { getPrefs } from './settings.js';
 import { formatDistance } from '../utils/geo.js';
 import { encode, decode } from '../share/share.js';
 import { showToast } from '../utils/toast.js';
+import { openToolPanel, openDesktopTool } from './nav.js';
 
 let pins = [];
 let tracks = [];
@@ -66,8 +67,16 @@ function setupToolbarEvents() {
 
 function cycleSort() {
   const sortOptions = ['newest', 'oldest', 'name-az', 'name-za', 'group'];
+  const sortMessages = {
+    newest: 'Sorting by Newest',
+    oldest: 'Sorting by Oldest',
+    'name-az': 'Sorting by Name (A-Z)',
+    'name-za': 'Sorting by Name (Z-A)',
+    group: 'Sorting by Group',
+  };
   const currentIndex = sortOptions.indexOf(sortBy);
   sortBy = sortOptions[(currentIndex + 1) % sortOptions.length];
+  showToast(sortMessages[sortBy], 'info');
   render();
 }
 
@@ -688,5 +697,12 @@ function handleAddToRuler() {
     window.dispatchEvent(new CustomEvent('addToRuler', { detail: { items } }));
     showToast(`Added ${items.length} point${items.length !== 1 ? 's' : ''} to Ruler`, 'success');
     exitMultiSelect();
+
+    const isDesktop = window.matchMedia('(min-width: 768px)').matches;
+    if (isDesktop) {
+      openDesktopTool('ruler');
+    } else {
+      openToolPanel('ruler');
+    }
   }
 }
