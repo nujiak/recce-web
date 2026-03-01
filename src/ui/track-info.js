@@ -134,11 +134,13 @@ function handleEdit() {
   if (!currentTrack) return;
 
   const trackToEdit = currentTrack;
-  closeInfo();
+  const callback = onEditCallback;
 
-  if (onEditCallback) {
-    onEditCallback(trackToEdit);
+  if (callback) {
+    callback(trackToEdit);
   }
+
+  closeInfo();
 }
 
 function closeInfo() {
