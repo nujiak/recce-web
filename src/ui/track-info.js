@@ -52,7 +52,7 @@ export function open(track, onEdit) {
   // Set color header class
   const headerEl = document.getElementById('track-info-header');
   if (headerEl) {
-    headerEl.className = `info-modal-header track-header color-${track.color || 'red'}`;
+    headerEl.className = 'info-modal-header';
   }
 
   if (nameEl) nameEl.textContent = track.name;
