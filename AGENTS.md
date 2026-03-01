@@ -765,3 +765,244 @@ python3 -m http.server --directory dist
 ```
 
 ---
+
+## Improvement Plan
+
+The following improvements are to be implemented in phases. Each phase groups related changes to minimize context switching and allow incremental testing.
+
+---
+
+### Phase 1: UI Stability (Layout Shift Fixes)
+
+**Goal:** Prevent dynamic value changes from causing layout shifts in coordinate displays and measurement overlays.
+
+#### 1.1 Fixed-Width Dynamic Value Containers
+
+**Files to modify:**
+
+- `src/utils/geo.js`
+- `src/ui/gps.js`
+- `src/style.css`
+
+**Changes:**
+
+1. **`src/utils/geo.js` - Update formatting functions for fixed decimal places:**
+
+   `formatDistance()`:
+   - Metric: Integer for metres (< 1000m), 2 dp for km
+   - Imperial: Integer for feet (< 5280ft), 2 dp for miles
+   - Nautical: Always 2 dp
+   - Max output length: ~12 chars (`40075.00 km`)
+
+   `formatBearing()`:
+   - Degrees: `360.0°` (1 decimal place)
+   - Mils: `6400 mils` (0 decimal places)
+   - Max output length: ~9 chars
+
+2. **`src/ui/gps.js` - Update compass pitch/roll formatting:**
+   - Pitch: `${pitch.toFixed(1)}°` (1 decimal, range -180.0 to 180.0)
+   - Roll: `${roll.toFixed(1)}°` (1 decimal, range -90.0 to 90.0)
+
+3. **`src/style.css` - Add fixed-width containers:**
+
+   | Selector                | Min-Width | Notes                                 |
+   | ----------------------- | --------- | ------------------------------------- |
+   | `#target-coord-display` | `25ch`    | WGS84 max: `90.00000° S 180.00000° W` |
+   | `#gps-coord-value`      | `25ch`    | Same as above                         |
+   | `#gps-overlay-distance` | `12ch`    | Max: `40075.00 km`                    |
+   | `#gps-overlay-bearing`  | `10ch`    | Max: `6400 mils`                      |
+   | `#compass-azimuth`      | `10ch`    | Max: `6400 mils`                      |
+   | `#compass-pitch`        | `8ch`     | Max: `-180.0°`                        |
+   | `#compass-roll`         | `7ch`     | Max: `-90.0°`                         |
+   | `#gps-accuracy`         | `20ch`    | Max: `Accuracy: ±9999 m`              |
+   | `#gps-altitude`         | `20ch`    | Max: `Altitude: 99999 ft`             |
+
+   All value containers use:
+
+   ```css
+   text-align: right;
+   font-variant-numeric: tabular-nums;
+   ```
+
+#### 1.2 Replace Crosshair with Improved Version
+
+**File:** `public/crosshair.svg`
+
+**Change:** The crosshair has been replaced with an improved version that has a more visible outline for better visibility on varied map backgrounds. No modification needed — file is already updated.
+
+---
+
+### Phase 2: UX Feedback Improvements
+
+**Goal:** Provide clearer feedback for user actions.
+
+#### 2.1 Show Toast on Sort Change
+
+**File to modify:** `src/ui/saved.js`
+
+**Change:** In `cycleSort()`, after updating `sortBy`, call `showToast()` with `'info'` type:
+
+| Sort Mode | Toast Message           |
+| --------- | ----------------------- |
+| `newest`  | `Sorting by Newest`     |
+| `oldest`  | `Sorting by Oldest`     |
+| `name-az` | `Sorting by Name (A-Z)` |
+| `name-za` | `Sorting by Name (Z-A)` |
+| `group`   | `Sorting by Group`      |
+
+#### 2.2 Auto-Open Ruler After Adding from Saved
+
+**Files to modify:**
+
+- `src/ui/nav.js`
+- `src/ui/saved.js`
+
+**Changes:**
+
+1. **`src/ui/nav.js` - Export new helper functions:**
+
+   ```js
+   export function openToolPanel(name) {
+     // Opens toolbox modal and shows specific tool panel (mobile)
+   }
+
+   export function openDesktopTool(name) {
+     // Expands specific desktop accordion (desktop)
+   }
+   ```
+
+2. **`src/ui/saved.js` - In `handleAddToRuler()`:**
+   - Detect viewport: `window.matchMedia('(min-width: 768px)').matches`
+   - Mobile: Exit multi-select, switch to tools tab, show ruler panel
+   - Desktop: Exit multi-select, expand ruler accordion
+
+---
+
+### Phase 3: Desktop Bug Fixes
+
+**Goal:** Fix non-functional panels and buttons on desktop.
+
+#### 3.1 Fix Settings/GPS/Ruler Panels Not Working on Desktop
+
+**File to modify:** `src/ui/nav.js`
+
+**Change:** Modify `toggleDesktopTool()` to **move** panels instead of cloning. Event listeners remain attached to original elements.
+
+```js
+function returnPanelToToolbox(panel) {
+  const toolboxContent = document.querySelector('.toolbox-content');
+  if (toolboxContent && panel) {
+    toolboxContent.appendChild(panel);
+  }
+}
+
+function toggleDesktopTool(tool) {
+  const accordion = document.getElementById('desktop-tools-accordion');
+  const panel = document.getElementById(`${tool}-panel`);
+
+  if (activeDesktopTool === tool) {
+    // Close: return panel to toolbox
+    activeDesktopTool = null;
+    returnPanelToToolbox(panel);
+    accordion.classList.remove('open');
+    // Update button states...
+  } else {
+    // Open: return previous panel, then move new panel
+    if (activeDesktopTool) {
+      const prevPanel = document.getElementById(`${activeDesktopTool}-panel`);
+      returnPanelToToolbox(prevPanel);
+    }
+    activeDesktopTool = tool;
+    accordion.innerHTML = '';
+    accordion.appendChild(panel); // Move, not clone
+    panel.style.display = 'block';
+    accordion.classList.add('open');
+    // Update button states...
+  }
+}
+```
+
+#### 3.2 Fix Track Edit Button Not Working
+
+**File to modify:** `src/ui/track-info.js`
+
+**Change:** In `handleEdit()`, call `onEditCallback` before `closeInfo()`:
+
+```js
+function handleEdit() {
+  if (!currentTrack) return;
+
+  const trackToEdit = currentTrack;
+  const callback = onEditCallback;
+
+  if (callback) {
+    callback(trackToEdit); // Call before closeInfo() clears it
+  }
+
+  closeInfo();
+}
+```
+
+---
+
+### Phase 4: Modal Consistency
+
+**Goal:** Ensure consistent modal appearance and fix visual bugs.
+
+#### 4.1 Remove Color Class from Track Modal Header
+
+**File to modify:** `src/ui/track-info.js`
+
+**Change:** In `open()` function, remove `color-${track.color}` and `track-header` from header class:
+
+**Before:**
+
+```js
+headerEl.className = `info-modal-header track-header color-${track.color || 'red'}`;
+```
+
+**After:**
+
+```js
+headerEl.className = 'info-modal-header';
+```
+
+This fixes:
+
+- Unintended colored background on header
+- Header scaling up 10% on hover (from `.color-{color}:hover { transform: scale(1.1) }`)
+
+---
+
+### Implementation Order
+
+1. **Phase 1** (UI Stability) - Independent, foundational fixes
+2. **Phase 3** (Desktop Bug Fixes) - Unblocks desktop testing
+3. **Phase 2** (UX Feedback) - Enhancements that benefit from Phase 3 fixes
+4. **Phase 4** (Modal Consistency) - Polish, independent of other phases
+
+---
+
+### Testing Checklist
+
+After each phase, verify:
+
+- [ ] **Phase 1:**
+  - [ ] Target coord display doesn't shift when panning map
+  - [ ] GPS overlay distance/bearing don't shift when values update
+  - [ ] Compass values don't shift when device moves
+  - [ ] GPS panel coordinate display is stable
+  - [ ] Crosshair is clearly visible on light and dark map backgrounds
+
+- [ ] **Phase 2:**
+  - [ ] Sort button shows toast with current sort mode
+  - [ ] Adding to ruler from saved opens ruler panel (mobile and desktop)
+
+- [ ] **Phase 3:**
+  - [ ] Settings dropdowns work on desktop and persist
+  - [ ] GPS panel interactions work on desktop
+  - [ ] Ruler clear button works on desktop
+  - [ ] Track edit button opens editor correctly
+
+- [ ] **Phase 4:**
+  - [ ] Track info modal header matches pin info modal (no color, no hover effect)

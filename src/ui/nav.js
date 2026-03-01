@@ -90,21 +90,34 @@ function setupDesktopTools() {
   });
 }
 
+function returnPanelToToolbox(panel) {
+  const toolboxContent = document.querySelector('.toolbox-content');
+  if (toolboxContent && panel) {
+    toolboxContent.appendChild(panel);
+  }
+}
+
 function toggleDesktopTool(tool) {
   const accordion = document.getElementById('desktop-tools-accordion');
   const toolBtns = document.querySelectorAll('.desktop-tools-btn');
 
   if (activeDesktopTool === tool) {
+    const panel = document.getElementById(`${tool}-panel`);
     activeDesktopTool = null;
+    returnPanelToToolbox(panel);
     if (accordion) accordion.classList.remove('open');
     toolBtns.forEach((btn) => btn.classList.remove('active'));
   } else {
-    activeDesktopTool = tool;
     const panel = document.getElementById(`${tool}-panel`);
+    if (activeDesktopTool) {
+      const prevPanel = document.getElementById(`${activeDesktopTool}-panel`);
+      returnPanelToToolbox(prevPanel);
+    }
+    activeDesktopTool = tool;
     if (accordion && panel) {
       accordion.innerHTML = '';
-      accordion.appendChild(panel.cloneNode(true));
-      accordion.querySelector('.toolbox-panel').style.display = 'block';
+      accordion.appendChild(panel);
+      panel.style.display = 'block';
       accordion.classList.add('open');
     }
     toolBtns.forEach((btn) => {
@@ -168,4 +181,13 @@ function applyInitialLayout() {
 
 export function getCurrentTab() {
   return currentTab;
+}
+
+export function openToolPanel(name) {
+  openToolbox();
+  showToolPanel(name);
+}
+
+export function openDesktopTool(name) {
+  toggleDesktopTool(name);
 }

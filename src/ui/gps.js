@@ -368,7 +368,7 @@ function updateCompassDisplay() {
 
   if (pitch !== null) {
     if (pitchValue) {
-      pitchValue.textContent = `${Math.round(pitch)}°`;
+      pitchValue.textContent = `${pitch.toFixed(1)}°`;
     }
   } else {
     if (pitchValue) {
@@ -378,7 +378,7 @@ function updateCompassDisplay() {
 
   if (roll !== null) {
     if (rollValue) {
-      rollValue.textContent = `${Math.round(roll)}°`;
+      rollValue.textContent = `${roll.toFixed(1)}°`;
     }
   } else {
     if (rollValue) {
