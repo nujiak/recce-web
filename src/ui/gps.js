@@ -35,6 +35,32 @@ let rollValue = null;
 let compassStatus = null;
 let compassHint = null;
 
+function generateCompassGradations() {
+  const cardinal = ['N', 'E', 'S', 'W'];
+  const intermediate = ['NE', 'SE', 'SW', 'NW'];
+  let html = '';
+
+  // Cardinal directions (0, 90, 180, 270)
+  cardinal.forEach((label, i) => {
+    const deg = i * 90;
+    html += `<div class="compass-mark compass-mark--cardinal" style="--deg: ${deg}deg">${label}</div>`;
+  });
+
+  // Intermediate directions (45, 135, 225, 315)
+  intermediate.forEach((label, i) => {
+    const deg = 45 + i * 90;
+    html += `<div class="compass-mark compass-mark--intermediate" style="--deg: ${deg}deg">${label}</div>`;
+  });
+
+  // Minor tick marks every 15° (skip 0, 45, 90, etc. which already have labels)
+  for (let deg = 0; deg < 360; deg += 15) {
+    if (deg % 45 === 0) continue; // Skip positions with labels
+    html += `<div class="compass-mark compass-mark--tick" style="--deg: ${deg}deg"></div>`;
+  }
+
+  return html;
+}
+
 export function init() {
   gpsPanel = document.getElementById('gps-panel');
 
@@ -71,6 +97,7 @@ export function init() {
       </div>
       <div class="compass-container">
         <div class="compass-dial">
+          <div class="compass-gradations">${generateCompassGradations()}</div>
           <div id="compass-needle" class="compass-needle">
             <div class="compass-needle-north"></div>
             <span class="compass-needle-north-label">N</span>

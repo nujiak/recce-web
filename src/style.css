@@ -1869,6 +1869,44 @@ input.error {
   justify-content: center;
 }
 
+.compass-gradations {
+  position: absolute;
+  inset: 0;
+}
+
+.compass-mark {
+  position: absolute;
+  top: 4px;
+  left: 50%;
+  transform: rotate(var(--deg)) translateY(0);
+  transform-origin: center calc(50% - 4px);
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-align: center;
+  width: 20px;
+  margin-left: -10px;
+}
+
+.compass-mark--cardinal {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.compass-mark--intermediate {
+  font-size: 0.6rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+}
+
+.compass-mark--tick {
+  width: 2px;
+  height: 6px;
+  background: var(--color-border);
+  margin-left: -1px;
+  border-radius: 1px;
+}
+
 .compass-needle {
   position: relative;
   width: 80%;
