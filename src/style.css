@@ -1942,41 +1942,51 @@ input.error {
 .compass-gradations {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  pointer-events: none;
 }
 
 .compass-mark {
   position: absolute;
   top: 50%;
   left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   transform-origin: center center;
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-.compass-mark--cardinal {
   transform: rotate(var(--deg)) translateY(-85px);
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--color-text);
 }
 
-.compass-mark--intermediate {
-  transform: rotate(var(--deg)) translateY(-85px);
-  font-size: 0.6rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-}
-
-.compass-mark--tick {
-  transform: rotate(var(--deg)) translateY(-92px);
+.compass-tick {
   width: 2px;
-  height: 6px;
+  height: 10px;
   background: var(--color-border);
   border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.compass-mark--cardinal .compass-tick {
+  height: 14px;
+  background: var(--color-text);
+}
+
+.compass-mark--intermediate .compass-tick {
+  height: 12px;
+  background: var(--color-text-secondary);
+}
+
+.compass-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text);
+  transform: rotate(calc(-1 * var(--deg)));
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
+.compass-mark--intermediate .compass-label {
+  font-size: 0.55rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
 }
 
 .compass-needle {
