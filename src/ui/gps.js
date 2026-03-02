@@ -341,20 +341,20 @@ function transformOrientationValues(azimuthVal, pitchVal, rollVal) {
   switch (orientation) {
     case 90:
       return {
-        azimuth: azimuthVal - 90,
+        azimuth: azimuthVal,
         pitch: -rollVal,
         roll: pitchVal,
       };
     case -90:
     case 270:
       return {
-        azimuth: azimuthVal + 90,
+        azimuth: azimuthVal + 180,
         pitch: rollVal,
         roll: -pitchVal,
       };
     case 180:
       return {
-        azimuth: azimuthVal,
+        azimuth: azimuthVal + 90,
         pitch: -pitchVal,
         roll: -rollVal,
       };
@@ -432,12 +432,6 @@ function updateCompassDisplay() {
   if (azimuth !== null && hasOrientation) {
     // Transform values based on screen orientation
     let transformed = transformOrientationValues(azimuth, pitch, roll);
-
-    // Apply +90° offset on mobile devices
-    const isMobile = window.innerWidth < 768;
-    if (isMobile) {
-      transformed.azimuth += 90;
-    }
 
     // Normalize azimuth to 0-360
     let displayAzimuth = ((transformed.azimuth % 360) + 360) % 360;
