@@ -2,6 +2,7 @@ let currentTab = 'map';
 let toolboxOpen = false;
 let activeToolPanel = null;
 let activeDesktopTool = null;
+let accordionHeight = null;
 
 const TOOL_TITLES = {
   gps: 'GPS / Compass',
@@ -13,6 +14,7 @@ export function init() {
   setupTabs();
   setupToolbox();
   setupDesktopTools();
+  setupAccordionResize();
   applyInitialLayout();
 }
 
@@ -115,15 +117,58 @@ function toggleDesktopTool(tool) {
     }
     activeDesktopTool = tool;
     if (accordion && panel) {
-      accordion.innerHTML = '';
-      accordion.appendChild(panel);
-      panel.style.display = 'block';
+      const content = document.getElementById('desktop-tools-content');
+      if (content) {
+        content.appendChild(panel);
+        panel.style.display = 'block';
+      }
+      if (!accordionHeight) {
+        const parent = accordion.parentElement;
+        if (parent) {
+          accordionHeight = Math.floor(parent.offsetHeight * 0.5);
+        }
+      }
+      accordion.style.height = `${accordionHeight}px`;
       accordion.classList.add('open');
+      setupAccordionResize();
     }
     toolBtns.forEach((btn) => {
       btn.classList.toggle('active', btn.dataset.tool === tool);
     });
   }
+}
+
+function setupAccordionResize() {
+  const handle = document.querySelector('.accordion-resize-handle');
+  const accordion = document.getElementById('desktop-tools-accordion');
+  if (!handle || !accordion) return;
+
+  let isDragging = false;
+  let startY = 0;
+  let startHeight = 0;
+
+  handle.addEventListener('pointerdown', (e) => {
+    isDragging = true;
+    startY = e.clientY;
+    startHeight = accordion.offsetHeight;
+    handle.setPointerCapture(e.pointerId);
+  });
+
+  handle.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    const delta = startY - e.clientY;
+    const newHeight = Math.max(
+      100,
+      Math.min(startHeight + delta, accordion.parentElement.offsetHeight * 0.8)
+    );
+    accordion.style.height = `${newHeight}px`;
+    accordionHeight = newHeight;
+  });
+
+  handle.addEventListener('pointerup', (e) => {
+    isDragging = false;
+    handle.releasePointerCapture(e.pointerId);
+  });
 }
 
 function openToolbox() {

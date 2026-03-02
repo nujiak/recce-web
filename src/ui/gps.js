@@ -35,6 +35,32 @@ let rollValue = null;
 let compassStatus = null;
 let compassHint = null;
 
+function generateCompassGradations() {
+  const cardinal = ['N', 'E', 'S', 'W'];
+  const intermediate = ['NE', 'SE', 'SW', 'NW'];
+  let html = '';
+
+  for (let deg = 0; deg < 360; deg += 15) {
+    const isCardinal = deg % 90 === 0;
+    const isIntermediate = deg % 45 === 0 && !isCardinal;
+
+    let label = '';
+    let markClass = 'compass-mark--tick';
+
+    if (isCardinal) {
+      label = cardinal[deg / 90];
+      markClass = 'compass-mark--cardinal';
+    } else if (isIntermediate) {
+      label = intermediate[(deg - 45) / 90];
+      markClass = 'compass-mark--intermediate';
+    }
+
+    html += `<div class="compass-mark ${markClass}" style="--deg: ${deg}deg"><span class="compass-tick"></span>${label ? `<span class="compass-label">${label}</span>` : ''}</div>`;
+  }
+
+  return html;
+}
+
 export function init() {
   gpsPanel = document.getElementById('gps-panel');
 
@@ -53,13 +79,21 @@ export function init() {
         <span class="gps-card-title">Location</span>
         <span id="gps-status" class="gps-status">Inactive</span>
       </div>
-      <div class="label-value-grid">
-        <span class="label">Coordinates</span>
-        <span id="gps-coord-value" class="value">--</span>
-        <span class="label">Accuracy</span>
-        <span id="gps-accuracy" class="value">--</span>
-        <span class="label">Altitude</span>
-        <span id="gps-altitude" class="value">--</span>
+      <div class="gps-location-layout">
+        <div class="gps-coord-row">
+          <span id="gps-coord-value" class="gps-coord-value">--</span>
+        </div>
+        <div class="gps-divider"></div>
+        <div class="gps-meta-row">
+          <div class="gps-meta-item">
+            <span class="gps-meta-label">Altitude</span>
+            <span id="gps-altitude" class="gps-meta-value">--</span>
+          </div>
+          <div class="gps-meta-item">
+            <span class="gps-meta-label">Accuracy</span>
+            <span id="gps-accuracy" class="gps-meta-value">--</span>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -71,6 +105,7 @@ export function init() {
       </div>
       <div class="compass-container">
         <div class="compass-dial">
+          <div class="compass-gradations">${generateCompassGradations()}</div>
           <div id="compass-needle" class="compass-needle">
             <div class="compass-needle-north"></div>
             <span class="compass-needle-north-label">N</span>
@@ -306,20 +341,20 @@ function transformOrientationValues(azimuthVal, pitchVal, rollVal) {
   switch (orientation) {
     case 90:
       return {
-        azimuth: azimuthVal - 90,
+        azimuth: azimuthVal,
         pitch: -rollVal,
         roll: pitchVal,
       };
     case -90:
     case 270:
       return {
-        azimuth: azimuthVal + 90,
+        azimuth: azimuthVal + 180,
         pitch: rollVal,
         roll: -pitchVal,
       };
     case 180:
       return {
-        azimuth: azimuthVal,
+        azimuth: azimuthVal + 90,
         pitch: -pitchVal,
         roll: -rollVal,
       };
@@ -329,32 +364,23 @@ function transformOrientationValues(azimuthVal, pitchVal, rollVal) {
 }
 
 function updateNeedleRotation(targetAzimuth) {
-  const diff = targetAzimuth - (currentNeedleRotation % 360);
+  // targetAzimuth is 0-360 from compass
+  // currentNeedleRotation is unbounded (can be any value)
+
+  // Calculate the difference
+  let delta = targetAzimuth - (currentNeedleRotation % 360);
 
   // Normalize to shortest path (-180 to 180)
-  let delta = ((diff + 180) % 360) - 180;
-  if (delta < -180) delta += 360;
+  while (delta > 180) delta -= 360;
+  while (delta < -180) delta += 360;
 
-  // Add to cumulative rotation (unbounded)
+  // Accumulate rotation (unbounded)
   currentNeedleRotation += delta;
 
-  // Apply rotation
+  // Apply rotation (negative because needle rotates opposite to heading)
   if (compassNeedle) {
     compassNeedle.style.transform = `rotate(${-currentNeedleRotation}deg)`;
   }
-
-  // Snap back to normalized range after animation completes
-  setTimeout(() => {
-    const normalized = ((currentNeedleRotation % 360) + 360) % 360;
-    if (compassNeedle) {
-      compassNeedle.style.transition = 'none';
-      compassNeedle.style.transform = `rotate(${-normalized}deg)`;
-      currentNeedleRotation = normalized;
-      requestAnimationFrame(() => {
-        compassNeedle.style.transition = '';
-      });
-    }
-  }, 150);
 }
 
 function updateDisplay() {
@@ -405,7 +431,7 @@ function updateCompassDisplay() {
 
   if (azimuth !== null && hasOrientation) {
     // Transform values based on screen orientation
-    const transformed = transformOrientationValues(azimuth, pitch, roll);
+    let transformed = transformOrientationValues(azimuth, pitch, roll);
 
     // Normalize azimuth to 0-360
     let displayAzimuth = ((transformed.azimuth % 360) + 360) % 360;
