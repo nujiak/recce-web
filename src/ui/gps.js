@@ -79,13 +79,21 @@ export function init() {
         <span class="gps-card-title">Location</span>
         <span id="gps-status" class="gps-status">Inactive</span>
       </div>
-      <div class="label-value-grid">
-        <span class="label">Coordinates</span>
-        <span id="gps-coord-value" class="value">--</span>
-        <span class="label">Accuracy</span>
-        <span id="gps-accuracy" class="value">--</span>
-        <span class="label">Altitude</span>
-        <span id="gps-altitude" class="value">--</span>
+      <div class="gps-location-layout">
+        <div class="gps-coord-row">
+          <span id="gps-coord-value" class="gps-coord-value">--</span>
+        </div>
+        <div class="gps-divider"></div>
+        <div class="gps-meta-row">
+          <div class="gps-meta-item">
+            <span class="gps-meta-label">Altitude</span>
+            <span id="gps-altitude" class="gps-meta-value">--</span>
+          </div>
+          <div class="gps-meta-item">
+            <span class="gps-meta-label">Accuracy</span>
+            <span id="gps-accuracy" class="gps-meta-value">--</span>
+          </div>
+        </div>
       </div>
     </div>
     

@@ -1823,6 +1823,61 @@ input.error {
   gap: var(--spacing-xs);
 }
 
+/* === GPS Location Layout === */
+.gps-location-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.gps-coord-row {
+  text-align: center;
+  padding: var(--spacing-sm) 0;
+}
+
+.gps-coord-value {
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  word-break: break-all;
+}
+
+.gps-coord-value:active {
+  opacity: 0.6;
+}
+
+.gps-divider {
+  height: 1px;
+  background: var(--color-border-subtle);
+  margin: 0 var(--spacing-sm);
+}
+
+.gps-meta-row {
+  display: flex;
+  justify-content: space-around;
+  gap: var(--spacing-md);
+}
+
+.gps-meta-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.gps-meta-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--color-text-muted);
+}
+
+.gps-meta-value {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 /* === Label-Value Grid === */
 .label-value-grid {
   display: grid;
@@ -2090,8 +2145,6 @@ input.error {
 }
 
 #gps-coord-value {
-  min-width: 25ch;
-  text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
@@ -2114,14 +2167,10 @@ input.error {
 }
 
 #gps-accuracy {
-  min-width: 20ch;
-  text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
 #gps-altitude {
-  min-width: 20ch;
-  text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
