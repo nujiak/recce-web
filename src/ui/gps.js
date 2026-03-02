@@ -319,12 +319,12 @@ function transformOrientationValues(azimuthVal, pitchVal, rollVal) {
       };
     case 180:
       return {
-        azimuth: azimuthVal + 180,
+        azimuth: azimuthVal,
         pitch: -pitchVal,
         roll: -rollVal,
       };
     default:
-      return { azimuth: azimuthVal, pitch: pitchVal, roll: rollVal };
+      return { azimuth: azimuthVal + 180, pitch: pitchVal, roll: rollVal };
   }
 }
 
