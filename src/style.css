@@ -153,11 +153,17 @@ body {
   border-radius: var(--radius-md);
 }
 
-.coord-box h2 {
+.coord-info {
+  flex: 1;
+  text-align: right;
+  min-width: 0;
+}
+
+.coord-info h2 {
   margin: 0;
   font-size: 0.85rem;
   font-weight: 600;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--spacing-xs);
 }
@@ -166,6 +172,14 @@ body {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--color-text-secondary);
+  margin: 2px 0 0 0;
+}
+
+.coord-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  padding-left: var(--spacing-sm);
+  border-left: 1px solid var(--color-border-subtle);
 }
 
 #target-coord-display {
@@ -1411,12 +1425,6 @@ input.error {
 .btn-danger:hover {
   background: var(--color-danger);
   color: var(--color-bg);
-}
-
-/* === Coord Actions === */
-.coord-actions {
-  display: flex;
-  gap: var(--spacing-xs);
 }
 
 /* === Track Type Badge === */
