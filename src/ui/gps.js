@@ -40,22 +40,22 @@ function generateCompassGradations() {
   const intermediate = ['NE', 'SE', 'SW', 'NW'];
   let html = '';
 
-  // Cardinal directions (0, 90, 180, 270)
-  cardinal.forEach((label, i) => {
-    const deg = i * 90;
-    html += `<div class="compass-mark compass-mark--cardinal" style="--deg: ${deg}deg">${label}</div>`;
-  });
-
-  // Intermediate directions (45, 135, 225, 315)
-  intermediate.forEach((label, i) => {
-    const deg = 45 + i * 90;
-    html += `<div class="compass-mark compass-mark--intermediate" style="--deg: ${deg}deg">${label}</div>`;
-  });
-
-  // Minor tick marks every 15° (skip 0, 45, 90, etc. which already have labels)
   for (let deg = 0; deg < 360; deg += 15) {
-    if (deg % 45 === 0) continue; // Skip positions with labels
-    html += `<div class="compass-mark compass-mark--tick" style="--deg: ${deg}deg"></div>`;
+    const isCardinal = deg % 90 === 0;
+    const isIntermediate = deg % 45 === 0 && !isCardinal;
+
+    let label = '';
+    let markClass = 'compass-mark--tick';
+
+    if (isCardinal) {
+      label = cardinal[deg / 90];
+      markClass = 'compass-mark--cardinal';
+    } else if (isIntermediate) {
+      label = intermediate[(deg - 45) / 90];
+      markClass = 'compass-mark--intermediate';
+    }
+
+    html += `<div class="compass-mark ${markClass}" style="--deg: ${deg}deg"><span class="compass-tick"></span>${label ? `<span class="compass-label">${label}</span>` : ''}</div>`;
   }
 
   return html;

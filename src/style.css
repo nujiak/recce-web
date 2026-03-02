@@ -1953,7 +1953,7 @@ input.error {
   flex-direction: column;
   align-items: center;
   transform-origin: center center;
-  transform: rotate(var(--deg)) translateY(-85px);
+  transform: translateX(-50%) translateY(-50%) rotate(var(--deg)) translateY(-85px);
 }
 
 .compass-tick {
