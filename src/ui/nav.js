@@ -117,9 +117,11 @@ function toggleDesktopTool(tool) {
     }
     activeDesktopTool = tool;
     if (accordion && panel) {
-      accordion.innerHTML = '<div class="accordion-resize-handle" aria-label="Resize panel"></div>';
-      accordion.appendChild(panel);
-      panel.style.display = 'block';
+      const content = document.getElementById('desktop-tools-content');
+      if (content) {
+        content.appendChild(panel);
+        panel.style.display = 'block';
+      }
       if (!accordionHeight) {
         const parent = accordion.parentElement;
         if (parent) {
