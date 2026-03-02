@@ -1978,7 +1978,6 @@ input.error {
   font-size: 0.7rem;
   font-weight: 700;
   color: var(--color-text);
-  transform: rotate(calc(-1 * var(--deg)));
   margin-top: 2px;
   white-space: nowrap;
 }
