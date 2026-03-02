@@ -1871,30 +1871,28 @@ input.error {
 
 .compass-needle {
   position: relative;
-  width: 24px;
-  height: 72px;
+  width: 80%;
+  aspect-ratio: 1 / 3;
   transition: transform 0.15s ease-out;
 }
 
 .compass-needle-north {
   position: absolute;
   top: 0;
-  left: 0;
-  width: 24px;
-  height: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 33.33%;
+  height: 50%;
   background: var(--color-danger);
   clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .compass-needle-north-label {
   position: absolute;
-  top: 20px;
+  top: 25%;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 0.6rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: #fff;
   z-index: 1;
@@ -1904,9 +1902,10 @@ input.error {
 .compass-needle-south {
   position: absolute;
   bottom: 0;
-  left: 0;
-  width: 24px;
-  height: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 33.33%;
+  height: 50%;
   background: var(--color-text-muted);
   clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
 }
