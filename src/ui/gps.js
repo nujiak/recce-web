@@ -431,7 +431,13 @@ function updateCompassDisplay() {
 
   if (azimuth !== null && hasOrientation) {
     // Transform values based on screen orientation
-    const transformed = transformOrientationValues(azimuth, pitch, roll);
+    let transformed = transformOrientationValues(azimuth, pitch, roll);
+
+    // Apply +90° offset on mobile devices
+    const isMobile = window.innerWidth < 768;
+    if (isMobile) {
+      transformed.azimuth += 90;
+    }
 
     // Normalize azimuth to 0-360
     let displayAzimuth = ((transformed.azimuth % 360) + 360) % 360;
