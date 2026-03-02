@@ -356,32 +356,23 @@ function transformOrientationValues(azimuthVal, pitchVal, rollVal) {
 }
 
 function updateNeedleRotation(targetAzimuth) {
-  const diff = targetAzimuth - (currentNeedleRotation % 360);
+  // targetAzimuth is 0-360 from compass
+  // currentNeedleRotation is unbounded (can be any value)
+
+  // Calculate the difference
+  let delta = targetAzimuth - (currentNeedleRotation % 360);
 
   // Normalize to shortest path (-180 to 180)
-  let delta = ((diff + 180) % 360) - 180;
-  if (delta < -180) delta += 360;
+  while (delta > 180) delta -= 360;
+  while (delta < -180) delta += 360;
 
-  // Add to cumulative rotation (unbounded)
+  // Accumulate rotation (unbounded)
   currentNeedleRotation += delta;
 
-  // Apply rotation
+  // Apply rotation (negative because needle rotates opposite to heading)
   if (compassNeedle) {
     compassNeedle.style.transform = `rotate(${-currentNeedleRotation}deg)`;
   }
-
-  // Snap back to normalized range after animation completes
-  setTimeout(() => {
-    const normalized = ((currentNeedleRotation % 360) + 360) % 360;
-    if (compassNeedle) {
-      compassNeedle.style.transition = 'none';
-      compassNeedle.style.transform = `rotate(${-normalized}deg)`;
-      currentNeedleRotation = normalized;
-      requestAnimationFrame(() => {
-        compassNeedle.style.transition = '';
-      });
-    }
-  }, 150);
 }
 
 function updateDisplay() {
