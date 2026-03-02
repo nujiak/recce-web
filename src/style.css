@@ -803,14 +803,28 @@ input:focus {
 
   .desktop-tools-accordion {
     display: none;
-    max-height: 300px;
+    flex: 0 0 auto;
     overflow-y: auto;
     border-top: 1px solid var(--color-border-subtle);
     background: var(--color-bg-secondary);
+    order: 1;
   }
 
   .desktop-tools-accordion.open {
-    display: block;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .accordion-resize-handle {
+    height: 4px;
+    background: var(--color-border-subtle);
+    cursor: ns-resize;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .accordion-resize-handle:hover {
+    background: var(--color-accent);
   }
 
   .desktop-tools-accordion .toolbox-panel {
