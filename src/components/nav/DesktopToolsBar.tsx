@@ -21,7 +21,7 @@ const DesktopToolsBar: Component = () => {
   const { activeTool, setActiveTool } = useUI();
 
   return (
-    <div class="desktop-tools-bar" style={{ display: 'none', 'flex-direction': 'column', height: '100%' }}>
+    <div class="desktop-tools-bar" style={{ display: 'none', 'flex-direction': 'column' }}>
       {/* Icon row */}
       <div style={{ display: 'flex', 'flex-direction': 'column', background: 'var(--color-bg-secondary)', 'border-bottom': '1px solid var(--color-border)' }}>
         {TOOLS.map((tool) => (

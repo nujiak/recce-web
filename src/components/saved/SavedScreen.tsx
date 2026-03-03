@@ -4,6 +4,7 @@ import { encode } from '../../share/share';
 import { decode } from '../../share/share';
 import { addPin, addTrack } from '../../db/db';
 import { showToast } from '../Toast';
+import { useUI } from '../../context/UIContext';
 import PinCard from './PinCard';
 import TrackCard from './TrackCard';
 import type { Pin, Track } from '../../types';
@@ -11,8 +12,9 @@ import type { Pin, Track } from '../../types';
 type SortMode = 'name-asc' | 'name-desc' | 'date-new' | 'date-old' | 'color';
 
 const SavedScreen: Component = () => {
-  const [pins, { refetch: refetchPins }] = createResource(getAllPins);
-  const [tracks, { refetch: refetchTracks }] = createResource(getAllTracks);
+  const { setEditingPin, setViewingPin, setEditingTrack, setViewingTrack, savedVersion } = useUI();
+  const [pins, { refetch: refetchPins }] = createResource(savedVersion, getAllPins);
+  const [tracks, { refetch: refetchTracks }] = createResource(savedVersion, getAllTracks);
   const [search, setSearch] = createSignal('');
   const [sortMode, setSortMode] = createSignal<SortMode>('date-new');
   const [selected, setSelected] = createSignal<Set<string>>(new Set());
@@ -131,6 +133,13 @@ const SavedScreen: Component = () => {
             style={{ flex: 1, background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '6px 10px', color: 'var(--color-text)', 'font-family': 'inherit', 'font-size': '0.875rem' }}
           />
           <button
+            aria-label="New pin"
+            onClick={() => setEditingPin({ name: '', lat: 0, lng: 0, color: 'red', group: '', description: '', createdAt: Date.now() } as Pin)}
+            style={{ background: 'var(--color-accent)', border: 'none', 'border-radius': 'var(--radius-sm)', padding: '6px 10px', cursor: 'pointer', color: 'oklch(0.1 0 0)', 'font-size': '0.75rem', 'font-family': 'inherit', 'font-weight': '600' }}
+          >
+            +
+          </button>
+          <button
             aria-label="Import share code"
             onClick={() => setShowImport(v => !v)}
             style={{ background: 'none', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '6px 10px', cursor: 'pointer', color: 'var(--color-text)', 'font-size': '0.75rem', 'font-family': 'inherit' }}
@@ -195,8 +204,8 @@ const SavedScreen: Component = () => {
                 pin={pin}
                 selected={selected().has(key)}
                 onSelect={() => toggleSelect(key)}
-                onEdit={() => {}}
-                onInfo={() => handleCardClick(key)}
+                onEdit={() => setEditingPin(pin)}
+                onInfo={() => { if (multiSelect()) handleCardClick(key); else setViewingPin(pin); }}
                 onPointerDown={(e) => { if (!multiSelect()) startLongPress(key); }}
                 onPointerUp={cancelLongPress}
                 onPointerCancel={cancelLongPress}
@@ -213,8 +222,8 @@ const SavedScreen: Component = () => {
                 track={track}
                 selected={selected().has(key)}
                 onSelect={() => toggleSelect(key)}
-                onEdit={() => {}}
-                onInfo={() => handleCardClick(key)}
+                onEdit={() => setEditingTrack(track)}
+                onInfo={() => { if (multiSelect()) handleCardClick(key); else setViewingTrack(track); }}
                 onPointerDown={(e) => { if (!multiSelect()) startLongPress(key); }}
                 onPointerUp={cancelLongPress}
                 onPointerCancel={cancelLongPress}

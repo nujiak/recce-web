@@ -5,6 +5,10 @@ import AppShell from './components/layout/AppShell';
 import ToolboxModal from './components/nav/ToolboxModal';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import SavedScreen from './components/saved/SavedScreen';
+import PinEditor from './components/pin/PinEditor';
+import PinInfo from './components/pin/PinInfo';
+import TrackEditor from './components/track/TrackEditor';
+import TrackInfo from './components/track/TrackInfo';
 import Toast from './components/Toast';
 
 function applyTheme(theme: string) {
@@ -15,7 +19,7 @@ function applyTheme(theme: string) {
 
 function AppInner() {
   const [prefs] = usePrefs();
-  const { activeNav } = useUI();
+  const { activeNav, bumpSavedVersion } = useUI();
 
   createEffect(() => {
     applyTheme(prefs.theme);
@@ -54,6 +58,12 @@ function AppInner() {
         {/* Tools modal (mobile) */}
         <ToolboxModal />
       </AppShell>
+
+      {/* Pin / Track editors & info modals */}
+      <PinEditor onSaved={bumpSavedVersion} />
+      <PinInfo />
+      <TrackEditor onSaved={bumpSavedVersion} />
+      <TrackInfo />
 
       <Toast />
     </>
