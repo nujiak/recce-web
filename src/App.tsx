@@ -1,7 +1,9 @@
-import { createEffect } from 'solid-js';
+import { createEffect, Show } from 'solid-js';
 import { PrefsProvider, usePrefs } from './context/PrefsContext';
-import { UIProvider } from './context/UIContext';
-import SettingsPanel from './components/settings/SettingsPanel';
+import { UIProvider, useUI } from './context/UIContext';
+import AppShell from './components/layout/AppShell';
+import ToolboxModal from './components/nav/ToolboxModal';
+import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import Toast from './components/Toast';
 
 function applyTheme(theme: string) {
@@ -12,27 +14,62 @@ function applyTheme(theme: string) {
 
 function AppInner() {
   const [prefs] = usePrefs();
+  const { activeNav } = useUI();
 
   createEffect(() => {
     applyTheme(prefs.theme);
   });
 
   return (
-    <div class="app-shell">
-      <header class="app-header">
-        <h1>Recce</h1>
-      </header>
-      <main class="app-main">
-        <div class="placeholder-content">
-          <div class="placeholder-icon">🗺️</div>
-          <h2>Migration in Progress</h2>
-          <p>The app is being migrated to SolidJS + TypeScript + Tailwind v4.</p>
-          <p class="placeholder-hint">Phase 3: Global State &amp; Settings</p>
-        </div>
-        <SettingsPanel />
-      </main>
+    <>
+      <Show when={!prefs.onboardingDone}>
+        <OnboardingFlow />
+      </Show>
+
+      <AppShell>
+        {/* Map placeholder (Phase 7) */}
+        <Show when={activeNav() === 'map'}>
+          <div
+            style={{
+              height: '100%',
+              display: 'flex',
+              'align-items': 'center',
+              'justify-content': 'center',
+              'flex-direction': 'column',
+              gap: '8px',
+              color: 'var(--color-text-secondary)',
+            }}
+          >
+            <span style={{ 'font-size': '2rem' }}>🗺️</span>
+            <span style={{ 'font-size': '0.875rem' }}>Map (Phase 7)</span>
+          </div>
+        </Show>
+
+        {/* Saved placeholder (Phase 5) */}
+        <Show when={activeNav() === 'saved'}>
+          <div
+            id="saved-panel"
+            style={{
+              height: '100%',
+              display: 'flex',
+              'align-items': 'center',
+              'justify-content': 'center',
+              'flex-direction': 'column',
+              gap: '8px',
+              color: 'var(--color-text-secondary)',
+            }}
+          >
+            <span style={{ 'font-size': '2rem' }}>🔖</span>
+            <span style={{ 'font-size': '0.875rem' }}>Saved (Phase 5)</span>
+          </div>
+        </Show>
+
+        {/* Tools modal (mobile) */}
+        <ToolboxModal />
+      </AppShell>
+
       <Toast />
-    </div>
+    </>
   );
 }
 
