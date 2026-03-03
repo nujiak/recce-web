@@ -5,6 +5,7 @@ import { decode } from '../../share/share';
 import { addPin, addTrack } from '../../db/db';
 import { showToast } from '../Toast';
 import { useUI } from '../../context/UIContext';
+import { addToRuler } from '../../stores/ruler';
 import PinCard from './PinCard';
 import TrackCard from './TrackCard';
 import type { Pin, Track } from '../../types';
@@ -12,7 +13,7 @@ import type { Pin, Track } from '../../types';
 type SortMode = 'name-asc' | 'name-desc' | 'date-new' | 'date-old' | 'color';
 
 const SavedScreen: Component = () => {
-  const { setEditingPin, setViewingPin, setEditingTrack, setViewingTrack, savedVersion } = useUI();
+  const { setEditingPin, setViewingPin, setEditingTrack, setViewingTrack, savedVersion, setActiveTool } = useUI();
   const [pins, { refetch: refetchPins }] = createResource(savedVersion, getAllPins);
   const [tracks, { refetch: refetchTracks }] = createResource(savedVersion, getAllTracks);
   const [search, setSearch] = createSignal('');
@@ -94,6 +95,22 @@ const SavedScreen: Component = () => {
     const code = encode(selPins, selTracks);
     navigator.clipboard.writeText(code).catch(() => {});
     showToast(`Share code: ${code.slice(0, 20)}…`, 'info', 5000);
+  }
+
+  function addSelectedToRuler() {
+    const sel = selected();
+    const selPins = (pins() ?? []).filter(p => sel.has(`pin:${p.id}`));
+    const selTracks = (tracks() ?? []).filter(t => sel.has(`track:${t.id}`));
+    const points = [
+      ...selPins.map(p => ({ name: p.name, lat: p.lat, lng: p.lng })),
+      ...selTracks.filter(t => t.nodes.length > 0).map(t => ({ name: t.name, lat: t.nodes[0].lat, lng: t.nodes[0].lng })),
+    ];
+    if (points.length === 0) return;
+    addToRuler(points);
+    setSelected(new Set<string>());
+    setMultiSelect(false);
+    setActiveTool('ruler');
+    showToast(`Added ${points.length} point(s) to Ruler`, 'success');
   }
 
   async function importItems() {
@@ -182,6 +199,7 @@ const SavedScreen: Component = () => {
         <div style={{ padding: '8px 16px', background: 'var(--color-accent-bg)', 'border-bottom': '1px solid var(--color-accent-border)', display: 'flex', gap: '8px', 'align-items': 'center' }}>
           <span style={{ 'font-size': '0.75rem', color: 'var(--color-accent)', flex: 1 }}>{selected().size} selected</span>
           <button onClick={shareSelected} style={{ background: 'none', border: '1px solid var(--color-accent-border)', 'border-radius': 'var(--radius-sm)', padding: '4px 10px', cursor: 'pointer', color: 'var(--color-accent)', 'font-size': '0.75rem', 'font-family': 'inherit' }}>Share</button>
+          <button onClick={addSelectedToRuler} style={{ background: 'none', border: '1px solid var(--color-accent-border)', 'border-radius': 'var(--radius-sm)', padding: '4px 10px', cursor: 'pointer', color: 'var(--color-accent)', 'font-size': '0.75rem', 'font-family': 'inherit' }}>Ruler</button>
           <button onClick={bulkDelete} style={{ background: 'none', border: '1px solid var(--color-danger)', 'border-radius': 'var(--radius-sm)', padding: '4px 10px', cursor: 'pointer', color: 'var(--color-danger)', 'font-size': '0.75rem', 'font-family': 'inherit' }}>Delete</button>
           <button onClick={() => { setSelected(new Set<string>()); setMultiSelect(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', 'font-size': '0.75rem', 'font-family': 'inherit' }}>Cancel</button>
         </div>

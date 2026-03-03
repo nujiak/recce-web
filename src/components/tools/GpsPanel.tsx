@@ -1,0 +1,208 @@
+import { Component, createSignal, onMount, onCleanup, Show } from 'solid-js';
+import {
+  gpsPosition, setGpsPosition,
+  gpsHeading, setGpsHeading,
+  gpsPitch, setGpsPitch,
+  gpsRoll, setGpsRoll,
+  orientationAbsolute, setOrientationAbsolute,
+} from '../../stores/gps';
+import { usePrefs } from '../../context/PrefsContext';
+import { formatDistance } from '../../utils/geo';
+import CompassNeedle from './CompassNeedle';
+
+function copyText(text: string) {
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+
+const GpsPanel: Component = () => {
+  const [prefs] = usePrefs();
+  const [permError, setPermError] = createSignal<string | null>(null);
+  const [iosPrompt, setIosPrompt] = createSignal(false);
+
+  let watchId: number | null = null;
+
+  function startWatch() {
+    if (!navigator.geolocation) {
+      setPermError('Geolocation is not supported by this browser.');
+      return;
+    }
+    watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        setGpsPosition(pos.coords);
+        setPermError(null);
+      },
+      (err) => {
+        setPermError(err.message);
+      },
+      { enableHighAccuracy: true, maximumAge: 2000 }
+    );
+  }
+
+  function handleOrientation(e: DeviceOrientationEvent) {
+    // Heading: alpha is compass heading (0=north, clockwise)
+    // On iOS with webkitCompassHeading, that's the true bearing
+    const ios = e as any;
+    if (ios.webkitCompassHeading !== undefined) {
+      setGpsHeading(ios.webkitCompassHeading);
+      setOrientationAbsolute(true);
+    } else if (e.absolute && e.alpha !== null) {
+      // Convert standard alpha (CCW from north) to CW bearing
+      setGpsHeading((360 - e.alpha) % 360);
+      setOrientationAbsolute(true);
+    } else if (e.alpha !== null) {
+      setGpsHeading((360 - (e.alpha ?? 0)) % 360);
+      setOrientationAbsolute(false);
+    }
+    if (e.beta !== null) setGpsPitch(e.beta);
+    if (e.gamma !== null) setGpsRoll(e.gamma);
+  }
+
+  async function requestOrientationPermission() {
+    const doe = (DeviceOrientationEvent as any);
+    if (typeof doe.requestPermission === 'function') {
+      try {
+        const perm = await doe.requestPermission();
+        if (perm === 'granted') {
+          window.addEventListener('deviceorientationabsolute', handleOrientation as any, true);
+          window.addEventListener('deviceorientation', handleOrientation as any, true);
+          setIosPrompt(false);
+        }
+      } catch {
+        setPermError('Orientation permission denied.');
+      }
+    }
+  }
+
+  onMount(() => {
+    startWatch();
+
+    const doe = (DeviceOrientationEvent as any);
+    if (typeof doe.requestPermission === 'function') {
+      // iOS 13+ requires user gesture to request permission
+      setIosPrompt(true);
+    } else {
+      window.addEventListener('deviceorientationabsolute', handleOrientation as any, true);
+      window.addEventListener('deviceorientation', handleOrientation as any, true);
+    }
+  });
+
+  onCleanup(() => {
+    if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    window.removeEventListener('deviceorientationabsolute', handleOrientation as any, true);
+    window.removeEventListener('deviceorientation', handleOrientation as any, true);
+  });
+
+  const pos = () => gpsPosition();
+  const lengthUnit = () => prefs.lengthUnit ?? 'metric';
+
+  return (
+    <div style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '16px' }}>
+      {/* Location card */}
+      <div style={{ background: 'var(--color-bg-secondary)', 'border-radius': 'var(--radius-md)', border: '1px solid var(--color-border)', padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2">
+            <circle cx="12" cy="12" r="4" />
+            <line x1="12" y1="2" x2="12" y2="6" />
+            <line x1="12" y1="18" x2="12" y2="22" />
+            <line x1="2" y1="12" x2="6" y2="12" />
+            <line x1="18" y1="12" x2="22" y2="12" />
+          </svg>
+          <span style={{ 'font-size': '0.875rem', 'font-weight': '600' }}>Location</span>
+        </div>
+
+        <Show when={permError()}>
+          <div style={{ 'font-size': '0.75rem', color: 'var(--color-danger)', padding: '8px', background: 'var(--color-danger-bg)', 'border-radius': 'var(--radius-sm)' }}>
+            {permError()}
+          </div>
+        </Show>
+
+        <Show when={!pos() && !permError()}>
+          <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Acquiring GPS fix…</div>
+        </Show>
+
+        <Show when={pos()}>
+          {(coords) => (
+            <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
+              <div style={{ display: 'flex', 'justify-content': 'space-between', 'align-items': 'center' }}>
+                <div>
+                  <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)' }}>Latitude</div>
+                  <div style={{ 'font-size': '0.875rem', 'font-variant-numeric': 'tabular-nums' }}>{coords().latitude.toFixed(6)}</div>
+                </div>
+                <div>
+                  <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)' }}>Longitude</div>
+                  <div style={{ 'font-size': '0.875rem', 'font-variant-numeric': 'tabular-nums' }}>{coords().longitude.toFixed(6)}</div>
+                </div>
+                <button
+                  aria-label="Copy coordinates"
+                  onClick={() => copyText(`${coords().latitude.toFixed(6)}, ${coords().longitude.toFixed(6)}`)}
+                  style={{ background: 'none', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '4px 8px', cursor: 'pointer', color: 'var(--color-text-secondary)', 'font-size': '0.75rem', 'font-family': 'inherit' }}
+                >
+                  Copy
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <div>
+                  <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)' }}>Accuracy</div>
+                  <div style={{ 'font-size': '0.875rem' }}>{formatDistance(coords().accuracy, lengthUnit())}</div>
+                </div>
+                <Show when={coords().altitude !== null}>
+                  <div>
+                    <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)' }}>Altitude</div>
+                    <div style={{ 'font-size': '0.875rem' }}>{formatDistance(coords().altitude!, lengthUnit())}</div>
+                  </div>
+                </Show>
+              </div>
+            </div>
+          )}
+        </Show>
+      </div>
+
+      {/* Compass card */}
+      <div style={{ background: 'var(--color-bg-secondary)', 'border-radius': 'var(--radius-md)', border: '1px solid var(--color-border)', padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '12px' }}>
+        <div style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polygon points="12,2 10,12 12,10 14,12" fill="var(--color-accent)" stroke="none" />
+          </svg>
+          <span style={{ 'font-size': '0.875rem', 'font-weight': '600' }}>Compass</span>
+        </div>
+
+        <Show when={iosPrompt()}>
+          <button
+            onClick={requestOrientationPermission}
+            style={{ background: 'var(--color-accent)', border: 'none', 'border-radius': 'var(--radius-sm)', padding: '8px 16px', cursor: 'pointer', color: 'oklch(0.1 0 0)', 'font-family': 'inherit', 'font-size': '0.875rem', 'font-weight': '600' }}
+          >
+            Enable Compass
+          </button>
+        </Show>
+
+        <Show when={!iosPrompt()}>
+          <div style={{ display: 'flex', 'flex-direction': 'column', 'align-items': 'center', gap: '12px' }}>
+            <CompassNeedle />
+            <Show when={!orientationAbsolute()}>
+              <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)', 'text-align': 'center' }}>
+                Compass not calibrated — hold phone flat and rotate in a figure-8
+              </div>
+            </Show>
+            <div style={{ display: 'flex', gap: '24px' }}>
+              <Show when={gpsPitch() !== null}>
+                <div style={{ 'text-align': 'center' }}>
+                  <div style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>Pitch</div>
+                  <div style={{ 'font-size': '0.875rem', 'font-variant-numeric': 'tabular-nums' }}>{gpsPitch()!.toFixed(1)}°</div>
+                </div>
+              </Show>
+              <Show when={gpsRoll() !== null}>
+                <div style={{ 'text-align': 'center' }}>
+                  <div style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>Roll</div>
+                  <div style={{ 'font-size': '0.875rem', 'font-variant-numeric': 'tabular-nums' }}>{gpsRoll()!.toFixed(1)}°</div>
+                </div>
+              </Show>
+            </div>
+          </div>
+        </Show>
+      </div>
+    </div>
+  );
+};
+
+export default GpsPanel;

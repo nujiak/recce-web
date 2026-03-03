@@ -1,6 +1,8 @@
 import { Component, Show } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import SettingsPanel from '../settings/SettingsPanel';
+import GpsPanel from '../tools/GpsPanel';
+import RulerPanel from '../tools/RulerPanel';
 
 type ToolId = 'gps' | 'ruler' | 'settings' | 'saved';
 
@@ -62,10 +64,10 @@ const DesktopToolsBar: Component = () => {
           <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>Saved panel (Phase 5)</div>
         </Show>
         <Show when={activeTool() === 'gps'}>
-          <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>GPS/Compass panel (Phase 8)</div>
+          <GpsPanel />
         </Show>
         <Show when={activeTool() === 'ruler'}>
-          <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>Ruler panel (Phase 8)</div>
+          <RulerPanel />
         </Show>
       </div>
     </div>
