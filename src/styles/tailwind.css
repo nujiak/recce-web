@@ -1,0 +1,10 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Preserve critical CSS variables during migration */
+@layer base {
+  :root {
+    /* Keep existing vars for gradual migration */
+  }
+}

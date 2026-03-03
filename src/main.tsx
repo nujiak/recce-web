@@ -27,10 +27,10 @@ import { initKeyboardNavigation } from './utils/keyboard.js';
 import { enableSwipeToDismissMultiple } from './utils/swipe.js';
 
 // PWA Install prompt
-let deferredInstallPrompt = null;
-let installTimeout = null;
+let deferredInstallPrompt: BeforeInstallPromptEvent | null = null;
+let installTimeout: ReturnType<typeof setTimeout> | null = null;
 
-function showInstallBanner(banner) {
+function showInstallBanner(banner: HTMLElement) {
   if (!banner.querySelector('.install-progress-bar')) {
     const progressContainer = document.createElement('div');
     progressContainer.className = 'install-progress-bar';
@@ -38,7 +38,7 @@ function showInstallBanner(banner) {
     banner.appendChild(progressContainer);
   }
 
-  const progressFill = banner.querySelector('.install-progress-fill');
+  const progressFill = banner.querySelector('.install-progress-fill') as HTMLElement | null;
   if (progressFill) {
     progressFill.style.animation = 'none';
     void progressFill.offsetWidth;
@@ -53,12 +53,16 @@ function showInstallBanner(banner) {
   }, 10000);
 }
 
-function hideInstallBanner(banner) {
+function hideInstallBanner(banner: HTMLElement) {
   if (installTimeout) {
     clearTimeout(installTimeout);
     installTimeout = null;
   }
   banner.classList.remove('show');
+}
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
 function initInstallPrompt() {
@@ -73,7 +77,7 @@ function initInstallPrompt() {
 
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
-    deferredInstallPrompt = e;
+    deferredInstallPrompt = e as BeforeInstallPromptEvent;
     showInstallBanner(installBanner);
   });
 
@@ -123,8 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Enable swipe-to-dismiss for all bottom sheets
   enableSwipeToDismissMultiple([
     {
-      sheet: document.getElementById('pin-editor'),
-      backdrop: document.getElementById('pin-editor-backdrop'),
+      sheet: document.getElementById('pin-editor')!,
+      backdrop: document.getElementById('pin-editor-backdrop')!,
       onDismiss: () => {
         const dialog = document.getElementById('pin-editor');
         if (dialog?.classList.contains('open')) {
@@ -134,8 +138,8 @@ document.addEventListener('DOMContentLoaded', () => {
       },
     },
     {
-      sheet: document.getElementById('track-editor'),
-      backdrop: document.getElementById('track-editor-backdrop'),
+      sheet: document.getElementById('track-editor')!,
+      backdrop: document.getElementById('track-editor-backdrop')!,
       onDismiss: () => {
         const dialog = document.getElementById('track-editor');
         if (dialog?.classList.contains('open')) {
@@ -159,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Pin events
-  window.addEventListener('openPinEditor', (e) => {
+  window.addEventListener('openPinEditor', ((e: CustomEvent) => {
     const { lat, lng } = e.detail;
     openCreate(lat, lng, async (pin, wasEdit, isDeleted) => {
       if (isDeleted) {
@@ -171,9 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       await refreshSaved();
     });
-  });
+  }) as EventListener);
 
-  window.addEventListener('pinClicked', (e) => {
+  window.addEventListener('pinClicked', ((e: CustomEvent) => {
     const { pin } = e.detail;
     openPinInfo(pin, (pinToEdit) => {
       openEdit(pinToEdit, async (updatedPin, wasEdit, isDeleted) => {
@@ -185,9 +189,9 @@ document.addEventListener('DOMContentLoaded', () => {
         await refreshSaved();
       });
     });
-  });
+  }) as EventListener);
 
-  window.addEventListener('pinCardClicked', (e) => {
+  window.addEventListener('pinCardClicked', ((e: CustomEvent) => {
     const { pin } = e.detail;
     openPinInfo(pin, (pinToEdit) => {
       openEdit(pinToEdit, async (updatedPin, wasEdit, isDeleted) => {
@@ -199,10 +203,10 @@ document.addEventListener('DOMContentLoaded', () => {
         await refreshSaved();
       });
     });
-  });
+  }) as EventListener);
 
   // Track events
-  window.addEventListener('openTrackEditor', (e) => {
+  window.addEventListener('openTrackEditor', ((e: CustomEvent) => {
     const { nodes } = e.detail;
     openTrackCreate(nodes, async (track, wasEdit, isDeleted) => {
       if (isDeleted) {
@@ -214,9 +218,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       await refreshSaved();
     });
-  });
+  }) as EventListener);
 
-  window.addEventListener('trackClicked', (e) => {
+  window.addEventListener('trackClicked', ((e: CustomEvent) => {
     const { track } = e.detail;
     openTrackInfo(track, (trackToEdit) => {
       openTrackEdit(trackToEdit, async (updatedTrack, wasEdit, isDeleted) => {
@@ -228,9 +232,9 @@ document.addEventListener('DOMContentLoaded', () => {
         await refreshSaved();
       });
     });
-  });
+  }) as EventListener);
 
-  window.addEventListener('trackCardClicked', (e) => {
+  window.addEventListener('trackCardClicked', ((e: CustomEvent) => {
     const { track } = e.detail;
     openTrackInfo(track, (trackToEdit) => {
       openTrackEdit(trackToEdit, async (updatedTrack, wasEdit, isDeleted) => {
@@ -242,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
         await refreshSaved();
       });
     });
-  });
+  }) as EventListener);
 
   // Import event - reload map markers and tracks
   window.addEventListener('dataImported', async () => {
