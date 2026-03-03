@@ -10,9 +10,9 @@ import {
 import { preferences } from '@/stores/preferences';
 import { mapStore } from '@/stores/map';
 import { CoordinateTransformer } from '@/coords';
-import { formatBearing, formatDistance } from '@/utils/geo';
-import { showToast } from '@/utils/toast';
-import { copyToClipboard } from '@/utils/clipboard';
+import { formatBearing, formatDistance } from '@/lib/geo';
+import { showToast } from '@/lib/toast';
+import { copyToClipboard } from '@/lib/clipboard';
 
 export const GpsPanel: Component = () => {
   const [watchId, setWatchId] = createSignal<number | null>(null);
@@ -119,7 +119,9 @@ export const GpsPanel: Component = () => {
 
   const handleOrientation = (event: DeviceOrientationEvent) => {
     let az: number | null = null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if ((event as any).webkitCompassHeading !== undefined) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       az = (event as any).webkitCompassHeading;
     } else if (event.alpha !== null && event.absolute) {
       az = 360 - event.alpha;
@@ -141,8 +143,10 @@ export const GpsPanel: Component = () => {
   };
 
   const requestCompassPermission = async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
       try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const permission = await (DeviceOrientationEvent as any).requestPermission();
         if (permission === 'granted') {
           window.addEventListener('deviceorientation', handleOrientation, true);
@@ -162,6 +166,7 @@ export const GpsPanel: Component = () => {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
       setCompassStatus('permission');
     } else {

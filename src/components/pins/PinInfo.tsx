@@ -2,8 +2,8 @@ import { type Component, For, Show } from 'solid-js';
 import { Modal } from '@/components/layout/Modal';
 import { CoordinateTransformer } from '@/coords';
 import { SYSTEMS, type CoordSystem } from '@/coords';
-import { showToast } from '@/utils/toast';
-import { copyToClipboard } from '@/utils/clipboard';
+import { showToast } from '@/lib/toast';
+import { copyToClipboard } from '@/lib/clipboard';
 import type { Pin } from '@/types';
 
 interface PinInfoProps {

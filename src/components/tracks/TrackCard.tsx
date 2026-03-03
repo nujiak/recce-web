@@ -1,7 +1,7 @@
 import { type Component, Show } from 'solid-js';
 import type { Track } from '@/types';
 import { preferences } from '@/stores/preferences';
-import { formatDistance, calculateTotalDistance } from '@/utils/geo';
+import { formatDistance, calculateTotalDistance } from '@/lib/geo';
 
 interface TrackCardProps {
   track: Track;

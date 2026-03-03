@@ -7,8 +7,8 @@ import { preferences } from '@/stores/preferences';
 import { uiStore } from '@/stores/ui';
 import { rulerStore } from '@/components/tools/RulerPanel';
 import { CoordinateTransformer } from '@/coords';
-import { showToast } from '@/utils/toast';
-import { copyToClipboard } from '@/utils/clipboard';
+import { showToast } from '@/lib/toast';
+import { copyToClipboard } from '@/lib/clipboard';
 import type { Pin, Track } from '@/types';
 
 type SortBy = 'newest' | 'oldest' | 'name-az' | 'name-za' | 'group';

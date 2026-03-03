@@ -1,7 +1,7 @@
 import { type Component, For, Show } from 'solid-js';
 import { Modal } from '@/components/layout/Modal';
 import { preferences } from '@/stores/preferences';
-import { calculateTotalDistance, calculateArea, formatDistance, formatArea } from '@/utils/geo';
+import { calculateTotalDistance, calculateArea, formatDistance, formatArea } from '@/lib/geo';
 import type { Track } from '@/types';
 
 interface TrackInfoProps {

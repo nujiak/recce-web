@@ -1,6 +1,6 @@
 import { type Component, createSignal, For, Show } from 'solid-js';
 import { preferences } from '@/stores/preferences';
-import { haversineDistance, calculateBearing, formatDistance, formatBearing } from '@/utils/geo';
+import { haversineDistance, calculateBearing, formatDistance, formatBearing } from '@/lib/geo';
 
 interface RulerPoint {
   label: string;

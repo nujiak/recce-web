@@ -26,7 +26,7 @@ export function format(lat: number, lng: number): string | null {
 
   const M = calculateM(latRad);
 
-  let easting =
+  const easting =
     UTM_K0 *
       N *
       (A +
@@ -87,7 +87,7 @@ export function parse(input: string): GeoPoint | null {
   const precision = halfLen;
   const multiplier = 10 ** (7 - precision);
 
-  let easting = parseInt(eastingStr) * multiplier + UTM_FALSE_EASTING;
+  const easting = parseInt(eastingStr) * multiplier + UTM_FALSE_EASTING;
   let northing = parseInt(northingStr) * multiplier;
 
   if (band === 'S') {

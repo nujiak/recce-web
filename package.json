@@ -7,10 +7,10 @@
     "build": "vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src --ext .js,.ts,.tsx",
-    "lint:fix": "eslint src --ext .js,.ts,.tsx --fix",
-    "format": "prettier --write \"src/**/*.{js,ts,tsx,css,html}\"",
-    "format:check": "prettier --check \"src/**/*.{js,ts,tsx,css,html}\""
+    "lint": "eslint src --ext .ts,.tsx",
+    "lint:fix": "eslint src --ext .ts,.tsx --fix",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css,html}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css,html}\""
   },
   "dependencies": {
     "dexie": "^4.0.7",

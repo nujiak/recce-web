@@ -2,9 +2,222 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Preserve critical CSS variables during migration */
 @layer base {
   :root {
-    /* Keep existing vars for gradual migration */
+    --color-bg: oklch(0 0 0);
+    --color-bg-secondary: oklch(0.12 0 0);
+    --color-bg-tertiary: oklch(0.18 0 0);
+    --color-text: oklch(1 0 0);
+    --color-text-secondary: oklch(0.7 0 0);
+    --color-text-muted: oklch(0.5 0 0);
+    --color-border: oklch(0.3 0 0);
+    --color-border-subtle: oklch(0.2 0 0);
+    --color-accent: oklch(0.7 0.18 151);
+    --color-accent-bg: oklch(0.7 0.18 151 / 15%);
+    --color-accent-border: oklch(0.7 0.18 151 / 50%);
+    --color-danger: oklch(0.65 0.2 25);
+    --color-overlay: oklch(0 0 0 / 80%);
+
+    --color-surface: var(--color-bg);
+    --color-surface-hover: var(--color-bg-secondary);
+    --color-primary: var(--color-accent);
+    --color-secondary: var(--color-text-secondary);
+
+    --color-pin-red: oklch(0.65 0.2 25);
+    --color-pin-orange: oklch(0.75 0.18 60);
+    --color-pin-green: oklch(0.7 0.18 151);
+    --color-pin-azure: oklch(0.65 0.18 240);
+    --color-pin-violet: oklch(0.65 0.2 300);
+
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+
+    --font-mono: 'Geist Mono', monospace;
+
+    --nav-height: 56px;
+    --header-height: 48px;
+    --fab-size: 56px;
+  }
+
+  [data-theme='light'] {
+    --color-bg: oklch(0.98 0 0);
+    --color-bg-secondary: oklch(0.95 0 0);
+    --color-bg-tertiary: oklch(0.92 0 0);
+    --color-text: oklch(0.15 0 0);
+    --color-text-secondary: oklch(0.4 0 0);
+    --color-text-muted: oklch(0.55 0 0);
+    --color-border: oklch(0.85 0 0);
+    --color-border-subtle: oklch(0.9 0 0);
+    --color-accent: oklch(0.55 0.18 151);
+    --color-accent-bg: oklch(0.55 0.18 151 / 10%);
+    --color-accent-border: oklch(0.55 0.18 151 / 40%);
+    --color-danger: oklch(0.55 0.2 25);
+    --color-overlay: oklch(0 0 0 / 50%);
+
+    --color-surface: var(--color-bg);
+    --color-surface-hover: var(--color-bg-secondary);
+    --color-primary: var(--color-accent);
+    --color-secondary: var(--color-text-secondary);
+
+    --color-pin-red: oklch(0.55 0.2 25);
+    --color-pin-orange: oklch(0.65 0.18 60);
+    --color-pin-green: oklch(0.55 0.18 151);
+    --color-pin-azure: oklch(0.55 0.18 240);
+    --color-pin-violet: oklch(0.55 0.2 300);
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html,
+  body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  .material-symbols-outlined {
+    font-family: 'Material Symbols Outlined';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .btn-small {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border-subtle);
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+
+  .btn-small:hover {
+    background: var(--color-bg-secondary);
+  }
+
+  .btn-primary {
+    background: var(--color-accent);
+    color: white;
+    border: none;
+  }
+
+  .btn-primary:hover {
+    background: var(--color-accent);
+    opacity: 0.9;
+  }
+
+  .install-banner {
+    position: fixed;
+    bottom: calc(var(--nav-height) + var(--spacing-md));
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - var(--spacing-lg) * 2);
+    max-width: 400px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+      opacity 0.3s,
+      visibility 0.3s;
+  }
+
+  .install-banner.show {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .install-banner-content {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+  }
+
+  .install-banner-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+  }
+
+  .toast-container {
+    position: fixed;
+    bottom: calc(var(--nav-height) + var(--spacing-md));
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+  }
+
+  .toast {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    font-size: 0.9rem;
+    opacity: 0;
+    transform: translateY(20px);
+    transition:
+      opacity 0.3s,
+      transform 0.3s;
+  }
+
+  .toast-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .toast-success {
+    border-color: var(--color-accent-border);
+    background: var(--color-accent-bg);
+  }
+
+  .toast-error {
+    border-color: oklch(0.65 0.2 25 / 30%);
+    background: oklch(0.65 0.2 25 / 10%);
+  }
+
+  .toast-info {
+    border-color: var(--color-border);
   }
 }
