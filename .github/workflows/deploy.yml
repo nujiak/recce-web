@@ -7,9 +7,6 @@ on:
     types: [opened, reopened, synchronize, closed]
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 concurrency:
   group: pages-${{ github.ref }}
   cancel-in-progress: true
@@ -35,17 +32,14 @@ jobs:
     needs: build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          persist-credentials: true
       - uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
-      - name: Deploy to gh-pages
-        uses: JamesIves/github-pages-deploy-action@v4
+      - uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
           folder: dist
@@ -53,20 +47,19 @@ jobs:
           force: false
 
   deploy-preview:
-    needs: build
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-          persist-credentials: true
-      - uses: actions/download-artifact@v4
+      - if: github.event.action != 'closed'
+        uses: actions/download-artifact@v4
         with:
           name: dist
           path: dist
-      - name: Deploy PR preview
-        uses: rossjrw/pr-preview-action@v1
+      - uses: rossjrw/pr-preview-action@v1
         with:
           source-dir: dist
           preview-branch: gh-pages
