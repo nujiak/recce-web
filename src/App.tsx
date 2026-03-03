@@ -1,48 +1,20 @@
-import { createEffect, createSignal, onMount } from 'solid-js';
+import { createEffect } from 'solid-js';
+import { PrefsProvider, usePrefs } from './context/PrefsContext';
+import { UIProvider } from './context/UIContext';
+import SettingsPanel from './components/settings/SettingsPanel';
+import Toast from './components/Toast';
 
-interface Prefs {
-  theme: 'light' | 'dark' | 'system';
-  onboardingDone: boolean;
-}
-
-const defaultPrefs: Prefs = {
-  theme: 'dark',
-  onboardingDone: false,
-};
-
-function getStoredPrefs(): Prefs {
-  try {
-    const stored = localStorage.getItem('recce_prefs');
-    if (stored) {
-      return { ...defaultPrefs, ...JSON.parse(stored) };
-    }
-  } catch {
-    // ignore
-  }
-  return defaultPrefs;
-}
-
-function applyTheme(theme: 'light' | 'dark' | 'system') {
+function applyTheme(theme: string) {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const effectiveTheme = theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme;
-  document.documentElement.setAttribute('data-theme', effectiveTheme);
+  const effective = theme === 'system' ? (prefersDark ? 'dark' : 'light') : theme;
+  document.documentElement.setAttribute('data-theme', effective);
 }
 
-function App() {
-  const [prefs] = createSignal<Prefs>(getStoredPrefs());
-
-  onMount(() => {
-    applyTheme(prefs().theme);
-  });
+function AppInner() {
+  const [prefs] = usePrefs();
 
   createEffect(() => {
-    const currentPrefs = prefs();
-    try {
-      localStorage.setItem('recce_prefs', JSON.stringify(currentPrefs));
-    } catch {
-      // ignore
-    }
-    applyTheme(currentPrefs.theme);
+    applyTheme(prefs.theme);
   });
 
   return (
@@ -55,10 +27,22 @@ function App() {
           <div class="placeholder-icon">🗺️</div>
           <h2>Migration in Progress</h2>
           <p>The app is being migrated to SolidJS + TypeScript + Tailwind v4.</p>
-          <p class="placeholder-hint">Phase 1: Tooling & Scaffold</p>
+          <p class="placeholder-hint">Phase 3: Global State &amp; Settings</p>
         </div>
+        <SettingsPanel />
       </main>
+      <Toast />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <PrefsProvider>
+      <UIProvider>
+        <AppInner />
+      </UIProvider>
+    </PrefsProvider>
   );
 }
 
