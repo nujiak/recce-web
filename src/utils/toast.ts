@@ -1,10 +1,9 @@
-let toastContainer = null;
-let currentToast = null;
+import type { ToastType } from '../types';
 
-/**
- * Initialize the toast container (called once from main.js)
- */
-export function initToast() {
+let toastContainer: HTMLElement | null = null;
+let currentToast: HTMLElement | null = null;
+
+export function initToast(): void {
   if (toastContainer) return;
 
   toastContainer = document.createElement('div');
@@ -13,21 +12,17 @@ export function initToast() {
   document.body.appendChild(toastContainer);
 }
 
-/**
- * Show a toast message
- * @param {string} message - The message to display
- * @param {string} type - 'success', 'error', or 'info' (default: 'info')
- * @param {number} duration - Duration in ms (default: 3000)
- */
-export function showToast(message, type = 'info', duration = 3000) {
+export function showToast(
+  message: string,
+  type: ToastType = 'info',
+  duration: number = 3000
+): void {
   if (!toastContainer) initToast();
 
-  // Remove any existing toast
   if (currentToast) {
     currentToast.remove();
   }
 
-  // Create toast element
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.setAttribute('role', 'alert');
@@ -36,15 +31,13 @@ export function showToast(message, type = 'info', duration = 3000) {
     <span class="toast-message">${escapeHtml(message)}</span>
   `;
 
-  toastContainer.appendChild(toast);
+  toastContainer!.appendChild(toast);
   currentToast = toast;
 
-  // Trigger animation
   requestAnimationFrame(() => {
     toast.classList.add('toast-visible');
   });
 
-  // Auto-dismiss
   setTimeout(() => {
     toast.classList.remove('toast-visible');
     setTimeout(() => {
@@ -56,7 +49,7 @@ export function showToast(message, type = 'info', duration = 3000) {
   }, duration);
 }
 
-function escapeHtml(str) {
+function escapeHtml(str: string): string {
   const div = document.createElement('div');
   div.textContent = str;
   return div.innerHTML;

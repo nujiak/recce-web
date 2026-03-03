@@ -1,10 +1,12 @@
-export function format(lat, lng) {
+import type { CoordResult } from '../types';
+
+export function format(lat: number, lng: number): string {
   const latDir = lat >= 0 ? 'N' : 'S';
   const lngDir = lng >= 0 ? 'E' : 'W';
   return `${Math.abs(lat).toFixed(5)}° ${latDir} ${Math.abs(lng).toFixed(5)}° ${lngDir}`;
 }
 
-export function parse(input) {
+export function parse(input: string): CoordResult | null {
   const regex1 = /^\s*([0-9.,]+)\s*°?\s*([NSns])\s*([0-9.,]+)\s*°?\s*([EWew])\s*$/;
   const regex2 = /^\s*([-+0-9.,]+)\s*°?\s+([-+0-9.,]+)\s*°?\s*$/;
 

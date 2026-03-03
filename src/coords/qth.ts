@@ -1,4 +1,6 @@
-export function format(lat, lng) {
+import type { CoordResult } from '../types';
+
+export function format(lat: number, lng: number): string {
   let lngShift = lng + 180;
   let latShift = lat + 90;
 
@@ -26,7 +28,7 @@ export function format(lat, lng) {
   return `${fieldFirst}${fieldSecond}${squareFirst}${squareSecond}${subsquareFirst}${subsquareSecond}${extendedFirst}${extendedSecond}`;
 }
 
-export function parse(input) {
+export function parse(input: string): CoordResult | null {
   const cleaned = input.trim().toUpperCase();
 
   if (!/^[A-R]{2}([0-9]{2}([A-X]{2}([0-9]{2})?)?)?$/.test(cleaned)) {
@@ -69,14 +71,14 @@ export function parse(input) {
   return { lat, lng };
 }
 
-function getUppercaseLetter(index) {
+function getUppercaseLetter(index: number): string {
   return String.fromCharCode(65 + index);
 }
 
-function getLowercaseLetter(index) {
+function getLowercaseLetter(index: number): string {
   return String.fromCharCode(65 + index);
 }
 
-function getIndex(letter) {
+function getIndex(letter: string): number {
   return letter.charCodeAt(0) - 65;
 }

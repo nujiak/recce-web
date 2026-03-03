@@ -1,22 +1,43 @@
 import pako from 'pako';
+import type { Pin, Track } from '../types';
 
-// Base62 alphabet: 0-9, A-Z, a-z (62 characters)
 const BASE62_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 const VERSION_PREFIX = 'R1';
 
-/**
- * Encode a Uint8Array to Base62 string
- */
-function encodeBase62(bytes) {
+interface SharePayload {
+  pins: Array<{
+    createdAt: number;
+    name: string;
+    lat: number;
+    lng: number;
+    color: string;
+    group: string;
+    description: string;
+  }>;
+  tracks: Array<{
+    createdAt: number;
+    name: string;
+    nodes: Array<{ lat: number; lng: number; name?: string }>;
+    isCyclical: boolean;
+    color: string;
+    group: string;
+    description: string;
+  }>;
+}
+
+interface DecodeResult {
+  pins: Pin[];
+  tracks: Track[];
+}
+
+function encodeBase62(bytes: Uint8Array): string {
   if (bytes.length === 0) return '0';
 
-  // Convert bytes to a big integer
   let num = BigInt(0);
   for (let i = 0; i < bytes.length; i++) {
     num = num * BigInt(256) + BigInt(bytes[i]);
   }
 
-  // Convert to Base62
   let result = '';
   while (num > 0n) {
     const remainder = num % BigInt(62);
@@ -27,23 +48,18 @@ function encodeBase62(bytes) {
   return result || '0';
 }
 
-/**
- * Decode a Base62 string to Uint8Array
- */
-function decodeBase62(str) {
+function decodeBase62(str: string): Uint8Array | null {
   if (!str || str === '0') return new Uint8Array(0);
 
-  // Convert Base62 to big integer
   let num = BigInt(0);
   for (let i = 0; i < str.length; i++) {
     const char = str[i];
     const value = BASE62_ALPHABET.indexOf(char);
-    if (value === -1) return null; // Invalid character
+    if (value === -1) return null;
     num = num * BigInt(62) + BigInt(value);
   }
 
-  // Convert to bytes
-  const bytes = [];
+  const bytes: number[] = [];
   while (num > 0n) {
     bytes.unshift(Number(num % BigInt(256)));
     num = num / BigInt(256);
@@ -52,15 +68,8 @@ function decodeBase62(str) {
   return new Uint8Array(bytes);
 }
 
-/**
- * Encode pins and tracks to a share code
- * @param {Array} pins - Array of pin objects
- * @param {Array} tracks - Array of track objects
- * @returns {string} Share code with R1 prefix
- */
-export function encode(pins, tracks) {
-  // Build payload with only essential fields
-  const payload = {
+export function encode(pins: Pin[], tracks: Track[]): string {
+  const payload: SharePayload = {
     pins: (pins || []).map((p) => ({
       createdAt: p.createdAt,
       name: p.name,
@@ -81,53 +90,34 @@ export function encode(pins, tracks) {
     })),
   };
 
-  // JSON stringify
   const jsonStr = JSON.stringify(payload);
-
-  // Deflate with pako (raw deflate, no zlib header)
   const compressed = pako.deflate(new TextEncoder().encode(jsonStr), { raw: true });
-
-  // Encode to Base62
   const base62 = encodeBase62(compressed);
 
-  // Prepend version prefix
   return VERSION_PREFIX + base62;
 }
 
-/**
- * Decode a share code to pins and tracks
- * @param {string} code - Share code with R1 prefix
- * @returns {{ pins: Array, tracks: Array } | null} Decoded data or null on error
- */
-export function decode(code) {
+export function decode(code: string): DecodeResult | null {
   try {
-    // Check version prefix
     if (!code || !code.startsWith(VERSION_PREFIX)) {
       return null;
     }
 
-    // Strip prefix
     const base62 = code.slice(VERSION_PREFIX.length);
-
-    // Decode from Base62
     const compressed = decodeBase62(base62);
     if (!compressed) return null;
 
-    // Inflate with pako
     const decompressed = pako.inflate(compressed, { raw: true });
-
-    // Parse JSON
     const jsonStr = new TextDecoder().decode(decompressed);
-    const payload = JSON.parse(jsonStr);
+    const payload = JSON.parse(jsonStr) as SharePayload;
 
-    // Validate structure
     if (!payload || typeof payload !== 'object') return null;
     if (!Array.isArray(payload.pins)) payload.pins = [];
     if (!Array.isArray(payload.tracks)) payload.tracks = [];
 
     return {
-      pins: payload.pins,
-      tracks: payload.tracks,
+      pins: payload.pins as Pin[],
+      tracks: payload.tracks as Track[],
     };
   } catch (e) {
     console.error('Share code decode error:', e);

@@ -1,14 +1,15 @@
-import * as utm from './utm.js';
+import * as utm from './utm';
+import type { CoordResult } from '../types';
 
 const BANDS = 'CDEFGHJKLMNPQRSTUVWX';
 
-const COLUMN_LETTERS = [
+const COLUMN_LETTERS: string[][] = [
   ['S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
   ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'],
   ['J', 'K', 'L', 'M', 'N', 'P', 'Q', 'R'],
 ];
 
-const ROW_LETTERS = [
+const ROW_LETTERS: string[][] = [
   [
     'F',
     'G',
@@ -55,7 +56,7 @@ const ROW_LETTERS = [
   ],
 ];
 
-const Y_BANDS = {
+const Y_BANDS: Record<string, number[]> = {
   C: [1, 0],
   D: [1, 0],
   E: [1],
@@ -78,7 +79,7 @@ const Y_BANDS = {
   X: [3, 4],
 };
 
-export function format(lat, lng) {
+export function format(lat: number, lng: number): string | null {
   if (lat < -80 || lat > 84) return null;
 
   const zone = Math.floor((lng + 180) / 6) + 1;
@@ -88,7 +89,6 @@ export function format(lat, lng) {
   const utmStr = utm.format(lat, lng);
   if (!utmStr) return null;
 
-  // UTM format: "48N 0361234 0149234"
   const utmMatch = /^(\d+)([NS])\s+(\d+)\s+(\d+)$/.exec(utmStr);
   if (!utmMatch) return null;
 
@@ -112,7 +112,7 @@ export function format(lat, lng) {
   return `${zoneStr}${band}${columnLetter}${rowLetter} ${easting5} ${northing5}`;
 }
 
-export function parse(input) {
+export function parse(input: string): CoordResult | null {
   const cleaned = input.replace(/\s/g, '').toUpperCase();
   const match = /^(\d{1,2})(\w{3})(\d{1,12})$/.exec(cleaned);
 
@@ -167,55 +167,11 @@ export function parse(input) {
   return null;
 }
 
-function parseUTM(zone, band, easting, northing) {
-  const centralMeridian = (zone - 1) * 6 - 180 + 3;
-
-  const x = easting - 500000;
-  let y = northing;
-  if (band === 'S') {
-    y -= 10000000;
-  }
-
-  const WGS84_A = 6378137.0;
-  const WGS84_F = 1 / 298.257223563;
-  const WGS84_E2 = 2 * WGS84_F - WGS84_F * WGS84_F;
-  const UTM_K0 = 0.9996;
-
-  const M = y / UTM_K0;
-  const mu = M / (WGS84_A * (1 - WGS84_E2 / 4 - WGS84_E2 ** 2 / 64 - WGS84_E2 ** 3 / 256));
-
-  const e1 = (1 - Math.sqrt(1 - WGS84_E2)) / (1 + Math.sqrt(1 - WGS84_E2));
-
-  let latRad =
-    mu +
-    ((3 * e1) / 2 - (27 * e1 ** 3) / 32) * Math.sin(2 * mu) +
-    ((21 * e1 ** 2) / 16 - (55 * e1 ** 4) / 32) * Math.sin(4 * mu) +
-    ((151 * e1 ** 3) / 96) * Math.sin(6 * mu) +
-    ((1097 * e1 ** 4) / 512) * Math.sin(8 * mu);
-
-  const N = WGS84_A / Math.sqrt(1 - WGS84_E2 * Math.sin(latRad) ** 2);
-  const T = Math.tan(latRad) ** 2;
-  const C = (WGS84_E2 / (1 - WGS84_E2)) * Math.cos(latRad) ** 2;
-  const D = x / (N * UTM_K0);
-
-  latRad =
-    latRad -
-    ((N * Math.tan(latRad)) / UTM_K0) *
-      (D ** 2 / 2 -
-        ((5 + 3 * T + 10 * C - 4 * C ** 2 - 9 * WGS84_E2) * D ** 4) / 24 +
-        ((61 + 90 * T + 298 * C + 45 * T ** 2 - 252 * WGS84_E2 - 3 * C ** 2) * D ** 6) / 720);
-
-  const lngRad =
-    (centralMeridian * Math.PI) / 180 +
-    (D -
-      ((1 + 2 * T + C) * D ** 3) / 6 +
-      ((5 - 2 * C + 28 * T - 3 * C ** 2 + 8 * WGS84_E2 + 24 * T ** 2) * D ** 5) / 120) /
-      Math.cos(latRad);
-
-  const lat = (latRad * 180) / Math.PI;
-  const lng = (lngRad * 180) / Math.PI;
-
-  if (lat < -80 || lat > 84) return null;
-
-  return { lat, lng };
+function parseUTM(
+  zone: number,
+  band: string,
+  easting: number,
+  northing: number
+): CoordResult | null {
+  return utm.toWGS84(zone, band, easting, northing);
 }

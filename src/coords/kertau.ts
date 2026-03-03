@@ -1,4 +1,5 @@
 import proj4 from 'proj4';
+import type { CoordResult } from '../types';
 
 const KERTAU_PROJ =
   '+proj=omerc +lat_0=4 +lonc=102.25 +alpha=323.0257905 +k=0.99984 +x_0=804670.24 +y_0=0 +no_uoff +gamma=323.1301023611111 +a=6377295.664 +b=6356094.667915204 +units=m +no_defs +towgs84=-11,851,5';
@@ -12,7 +13,7 @@ const KERTAU_BOUNDS = {
   maxLng: 104.6,
 };
 
-export function format(lat, lng) {
+export function format(lat: number, lng: number): string | null {
   if (
     lat < KERTAU_BOUNDS.minLat ||
     lat > KERTAU_BOUNDS.maxLat ||
@@ -25,7 +26,7 @@ export function format(lat, lng) {
   return `${Math.trunc(easting)} ${Math.trunc(northing)}`;
 }
 
-export function parse(input) {
+export function parse(input: string): CoordResult | null {
   const cleaned = input.trim().replace(/[,;]/g, ' ');
   const parts = cleaned.split(/\s+/);
   if (parts.length !== 2) return null;

@@ -1,10 +1,11 @@
 import proj4 from 'proj4';
+import type { CoordResult } from '../types';
 
 const BNG_PROJ =
   '+proj=tmerc +lat_0=49 +lon_0=-2 +k=0.9996012717 +x_0=400000 +y_0=-100000 +ellps=airy +towgs84=446.448,-125.157,542.06,0.1502,0.247,0.8421,-20.4894 +units=m +no_defs';
 const WGS84_PROJ = 'EPSG:4326';
 
-const MAJOR_EASTING_OFFSET = {
+const MAJOR_EASTING_OFFSET: Record<string, number> = {
   S: 0,
   T: 500000,
   N: 0,
@@ -13,7 +14,7 @@ const MAJOR_EASTING_OFFSET = {
   J: 500000,
 };
 
-const MAJOR_NORTHING_OFFSET = {
+const MAJOR_NORTHING_OFFSET: Record<string, number> = {
   S: 0,
   T: 0,
   N: 500000,
@@ -22,7 +23,7 @@ const MAJOR_NORTHING_OFFSET = {
   J: 1000000,
 };
 
-const MINOR_EASTING_OFFSET = {
+const MINOR_EASTING_OFFSET: Record<string, number> = {
   A: 0,
   F: 0,
   L: 0,
@@ -50,7 +51,7 @@ const MINOR_EASTING_OFFSET = {
   Z: 400000,
 };
 
-const MINOR_NORTHING_OFFSET = {
+const MINOR_NORTHING_OFFSET: Record<string, number> = {
   A: 400000,
   B: 400000,
   C: 400000,
@@ -80,7 +81,7 @@ const MINOR_NORTHING_OFFSET = {
 
 const VALID_MAJOR = ['H', 'J', 'N', 'O', 'S', 'T'];
 
-export function format(lat, lng) {
+export function format(lat: number, lng: number): string | null {
   const [easting, northing] = proj4(WGS84_PROJ, BNG_PROJ, [lng, lat]);
 
   if (easting < 0 || easting > 700000 || northing < 0 || northing > 1250000) {
@@ -90,7 +91,7 @@ export function format(lat, lng) {
   const majorNorthingIndex = Math.floor(northing / 500000);
   const majorEastingIndex = Math.floor(easting / 500000);
 
-  const majorLetters = [
+  const majorLetters: string[][] = [
     ['S', 'T'],
     ['N', 'O'],
     ['H', 'J'],
@@ -101,7 +102,7 @@ export function format(lat, lng) {
   const minorNorthingIndex = Math.floor((northing % 500000) / 100000);
   const minorEastingIndex = Math.floor((easting % 500000) / 100000);
 
-  const minorLetters = [
+  const minorLetters: string[][] = [
     ['V', 'W', 'X', 'Y', 'Z'],
     ['Q', 'R', 'S', 'T', 'U'],
     ['L', 'M', 'N', 'O', 'P'],
@@ -120,7 +121,7 @@ export function format(lat, lng) {
   return `${majorLetter}${minorLetter} ${easting5} ${northing5}`;
 }
 
-export function parse(input) {
+export function parse(input: string): CoordResult | null {
   const cleaned = input.replace(/\s/g, '').toUpperCase();
   const match = /^([JHONST])([A-HJ-Z])(\d{1,12})$/.exec(cleaned);
 

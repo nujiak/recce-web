@@ -1,12 +1,7 @@
-/**
- * Copy text to clipboard
- * @param {string} text - Text to copy
- */
-export async function copyToClipboard(text) {
+export async function copyToClipboard(text: string): Promise<void> {
   if (navigator.clipboard && navigator.clipboard.writeText) {
     await navigator.clipboard.writeText(text);
   } else {
-    // Fallback for older browsers
     const textarea = document.createElement('textarea');
     textarea.value = text;
     textarea.style.position = 'fixed';
