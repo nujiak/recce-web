@@ -1,4 +1,4 @@
-import { Component, createSignal, createEffect, Show } from 'solid-js';
+import { Component, createSignal, createEffect, onCleanup, Show } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import { CoordinateTransformer } from '../../coords/index';
 import { usePrefs } from '../../context/PrefsContext';
@@ -31,6 +31,14 @@ const PinEditor: Component<PinEditorProps> = (props) => {
   const [color, setColor] = createSignal<PinColor>('red');
   const [group, setGroup] = createSignal('');
   const [description, setDescription] = createSignal('');
+
+  // Close on Escape
+  createEffect(() => {
+    if (!pin()) return;
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setEditingPin(null); }
+    window.addEventListener('keydown', onKey);
+    onCleanup(() => window.removeEventListener('keydown', onKey));
+  });
 
   // Populate fields when pin changes
   createEffect(() => {
@@ -119,6 +127,18 @@ const PinEditor: Component<PinEditorProps> = (props) => {
       <div
         role="dialog"
         aria-label={pin() ? `Edit ${pin()?.name}` : 'New Pin'}
+        aria-modal="true"
+        onKeyDown={(e) => {
+          if (e.key !== 'Tab') return;
+          const el = e.currentTarget;
+          const focusable = Array.from(el.querySelectorAll<HTMLElement>(
+            'button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
+          )).filter(n => !n.hasAttribute('disabled'));
+          if (focusable.length === 0) return;
+          const first = focusable[0], last = focusable[focusable.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }}
         style={{
           position: 'fixed',
           'z-index': '50',

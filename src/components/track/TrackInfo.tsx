@@ -1,4 +1,4 @@
-import { Component, For, Show } from 'solid-js';
+import { Component, For, Show, createEffect, onCleanup } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import { usePrefs } from '../../context/PrefsContext';
 import { haversineDistance } from '../../utils/geo';
@@ -55,6 +55,13 @@ function formatArea(m2: number, unit: string): string {
 
 const TrackInfo: Component = () => {
   const { viewingTrack, setViewingTrack, setEditingTrack } = useUI();
+
+  createEffect(() => {
+    if (!viewingTrack()) return;
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setViewingTrack(null); }
+    window.addEventListener('keydown', onKey);
+    onCleanup(() => window.removeEventListener('keydown', onKey));
+  });
   const [prefs] = usePrefs();
 
   function openEdit() {

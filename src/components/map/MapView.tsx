@@ -112,7 +112,7 @@ const MapView: Component = () => {
     if (plotState.nodes.length < 2) return;
     const map = mapInstance();
     if (map) clearPreviewLine(map);
-    const nodes = [...plotState.nodes];
+    const nodes = plotState.nodes.map(n => ({ lat: n.lat, lng: n.lng, ...(n.name ? { name: n.name } : {}) }));
     setPlotState({ active: false, nodes: [], color: 'red' });
     setEditingTrack({
       name: '',

@@ -1,4 +1,4 @@
-import { Component, createSignal, createEffect, Show } from 'solid-js';
+import { Component, createSignal, createEffect, onCleanup, Show } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import { addTrack, updateTrack, deleteTrack } from '../../db/db';
 import { showToast } from '../Toast';
@@ -27,6 +27,14 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
   const [group, setGroup] = createSignal('');
   const [description, setDescription] = createSignal('');
   const [nodes, setNodes] = createSignal<TrackNode[]>([]);
+
+  // Close on Escape
+  createEffect(() => {
+    if (!editingTrack()) return;
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setEditingTrack(null); }
+    window.addEventListener('keydown', onKey);
+    onCleanup(() => window.removeEventListener('keydown', onKey));
+  });
 
   createEffect(() => {
     const t = editingTrack();
@@ -95,6 +103,18 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
       <div
         role="dialog"
         aria-label={editingTrack()?.id ? `Edit ${editingTrack()?.name}` : 'New Track'}
+        aria-modal="true"
+        onKeyDown={(e) => {
+          if (e.key !== 'Tab') return;
+          const el = e.currentTarget;
+          const focusable = Array.from(el.querySelectorAll<HTMLElement>(
+            'button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
+          )).filter(n => !n.hasAttribute('disabled'));
+          if (focusable.length === 0) return;
+          const first = focusable[0], last = focusable[focusable.length - 1];
+          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        }}
         style={{
           position: 'fixed',
           'z-index': '50',

@@ -1,4 +1,4 @@
-import { Component, For, Show } from 'solid-js';
+import { Component, For, Show, createEffect, onCleanup } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import { CoordinateTransformer, SYSTEMS } from '../../coords/index';
 import { showToast } from '../Toast';
@@ -6,6 +6,13 @@ import type { CoordinateSystem } from '../../types';
 
 const PinInfo: Component = () => {
   const { viewingPin, setViewingPin, setEditingPin } = useUI();
+
+  createEffect(() => {
+    if (!viewingPin()) return;
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setViewingPin(null); }
+    window.addEventListener('keydown', onKey);
+    onCleanup(() => window.removeEventListener('keydown', onKey));
+  });
 
   function openInMaps() {
     const p = viewingPin();
