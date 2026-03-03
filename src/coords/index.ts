@@ -1,4 +1,6 @@
 import type { CoordSystem, GeoPoint } from '@/types';
+
+export type { CoordSystem } from '@/types';
 import * as wgs84 from './wgs84';
 import * as utm from './utm';
 import * as mgrs from './mgrs';
