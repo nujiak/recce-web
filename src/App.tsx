@@ -5,6 +5,7 @@ import AppShell from './components/layout/AppShell';
 import ToolboxModal from './components/nav/ToolboxModal';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import SavedScreen from './components/saved/SavedScreen';
+import MapView from './components/map/MapView';
 import PinEditor from './components/pin/PinEditor';
 import PinInfo from './components/pin/PinInfo';
 import TrackEditor from './components/track/TrackEditor';
@@ -32,22 +33,9 @@ function AppInner() {
       </Show>
 
       <AppShell>
-        {/* Map placeholder (Phase 7) */}
+        {/* Map */}
         <Show when={activeNav() === 'map'}>
-          <div
-            style={{
-              height: '100%',
-              display: 'flex',
-              'align-items': 'center',
-              'justify-content': 'center',
-              'flex-direction': 'column',
-              gap: '8px',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
-            <span style={{ 'font-size': '2rem' }}>🗺️</span>
-            <span style={{ 'font-size': '0.875rem' }}>Map (Phase 7)</span>
-          </div>
+          <MapView />
         </Show>
 
         {/* Saved screen */}
