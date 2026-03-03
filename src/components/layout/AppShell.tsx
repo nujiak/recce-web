@@ -1,11 +1,13 @@
-import { ParentComponent, Show } from 'solid-js';
+import { ParentComponent } from 'solid-js';
 import BottomNav from '../nav/BottomNav';
 import DesktopToolsBar from '../nav/DesktopToolsBar';
-import { useUI } from '../../context/UIContext';
+import SavedScreen from '../saved/SavedScreen';
 
-const AppShell: ParentComponent = (props) => {
-  const { activeNav } = useUI();
+interface AppShellProps {
+  mapSlot?: unknown;
+}
 
+const AppShell: ParentComponent<AppShellProps> = (props) => {
   return (
     <div
       style={{
@@ -13,14 +15,11 @@ const AppShell: ParentComponent = (props) => {
         height: '100dvh',
         width: '100vw',
         overflow: 'hidden',
-        // Desktop: map pane + 320px sidebar
-        // Mobile: single column, nav at bottom
         'grid-template-rows': '1fr auto',
         'grid-template-columns': '1fr',
       }}
       class="app-shell"
     >
-      {/* Desktop sidebar layout via CSS */}
       <style>{`
         @media (min-width: 768px) {
           .app-shell {
@@ -30,7 +29,13 @@ const AppShell: ParentComponent = (props) => {
           .app-shell .desktop-tools-bar { display: flex !important; }
           .app-shell .bottom-nav { display: none !important; }
           .app-shell .main-pane { grid-column: 1; }
-          .app-shell .side-pane { grid-column: 2; display: flex !important; flex-direction: column; overflow-y: auto; border-left: 1px solid var(--color-border); }
+          .app-shell .side-pane {
+            grid-column: 2;
+            display: flex !important;
+            flex-direction: column;
+            overflow: hidden;
+            border-left: 1px solid var(--color-border);
+          }
         }
         @media (max-width: 767px) {
           .app-shell .desktop-tools-bar { display: none !important; }
@@ -39,14 +44,17 @@ const AppShell: ParentComponent = (props) => {
         }
       `}</style>
 
-      {/* Main content area (map on mobile, map + side pane on desktop) */}
+      {/* Main content area — map + mobile nav panes */}
       <div class="main-pane" style={{ position: 'relative', overflow: 'hidden', background: 'var(--color-bg)' }}>
         {props.children}
       </div>
 
-      {/* Desktop: right sidebar */}
-      <div class="side-pane" style={{ display: 'none', background: 'var(--color-bg)' }}>
+      {/* Desktop: right sidebar — tools bar + saved screen */}
+      <div class="side-pane" style={{ display: 'none', background: 'var(--color-bg)', 'flex-direction': 'column' }}>
         <DesktopToolsBar />
+        <div style={{ flex: 1, overflow: 'hidden', 'border-top': '1px solid var(--color-border)' }}>
+          <SavedScreen />
+        </div>
       </div>
 
       {/* Mobile: bottom nav */}

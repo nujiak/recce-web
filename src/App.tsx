@@ -4,6 +4,7 @@ import { UIProvider, useUI } from './context/UIContext';
 import AppShell from './components/layout/AppShell';
 import ToolboxModal from './components/nav/ToolboxModal';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
+import SavedScreen from './components/saved/SavedScreen';
 import Toast from './components/Toast';
 
 function applyTheme(theme: string) {
@@ -45,23 +46,9 @@ function AppInner() {
           </div>
         </Show>
 
-        {/* Saved placeholder (Phase 5) */}
+        {/* Saved screen */}
         <Show when={activeNav() === 'saved'}>
-          <div
-            id="saved-panel"
-            style={{
-              height: '100%',
-              display: 'flex',
-              'align-items': 'center',
-              'justify-content': 'center',
-              'flex-direction': 'column',
-              gap: '8px',
-              color: 'var(--color-text-secondary)',
-            }}
-          >
-            <span style={{ 'font-size': '2rem' }}>🔖</span>
-            <span style={{ 'font-size': '0.875rem' }}>Saved (Phase 5)</span>
-          </div>
+          <SavedScreen />
         </Show>
 
         {/* Tools modal (mobile) */}

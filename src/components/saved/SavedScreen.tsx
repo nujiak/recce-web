@@ -1,0 +1,230 @@
+import { Component, createResource, createSignal, createMemo, For, Show } from 'solid-js';
+import { getAllPins, getAllTracks, deletePin, deleteTrack } from '../../db/db';
+import { encode } from '../../share/share';
+import { decode } from '../../share/share';
+import { addPin, addTrack } from '../../db/db';
+import { showToast } from '../Toast';
+import PinCard from './PinCard';
+import TrackCard from './TrackCard';
+import type { Pin, Track } from '../../types';
+
+type SortMode = 'name-asc' | 'name-desc' | 'date-new' | 'date-old' | 'color';
+
+const SavedScreen: Component = () => {
+  const [pins, { refetch: refetchPins }] = createResource(getAllPins);
+  const [tracks, { refetch: refetchTracks }] = createResource(getAllTracks);
+  const [search, setSearch] = createSignal('');
+  const [sortMode, setSortMode] = createSignal<SortMode>('date-new');
+  const [selected, setSelected] = createSignal<Set<string>>(new Set());
+  const [multiSelect, setMultiSelect] = createSignal(false);
+  const [showImport, setShowImport] = createSignal(false);
+  const [importCode, setImportCode] = createSignal('');
+
+  let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const refetch = () => { refetchPins(); refetchTracks(); };
+
+  function sortItems<T extends { name: string; createdAt: number; color: string }>(items: T[]): T[] {
+    const mode = sortMode();
+    return [...items].sort((a, b) => {
+      if (mode === 'name-asc') return a.name.localeCompare(b.name);
+      if (mode === 'name-desc') return b.name.localeCompare(a.name);
+      if (mode === 'date-new') return b.createdAt - a.createdAt;
+      if (mode === 'date-old') return a.createdAt - b.createdAt;
+      if (mode === 'color') return a.color.localeCompare(b.color);
+      return 0;
+    });
+  }
+
+  const filteredPins = createMemo(() => {
+    const q = search().toLowerCase();
+    const all = pins() ?? [];
+    return sortItems(all.filter(p => p.name.toLowerCase().includes(q) || p.group.toLowerCase().includes(q)));
+  });
+
+  const filteredTracks = createMemo(() => {
+    const q = search().toLowerCase();
+    const all = tracks() ?? [];
+    return sortItems(all.filter(t => t.name.toLowerCase().includes(q) || t.group.toLowerCase().includes(q)));
+  });
+
+  function startLongPress(key: string) {
+    longPressTimer = setTimeout(() => {
+      setMultiSelect(true);
+      toggleSelect(key);
+    }, 300);
+  }
+
+  function cancelLongPress() {
+    if (longPressTimer) { clearTimeout(longPressTimer); longPressTimer = null; }
+  }
+
+  function toggleSelect(key: string) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      if (next.size === 0) setMultiSelect(false);
+      return next;
+    });
+  }
+
+  function handleCardClick(key: string) {
+    if (multiSelect()) toggleSelect(key);
+  }
+
+  async function bulkDelete() {
+    for (const key of selected()) {
+      const [type, idStr] = key.split(':');
+      const id = parseInt(idStr);
+      if (type === 'pin') await deletePin(id);
+      else if (type === 'track') await deleteTrack(id);
+    }
+    setSelected(new Set<string>());
+    setMultiSelect(false);
+    refetch();
+    showToast('Deleted', 'success');
+  }
+
+  function shareSelected() {
+    const sel = selected();
+    const selPins = (pins() ?? []).filter(p => sel.has(`pin:${p.id}`));
+    const selTracks = (tracks() ?? []).filter(t => sel.has(`track:${t.id}`));
+    const code = encode(selPins, selTracks);
+    navigator.clipboard.writeText(code).catch(() => {});
+    showToast(`Share code: ${code.slice(0, 20)}…`, 'info', 5000);
+  }
+
+  async function importItems() {
+    const result = decode(importCode().trim());
+    if (!result) { showToast('Invalid share code', 'error'); return; }
+    const existing = new Set([...(pins() ?? []).map(p => p.name + p.lat + p.lng)]);
+    let added = 0;
+    for (const p of result.pins) {
+      if (!existing.has(p.name + p.lat + p.lng)) {
+        await addPin({ ...p, createdAt: p.createdAt || Date.now() });
+        added++;
+      }
+    }
+    for (const t of result.tracks) {
+      await addTrack({ ...t, createdAt: t.createdAt || Date.now() });
+      added++;
+    }
+    refetch();
+    setShowImport(false);
+    setImportCode('');
+    showToast(`Imported ${added} item(s)`, 'success');
+  }
+
+  const totalCount = () => (pins()?.length ?? 0) + (tracks()?.length ?? 0);
+
+  return (
+    <div style={{ height: '100%', display: 'flex', 'flex-direction': 'column', background: 'var(--color-bg)', overflow: 'hidden' }}>
+      {/* Header */}
+      <div style={{ padding: '12px 16px', 'border-bottom': '1px solid var(--color-border)', background: 'var(--color-bg-secondary)', display: 'flex', 'flex-direction': 'column', gap: '8px' }}>
+        <div style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
+          <input
+            type="search"
+            name="saved-search"
+            placeholder="Search…"
+            value={search()}
+            onInput={(e) => setSearch(e.currentTarget.value)}
+            style={{ flex: 1, background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '6px 10px', color: 'var(--color-text)', 'font-family': 'inherit', 'font-size': '0.875rem' }}
+          />
+          <button
+            aria-label="Import share code"
+            onClick={() => setShowImport(v => !v)}
+            style={{ background: 'none', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '6px 10px', cursor: 'pointer', color: 'var(--color-text)', 'font-size': '0.75rem', 'font-family': 'inherit' }}
+          >
+            Import
+          </button>
+        </div>
+
+        <div style={{ display: 'flex', gap: '6px', 'align-items': 'center' }}>
+          <span style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>Sort:</span>
+          {(['date-new', 'date-old', 'name-asc', 'name-desc', 'color'] as SortMode[]).map(mode => (
+            <button
+              onClick={() => setSortMode(mode)}
+              style={{ padding: '2px 6px', 'border-radius': 'var(--radius-sm)', border: '1px solid var(--color-border)', background: sortMode() === mode ? 'var(--color-accent-bg)' : 'var(--color-bg-tertiary)', color: sortMode() === mode ? 'var(--color-accent)' : 'var(--color-text-secondary)', 'font-size': '0.625rem', cursor: 'pointer', 'font-family': 'inherit' }}
+            >
+              {mode === 'date-new' ? 'Newest' : mode === 'date-old' ? 'Oldest' : mode === 'name-asc' ? 'A→Z' : mode === 'name-desc' ? 'Z→A' : 'Color'}
+            </button>
+          ))}
+        </div>
+
+        {/* Import input */}
+        <Show when={showImport()}>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <input
+              name="import-code"
+              placeholder="Paste share code…"
+              value={importCode()}
+              onInput={(e) => setImportCode(e.currentTarget.value)}
+              style={{ flex: 1, background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '6px 10px', color: 'var(--color-text)', 'font-family': 'inherit', 'font-size': '0.875rem' }}
+            />
+            <button onClick={importItems} style={{ background: 'var(--color-accent)', border: 'none', 'border-radius': 'var(--radius-sm)', padding: '6px 12px', cursor: 'pointer', color: 'oklch(0.1 0 0)', 'font-family': 'inherit', 'font-size': '0.75rem', 'font-weight': '600' }}>
+              Import
+            </button>
+          </div>
+        </Show>
+      </div>
+
+      {/* Multi-select actions */}
+      <Show when={multiSelect()}>
+        <div style={{ padding: '8px 16px', background: 'var(--color-accent-bg)', 'border-bottom': '1px solid var(--color-accent-border)', display: 'flex', gap: '8px', 'align-items': 'center' }}>
+          <span style={{ 'font-size': '0.75rem', color: 'var(--color-accent)', flex: 1 }}>{selected().size} selected</span>
+          <button onClick={shareSelected} style={{ background: 'none', border: '1px solid var(--color-accent-border)', 'border-radius': 'var(--radius-sm)', padding: '4px 10px', cursor: 'pointer', color: 'var(--color-accent)', 'font-size': '0.75rem', 'font-family': 'inherit' }}>Share</button>
+          <button onClick={bulkDelete} style={{ background: 'none', border: '1px solid var(--color-danger)', 'border-radius': 'var(--radius-sm)', padding: '4px 10px', cursor: 'pointer', color: 'var(--color-danger)', 'font-size': '0.75rem', 'font-family': 'inherit' }}>Delete</button>
+          <button onClick={() => { setSelected(new Set<string>()); setMultiSelect(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', 'font-size': '0.75rem', 'font-family': 'inherit' }}>Cancel</button>
+        </div>
+      </Show>
+
+      {/* List */}
+      <div style={{ flex: 1, 'overflow-y': 'auto', padding: '12px 16px', display: 'flex', 'flex-direction': 'column', gap: '8px' }}>
+        <Show when={totalCount() === 0}>
+          <div style={{ display: 'flex', 'flex-direction': 'column', 'align-items': 'center', 'justify-content': 'center', height: '200px', color: 'var(--color-text-muted)', gap: '8px' }}>
+            <span style={{ 'font-size': '2rem' }}>📍</span>
+            <span style={{ 'font-size': '0.875rem' }}>No pins yet</span>
+          </div>
+        </Show>
+
+        <For each={filteredPins()}>
+          {(pin) => {
+            const key = `pin:${pin.id}`;
+            return (
+              <PinCard
+                pin={pin}
+                selected={selected().has(key)}
+                onSelect={() => toggleSelect(key)}
+                onEdit={() => {}}
+                onInfo={() => handleCardClick(key)}
+                onPointerDown={(e) => { if (!multiSelect()) startLongPress(key); }}
+                onPointerUp={cancelLongPress}
+                onPointerCancel={cancelLongPress}
+              />
+            );
+          }}
+        </For>
+
+        <For each={filteredTracks()}>
+          {(track) => {
+            const key = `track:${track.id}`;
+            return (
+              <TrackCard
+                track={track}
+                selected={selected().has(key)}
+                onSelect={() => toggleSelect(key)}
+                onEdit={() => {}}
+                onInfo={() => handleCardClick(key)}
+                onPointerDown={(e) => { if (!multiSelect()) startLongPress(key); }}
+                onPointerUp={cancelLongPress}
+                onPointerCancel={cancelLongPress}
+              />
+            );
+          }}
+        </For>
+      </div>
+    </div>
+  );
+};
+
+export default SavedScreen;

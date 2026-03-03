@@ -17,10 +17,9 @@ const SettingsPanel: Component = () => {
     <div class="settings-panel" style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '16px' }}>
       <h2 style={{ 'font-size': '1rem', 'font-weight': '600' }}>Settings</h2>
 
-      <label for="setting-coord" style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
+      <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
         <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Coordinate System</span>
         <select
-          id="setting-coord"
           name="coordinateSystem"
           value={prefs.coordinateSystem}
           onChange={(e) => setPrefs('coordinateSystem', e.currentTarget.value as CoordinateSystem)}
@@ -35,10 +34,9 @@ const SettingsPanel: Component = () => {
         </select>
       </label>
 
-      <label for="setting-angle" style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
+      <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
         <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Angle Unit</span>
         <select
-          id="setting-angle"
           name="angleUnit"
           value={prefs.angleUnit}
           onChange={(e) => setPrefs('angleUnit', e.currentTarget.value as AngleUnit)}
@@ -49,10 +47,9 @@ const SettingsPanel: Component = () => {
         </select>
       </label>
 
-      <label for="setting-length" style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
+      <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
         <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Length Unit</span>
         <select
-          id="setting-length"
           name="lengthUnit"
           value={prefs.lengthUnit}
           onChange={(e) => setPrefs('lengthUnit', e.currentTarget.value as LengthUnit)}
@@ -64,10 +61,9 @@ const SettingsPanel: Component = () => {
         </select>
       </label>
 
-      <label for="setting-theme" style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
+      <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
         <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Theme</span>
         <select
-          id="setting-theme"
           name="theme"
           value={prefs.theme}
           onChange={(e) => setPrefs('theme', e.currentTarget.value as Theme)}
