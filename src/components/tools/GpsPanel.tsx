@@ -137,7 +137,7 @@ const GpsPanel: Component = () => {
                       Accuracy
                     </div>
                     <div style={{ 'font-size': '0.875rem' }}>
-                      {formatDistance(coords().accuracy, lengthUnit())}
+                      ±{formatDistance(coords().accuracy, lengthUnit())}
                     </div>
                   </div>
                 </div>
