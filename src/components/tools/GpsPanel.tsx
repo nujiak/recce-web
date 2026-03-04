@@ -39,19 +39,18 @@ const GpsPanel: Component = () => {
   }
 
   function handleOrientation(e: DeviceOrientationEvent) {
-    // Heading: alpha is compass heading (0=north, clockwise)
-    // On iOS with webkitCompassHeading, that's the true bearing
     const ios = e as any;
     if (ios.webkitCompassHeading !== undefined) {
+      // iOS: webkitCompassHeading is always absolute (degrees from magnetic north)
       setGpsHeading(ios.webkitCompassHeading);
       setOrientationAbsolute(true);
     } else if (e.absolute && e.alpha !== null) {
-      // Convert standard alpha (CCW from north) to CW bearing
+      // Android: deviceorientationabsolute — alpha is CCW from north, convert to CW
       setGpsHeading((360 - e.alpha) % 360);
       setOrientationAbsolute(true);
-    } else if (e.alpha !== null) {
-      setGpsHeading((360 - (e.alpha ?? 0)) % 360);
-      setOrientationAbsolute(false);
+    } else {
+      // Relative orientation — ignore for compass heading
+      return;
     }
     if (e.beta !== null) setGpsPitch(e.beta);
     if (e.gamma !== null) setGpsRoll(e.gamma);
