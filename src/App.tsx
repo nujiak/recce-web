@@ -11,6 +11,7 @@ import PinInfo from './components/pin/PinInfo';
 import TrackEditor from './components/track/TrackEditor';
 import TrackInfo from './components/track/TrackInfo';
 import Toast from './components/Toast';
+import GpsTracker from './components/GpsTracker';
 
 function applyTheme(theme: string) {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -28,6 +29,7 @@ function AppInner() {
 
   return (
     <>
+      <GpsTracker />
       <Show when={!prefs.onboardingDone}>
         <OnboardingFlow />
       </Show>
@@ -38,7 +40,15 @@ function AppInner() {
 
         {/* Saved screen (mobile) — absolute overlay above map */}
         <Show when={activeNav() === 'saved'}>
-          <div style={{ position: 'absolute', inset: '0', background: 'var(--color-bg)', 'z-index': '20', overflow: 'hidden' }}>
+          <div
+            style={{
+              position: 'absolute',
+              inset: '0',
+              background: 'var(--color-bg)',
+              'z-index': '20',
+              overflow: 'hidden',
+            }}
+          >
             <SavedScreen />
           </div>
         </Show>
