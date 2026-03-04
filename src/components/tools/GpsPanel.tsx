@@ -91,33 +91,17 @@ const GpsPanel: Component = () => {
                   >
                     Coordinates ({SYSTEM_NAMES[prefs.coordinateSystem]})
                   </div>
-                  <div style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
-                    <div
-                      style={{
-                        'font-size': '0.875rem',
-                        'font-variant-numeric': 'tabular-nums',
-                        flex: 1,
-                      }}
-                    >
-                      {coordStr()}
-                    </div>
-                    <button
-                      aria-label="Copy coordinates"
-                      onClick={() => copyText(coordStr())}
-                      style={{
-                        background: 'none',
-                        border: '1px solid var(--color-border)',
-                        'border-radius': 'var(--radius-sm)',
-                        padding: '4px 8px',
-                        cursor: 'pointer',
-                        color: 'var(--color-text-secondary)',
-                        'font-size': '0.75rem',
-                        'font-family': 'inherit',
-                        'flex-shrink': '0',
-                      }}
-                    >
-                      Copy
-                    </button>
+                  <div
+                    role="button"
+                    aria-label="Copy coordinates"
+                    onClick={() => copyText(coordStr())}
+                    style={{
+                      'font-size': '0.875rem',
+                      'font-variant-numeric': 'tabular-nums',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {coordStr()}
                   </div>
                 </div>
                 {/* Altitude + Accuracy */}
