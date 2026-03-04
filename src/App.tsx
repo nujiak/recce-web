@@ -33,14 +33,14 @@ function AppInner() {
       </Show>
 
       <AppShell>
-        {/* Map */}
-        <Show when={activeNav() === 'map'}>
-          <MapView />
-        </Show>
+        {/* Map — always mounted to avoid reinitialisation on tab switch */}
+        <MapView />
 
-        {/* Saved screen */}
+        {/* Saved screen (mobile) — absolute overlay above map */}
         <Show when={activeNav() === 'saved'}>
-          <SavedScreen />
+          <div style={{ position: 'absolute', inset: '0', background: 'var(--color-bg)', 'z-index': '5', overflow: 'hidden' }}>
+            <SavedScreen />
+          </div>
         </Show>
 
         {/* Tools modal (mobile) */}
