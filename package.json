@@ -21,6 +21,9 @@
     "proj4": "^2.11.0",
     "utm-latlng": "^1.0.8"
   },
+  "overrides": {
+    "serialize-javascript": "^7.0.4"
+  },
   "devDependencies": {
     "@babel/cli": "^7.28.6",
     "@babel/core": "^7.29.0",
@@ -34,8 +37,8 @@
     "solid-js": "^1.9.11",
     "tailwindcss": "^4.2.1",
     "typescript": "^5.9.3",
-    "vite": "^5.1.6",
-    "vite-plugin-pwa": "^0.19.2",
+    "vite": "^7.3.1",
+    "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-solid": "^2.11.10",
     "wrangler": "^4.70.0"
   }
