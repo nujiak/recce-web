@@ -1,75 +1,98 @@
-import { Component, Show } from 'solid-js';
+import { Component, Show, For, createSignal, createEffect } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import SettingsPanel from '../settings/SettingsPanel';
 import GpsPanel from '../tools/GpsPanel';
 import RulerPanel from '../tools/RulerPanel';
+import SavedScreen from '../saved/SavedScreen';
 
-type ToolId = 'gps' | 'ruler' | 'settings' | 'saved';
+type ToolId = 'saved' | 'gps' | 'ruler' | 'settings';
 
-interface Tool {
-  id: ToolId;
-  label: string;
-  icon: string;
-}
-
-const TOOLS: Tool[] = [
-  { id: 'saved', label: 'Saved', icon: 'M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z' },
-  { id: 'gps', label: 'GPS/Compass', icon: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
-  { id: 'ruler', label: 'Ruler', icon: 'M2 12h20M12 2v20' },
-  { id: 'settings', label: 'Settings', icon: 'M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2zm0 6a4 4 0 1 1 0 8 4 4 0 0 1 0-8z' },
+const TOOLS: { id: ToolId; label: string }[] = [
+  { id: 'saved', label: 'Saved' },
+  { id: 'gps', label: 'GPS/Compass' },
+  { id: 'ruler', label: 'Ruler' },
+  { id: 'settings', label: 'Settings' },
 ];
 
+function panelFor(id: ToolId) {
+  switch (id) {
+    case 'saved': return <SavedScreen />;
+    case 'gps': return <GpsPanel />;
+    case 'ruler': return <RulerPanel />;
+    case 'settings': return <SettingsPanel />;
+  }
+}
+
 const DesktopToolsBar: Component = () => {
-  const { activeTool, setActiveTool } = useUI();
+  const { activeTool } = useUI();
+  const [section, setSection] = createSignal<ToolId | null>('saved');
+
+  // When UIContext activeTool is set programmatically (e.g. addSelectedToRuler),
+  // open that section in the accordion.
+  createEffect(() => {
+    const tool = activeTool();
+    if (tool === 'gps' || tool === 'ruler' || tool === 'settings') {
+      setSection(tool);
+    }
+  });
+
+  const toggle = (id: ToolId) =>
+    setSection(prev => prev === id ? null : id);
 
   return (
-    <div class="desktop-tools-bar" style={{ display: 'none', 'flex-direction': 'column' }}>
-      {/* Icon row */}
-      <div style={{ display: 'flex', 'flex-direction': 'column', background: 'var(--color-bg-secondary)', 'border-bottom': '1px solid var(--color-border)' }}>
-        {TOOLS.map((tool) => (
-          <button
-            aria-label={tool.label}
-            aria-pressed={activeTool() === tool.id}
-            onClick={() => setActiveTool(activeTool() === tool.id ? null : tool.id)}
-            style={{
-              display: 'flex',
-              'align-items': 'center',
-              gap: '8px',
-              padding: '12px 16px',
-              background: activeTool() === tool.id ? 'var(--color-accent-bg)' : 'none',
-              border: 'none',
-              'border-left': activeTool() === tool.id ? '2px solid var(--color-accent)' : '2px solid transparent',
-              cursor: 'pointer',
-              color: activeTool() === tool.id ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-              'font-size': '0.75rem',
-              'font-family': 'inherit',
-              width: '100%',
-              'text-align': 'left',
-            }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d={tool.icon} />
-            </svg>
-            {tool.label}
-          </button>
-        ))}
-      </div>
+    <div class="desktop-tools-bar" style={{ display: 'none', 'flex-direction': 'column', flex: '1', overflow: 'hidden' }}>
+      <For each={TOOLS}>
+        {(tool) => (
+          <div style={{
+            display: 'flex',
+            'flex-direction': 'column',
+            ...(section() === tool.id ? { flex: '1', overflow: 'hidden' } : {}),
+          }}>
+            {/* Accordion heading */}
+            <button
+              aria-expanded={section() === tool.id}
+              onClick={() => toggle(tool.id)}
+              style={{
+                display: 'flex',
+                'align-items': 'center',
+                'justify-content': 'space-between',
+                padding: '11px 16px',
+                background: section() === tool.id ? 'var(--color-accent-bg)' : 'var(--color-bg-secondary)',
+                border: 'none',
+                'border-bottom': '1px solid var(--color-border)',
+                cursor: 'pointer',
+                color: section() === tool.id ? 'var(--color-accent)' : 'var(--color-text)',
+                'font-size': '0.8125rem',
+                'font-weight': '600',
+                'font-family': 'inherit',
+                width: '100%',
+                'text-align': 'left',
+                'flex-shrink': '0',
+              }}
+            >
+              {tool.label}
+              <svg
+                width="14" height="14" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2.5"
+                style={{
+                  transform: section() === tool.id ? 'rotate(180deg)' : 'none',
+                  transition: 'transform 0.15s ease',
+                  'flex-shrink': '0',
+                }}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
 
-      {/* Accordion panel */}
-      <div style={{ flex: 1, overflow: 'auto' }}>
-        <Show when={activeTool() === 'settings'}>
-          <SettingsPanel />
-        </Show>
-        <Show when={activeTool() === 'saved'}>
-          <div style={{ padding: '16px', color: 'var(--color-text-secondary)' }}>Saved panel (Phase 5)</div>
-        </Show>
-        <Show when={activeTool() === 'gps'}>
-          <GpsPanel />
-        </Show>
-        <Show when={activeTool() === 'ruler'}>
-          <RulerPanel />
-        </Show>
-      </div>
+            {/* Accordion content */}
+            <Show when={section() === tool.id}>
+              <div style={{ flex: '1', overflow: 'hidden' }}>
+                {panelFor(tool.id)}
+              </div>
+            </Show>
+          </div>
+        )}
+      </For>
     </div>
   );
 };

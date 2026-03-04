@@ -1,7 +1,6 @@
 import { ParentComponent } from 'solid-js';
 import BottomNav from '../nav/BottomNav';
 import DesktopToolsBar from '../nav/DesktopToolsBar';
-import SavedScreen from '../saved/SavedScreen';
 
 interface AppShellProps {
   mapSlot?: unknown;
@@ -49,12 +48,9 @@ const AppShell: ParentComponent<AppShellProps> = (props) => {
         {props.children}
       </div>
 
-      {/* Desktop: right sidebar — tools bar + saved screen */}
+      {/* Desktop: right sidebar — accordion (Saved / GPS / Ruler / Settings) */}
       <div class="side-pane" style={{ display: 'none', background: 'var(--color-bg)', 'flex-direction': 'column' }}>
         <DesktopToolsBar />
-        <div style={{ flex: 1, overflow: 'hidden', 'border-top': '1px solid var(--color-border)' }}>
-          <SavedScreen />
-        </div>
       </div>
 
       {/* Mobile: bottom nav */}
