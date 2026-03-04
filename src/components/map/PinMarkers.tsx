@@ -3,12 +3,12 @@ import maplibregl from 'maplibre-gl';
 import { useUI } from '../../context/UIContext';
 import type { Pin } from '../../types';
 
-const COLOR_HEX: Record<string, string> = {
-  red: '#e53935',
-  orange: '#fb8c00',
-  green: '#43a047',
-  azure: '#1e88e5',
-  violet: '#8e24aa',
+const COLOR_SVG: Record<string, string> = {
+  red: '/icons/pin-red.svg',
+  orange: '/icons/pin-orange.svg',
+  green: '/icons/pin-green.svg',
+  azure: '/icons/pin-azure.svg',
+  violet: '/icons/pin-violet.svg',
 };
 
 interface PinMarkersProps {
@@ -22,13 +22,14 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
 
   function createMarkerEl(pin: Pin): HTMLDivElement {
     const el = document.createElement('div');
-    el.style.cssText = `
-      width: 22px; height: 22px; border-radius: 50%;
-      background: ${COLOR_HEX[pin.color] ?? COLOR_HEX.red};
-      border: 2px solid white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.35);
-      cursor: pointer;
-    `;
+    const img = document.createElement('img');
+    img.src = COLOR_SVG[pin.color] ?? COLOR_SVG.red;
+    img.width = 48;
+    img.height = 48;
+    img.alt = pin.name;
+    img.style.cssText = 'display: block; cursor: pointer;';
+    el.appendChild(img);
+    el.style.cssText = 'background: transparent; border: none;';
     el.setAttribute('aria-label', pin.name);
     el.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -39,7 +40,7 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
 
   createEffect(() => {
     const currentPins = props.pins;
-    const currentIds = new Set(currentPins.map(p => p.id!));
+    const currentIds = new Set(currentPins.map((p) => p.id!));
 
     // Remove stale markers
     for (const [id, marker] of markerMap) {
@@ -57,7 +58,7 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
         markerMap.get(pin.id)!.setLngLat([pin.lng, pin.lat]);
       } else {
         const el = createMarkerEl(pin);
-        const marker = new maplibregl.Marker({ element: el })
+        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat([pin.lng, pin.lat])
           .addTo(props.map);
         markerMap.set(pin.id, marker);
@@ -66,7 +67,7 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
   });
 
   onCleanup(() => {
-    markerMap.forEach(m => m.remove());
+    markerMap.forEach((m) => m.remove());
     markerMap.clear();
   });
 

@@ -2511,3 +2511,69 @@ All UI-related changes and integration tests must be verified using Chrome MCP t
 - Desktop: width >= 768px (use `chrome-devtools_resize_page` or `chrome-devtools_emulate`)
 
 ---
+
+## SVG Icon Resources
+
+Custom SVG icons are located in `public/icons/`. These are sourced from the Android Recce app.
+
+### Current Icons
+
+| File                   | Purpose                               |
+| ---------------------- | ------------------------------------- |
+| `crosshair.svg`        | Map center crosshair/reticle          |
+| `pin-red.svg`          | Red map pin marker                    |
+| `pin-orange.svg`       | Orange map pin marker                 |
+| `pin-green.svg`        | Green map pin marker                  |
+| `pin-azure.svg`        | Azure map pin marker                  |
+| `pin-violet.svg`       | Violet map pin marker                 |
+| `gps-location.svg`     | GPS user location indicator           |
+| `track-route.svg`      | Route/path track type icon            |
+| `track-area.svg`       | Area/polygon track type icon          |
+| `onboarding-start.svg` | Onboarding welcome icon (hollow pin)  |
+| `onboarding-end.svg`   | Onboarding complete icon (filled pin) |
+| `empty-state.svg`      | Empty saved list placeholder          |
+
+### Implementation Plan for Missing Features
+
+The following SVG resources exist but features are not yet implemented:
+
+#### GPS Location Marker (`gps-location.svg`)
+
+- **Status:** Pending implementation
+- **Location:** Map user position indicator
+- **Implementation:** Use in `GpsPanel.tsx` and as MapLibre marker when GPS is active
+- **Design:** White outer circle with green inner circle
+
+#### Track Type Icons (`track-route.svg`, `track-area.svg`)
+
+- **Status:** Pending implementation
+- **Location:** Track info badges, track cards, track editor
+- **Implementation:** Replace text-based "Path"/"Area" labels in:
+  - `TrackInfo.tsx` line 121
+  - `TrackCard.tsx` track type indicator
+  - `TrackEditor.tsx` type selector
+- **Design:** Route shows winding path with X markers; Area shows triangular polygon with X markers
+
+#### Onboarding Icons (`onboarding-start.svg`, `onboarding-end.svg`)
+
+- **Status:** Pending implementation
+- **Location:** Onboarding flow welcome/completion screens
+- **Implementation:** Add to `OnboardingFlow.tsx`:
+  - Step 0: Show hollow pin (`onboarding-start.svg`)
+  - Final step: Show filled pin (`onboarding-end.svg`)
+- **Design:** White pin outline (start) or filled with green dot (end)
+
+#### Checkpoint Marker (`map_checkpoint.svg`)
+
+- **Status:** Not copied (feature not implemented)
+- **Purpose:** X-shaped marker for named track nodes
+- **Implementation:** When track checkpoint feature is added, display as MapLibre marker
+- **Source:** `/home/kaijun/Downloads/resources/map_checkpoint.svg`
+
+#### App Icons (Launcher/Splash)
+
+- **Status:** Not copied (PWA icons exist separately)
+- **Files:** `app_icon.svg`, `app_icon_bg.svg`, `splash_icon_144.svg`, `splash_bg.svg`
+- **Implementation:** Consider for PWA manifest updates if custom branding needed
+
+---
