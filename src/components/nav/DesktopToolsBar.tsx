@@ -94,6 +94,7 @@ const DesktopToolsBar: Component = () => {
               transition: 'grid-template-rows 0.2s ease',
               flex: section() === tool.id ? '1' : '0',
               'min-height': '0',
+              width: '100%',
             }}>
               <div style={{ overflow: 'hidden', display: 'flex', 'flex-direction': 'column', 'min-height': '0' }}>
                 {panelFor(tool.id)}
