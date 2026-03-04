@@ -1,7 +1,8 @@
-import { createContext, useContext, createSignal, ParentComponent } from 'solid-js';
+import { createContext, useContext, createSignal, onCleanup, ParentComponent } from 'solid-js';
 import type { Pin, Track } from '../types';
 
 type NavTab = 'map' | 'saved' | 'tools';
+export type DesktopSection = 'saved' | 'gps' | 'ruler' | 'settings' | null;
 
 interface UIContextValue {
   activeNav: () => NavTab;
@@ -22,6 +23,9 @@ interface UIContextValue {
   setEditingTrack: (t: Track | null) => void;
   viewingTrack: () => Track | null;
   setViewingTrack: (t: Track | null) => void;
+  // Desktop accordion section
+  desktopSection: () => DesktopSection;
+  setDesktopSection: (s: DesktopSection) => void;
   // Refetch trigger for Saved list
   savedVersion: () => number;
   bumpSavedVersion: () => void;
@@ -31,28 +35,65 @@ const UIContext = createContext<UIContextValue>({} as UIContextValue);
 
 export const UIProvider: ParentComponent = (props) => {
   const [activeNav, setActiveNav] = createSignal<NavTab>('map');
-  const [activeModal, setActiveModal] = createSignal<string | null>(null);
+  const [desktopSection, setDesktopSection] = createSignal<DesktopSection>('saved');
   const [activeTool, setActiveTool] = createSignal<string | null>(null);
+
+  // Reset mobile-only tabs (saved/tools) when viewport widens to desktop,
+  // and open the corresponding desktop accordion section for a seamless transition.
+  const DESKTOP_BREAKPOINT = 768;
+  const [isDesktop, setIsDesktop] = createSignal(window.innerWidth >= DESKTOP_BREAKPOINT);
+  const onResize = () => {
+    const desktop = window.innerWidth >= DESKTOP_BREAKPOINT;
+    if (desktop && !isDesktop()) {
+      const tab = activeNav();
+      if (tab === 'saved') {
+        setDesktopSection('saved');
+        setActiveNav('map');
+      } else if (tab === 'tools') {
+        const tool = activeTool();
+        setDesktopSection(tool === 'gps' || tool === 'ruler' || tool === 'settings' ? tool : null);
+        setActiveNav('map');
+      }
+    }
+    setIsDesktop(desktop);
+  };
+  window.addEventListener('resize', onResize);
+  onCleanup(() => window.removeEventListener('resize', onResize));
+
+  const [activeModal, setActiveModal] = createSignal<string | null>(null);
   const [isMultiSelect, setIsMultiSelect] = createSignal(false);
   const [editingPin, setEditingPin] = createSignal<Pin | null>(null);
   const [viewingPin, setViewingPin] = createSignal<Pin | null>(null);
   const [editingTrack, setEditingTrack] = createSignal<Track | null>(null);
   const [viewingTrack, setViewingTrack] = createSignal<Track | null>(null);
   const [savedVersion, setSavedVersion] = createSignal(0);
-  const bumpSavedVersion = () => setSavedVersion(v => v + 1);
+  const bumpSavedVersion = () => setSavedVersion((v) => v + 1);
 
   return (
-    <UIContext.Provider value={{
-      activeNav, setActiveNav,
-      activeModal, setActiveModal,
-      activeTool, setActiveTool,
-      isMultiSelect, setIsMultiSelect,
-      editingPin, setEditingPin,
-      viewingPin, setViewingPin,
-      editingTrack, setEditingTrack,
-      viewingTrack, setViewingTrack,
-      savedVersion, bumpSavedVersion,
-    }}>
+    <UIContext.Provider
+      value={{
+        activeNav,
+        setActiveNav,
+        activeModal,
+        setActiveModal,
+        activeTool,
+        setActiveTool,
+        desktopSection,
+        setDesktopSection,
+        isMultiSelect,
+        setIsMultiSelect,
+        editingPin,
+        setEditingPin,
+        viewingPin,
+        setViewingPin,
+        editingTrack,
+        setEditingTrack,
+        viewingTrack,
+        setViewingTrack,
+        savedVersion,
+        bumpSavedVersion,
+      }}
+    >
       {props.children}
     </UIContext.Provider>
   );

@@ -12,19 +12,11 @@ const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
 
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let marker: maplibregl.Marker | null = null;
-  let containerEl: HTMLDivElement | null = null;
   let accuracyAdded = false;
-
-  function updateRotation() {
-    if (!containerEl) return;
-    const bearing = props.map.getBearing();
-    containerEl.style.transform = `rotate(${-bearing}deg)`;
-  }
 
   function createMarkerElement(): HTMLElement {
     const container = document.createElement('div');
     container.style.cssText = 'position: relative; width: 24px; height: 24px;';
-    containerEl = container;
 
     const img = document.createElement('img');
     img.src = '/icons/gps-location.svg';
@@ -97,16 +89,12 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
       marker = new maplibregl.Marker({ element: el })
         .setLngLat([pos.longitude, pos.latitude])
         .addTo(props.map);
-
-      props.map.on('rotate', updateRotation);
-      updateRotation();
     } else {
       marker.setLngLat([pos.longitude, pos.latitude]);
     }
   });
 
   onCleanup(() => {
-    props.map.off('rotate', updateRotation);
     marker?.remove();
     marker = null;
     removeAccuracyCircle();
