@@ -38,7 +38,7 @@ function AppInner() {
 
         {/* Saved screen (mobile) — absolute overlay above map */}
         <Show when={activeNav() === 'saved'}>
-          <div style={{ position: 'absolute', inset: '0', background: 'var(--color-bg)', 'z-index': '5', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', inset: '0', background: 'var(--color-bg)', 'z-index': '20', overflow: 'hidden' }}>
             <SavedScreen />
           </div>
         </Show>
