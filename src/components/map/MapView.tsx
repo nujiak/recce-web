@@ -12,6 +12,7 @@ import TrackLayers from './TrackLayers';
 import PlotControls from './PlotControls';
 import CompassButton from './CompassButton';
 import LocationButton from './LocationButton';
+import UserLocationMarker from './UserLocationMarker';
 import type { TrackNode, PinColor } from '../../types';
 
 interface PlotState {
@@ -27,7 +28,11 @@ const MapView: Component = () => {
   const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | null>(null);
   const [center, setCenter] = createSignal<[number, number]>([103.795, 1.376]);
   const [bearing, setBearing] = createSignal(0);
-  const [plotState, setPlotState] = createStore<PlotState>({ active: false, nodes: [], color: 'red' });
+  const [plotState, setPlotState] = createStore<PlotState>({
+    active: false,
+    nodes: [],
+    color: 'red',
+  });
 
   const [pins] = createResource(savedVersion, getAllPins);
   const [tracks] = createResource(savedVersion, getAllTracks);
@@ -62,7 +67,8 @@ const MapView: Component = () => {
       map.flyTo({ center: [lng, lat], zoom: 15 });
     }
     function handleFitBounds(e: Event) {
-      const { bounds } = (e as CustomEvent<{ bounds: [[number, number], [number, number]] }>).detail;
+      const { bounds } = (e as CustomEvent<{ bounds: [[number, number], [number, number]] }>)
+        .detail;
       map.fitBounds(bounds, { padding: 48, maxZoom: 17 });
     }
     window.addEventListener('mapFlyTo', handleFlyTo);
@@ -80,14 +86,25 @@ const MapView: Component = () => {
     if (!src || nodes.length === 0) return;
     const last = nodes[nodes.length - 1];
     const c = map.getCenter();
-    const hexColor = { red: '#e53935', orange: '#fb8c00', green: '#43a047', azure: '#1e88e5', violet: '#8e24aa' }[color] ?? '#1e88e5';
+    const hexColor =
+      { red: '#e53935', orange: '#fb8c00', green: '#43a047', azure: '#1e88e5', violet: '#8e24aa' }[
+        color
+      ] ?? '#1e88e5';
     src.setData({
       type: 'FeatureCollection',
-      features: [{
-        type: 'Feature',
-        properties: { color: hexColor },
-        geometry: { type: 'LineString', coordinates: [[last.lng, last.lat], [c.lng, c.lat]] },
-      }],
+      features: [
+        {
+          type: 'Feature',
+          properties: { color: hexColor },
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [last.lng, last.lat],
+              [c.lng, c.lat],
+            ],
+          },
+        },
+      ],
     });
   }
 
@@ -104,13 +121,13 @@ const MapView: Component = () => {
     const map = mapInstance();
     if (!map || !plotState.active) return;
     const c = map.getCenter();
-    setPlotState('nodes', n => [...n, { lat: c.lat, lng: c.lng }]);
+    setPlotState('nodes', (n) => [...n, { lat: c.lat, lng: c.lng }]);
   }
 
   function handleUndo() {
     if (!plotState.active || plotState.nodes.length === 0) return;
     const map = mapInstance();
-    setPlotState('nodes', n => n.slice(0, -1));
+    setPlotState('nodes', (n) => n.slice(0, -1));
     if (plotState.nodes.length === 0 && map) clearPreviewLine(map);
   }
 
@@ -118,7 +135,11 @@ const MapView: Component = () => {
     if (plotState.nodes.length < 2) return;
     const map = mapInstance();
     if (map) clearPreviewLine(map);
-    const nodes = plotState.nodes.map(n => ({ lat: n.lat, lng: n.lng, ...(n.name ? { name: n.name } : {}) }));
+    const nodes = plotState.nodes.map((n) => ({
+      lat: n.lat,
+      lng: n.lng,
+      ...(n.name ? { name: n.name } : {}),
+    }));
     setPlotState({ active: false, nodes: [], color: 'red' });
     setEditingTrack({
       name: '',
@@ -151,6 +172,7 @@ const MapView: Component = () => {
         {(map) => (
           <MapContext.Provider value={map()}>
             <PinMarkers map={map()} pins={pins() ?? []} />
+            <UserLocationMarker map={map()} />
             <TrackLayers
               map={map()}
               tracks={tracks() ?? []}
