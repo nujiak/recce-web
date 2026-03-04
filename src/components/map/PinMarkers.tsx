@@ -24,8 +24,8 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
     const el = document.createElement('div');
     const img = document.createElement('img');
     img.src = COLOR_SVG[pin.color] ?? COLOR_SVG.red;
-    img.width = 24;
-    img.height = 24;
+    img.width = 36;
+    img.height = 36;
     img.alt = pin.name;
     img.style.cssText = 'display: block; cursor: pointer;';
     el.appendChild(img);
@@ -58,7 +58,7 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
         markerMap.get(pin.id)!.setLngLat([pin.lng, pin.lat]);
       } else {
         const el = createMarkerEl(pin);
-        const marker = new maplibregl.Marker({ element: el })
+        const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
           .setLngLat([pin.lng, pin.lat])
           .addTo(props.map);
         markerMap.set(pin.id, marker);
