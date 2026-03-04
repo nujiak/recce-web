@@ -86,7 +86,11 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
 
     if (!marker) {
       const el = createMarkerElement();
-      marker = new maplibregl.Marker({ element: el })
+      marker = new maplibregl.Marker({
+        element: el,
+        rotationAlignment: 'map',
+        pitchAlignment: 'map',
+      })
         .setLngLat([pos.longitude, pos.latitude])
         .addTo(props.map);
     } else {
