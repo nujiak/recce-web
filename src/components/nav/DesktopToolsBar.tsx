@@ -1,4 +1,4 @@
-import { Component, Show, For, createSignal, createEffect } from 'solid-js';
+import { Component, For, createSignal, createEffect } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import SettingsPanel from '../settings/SettingsPanel';
 import GpsPanel from '../tools/GpsPanel';
@@ -7,11 +7,11 @@ import SavedScreen from '../saved/SavedScreen';
 
 type ToolId = 'saved' | 'gps' | 'ruler' | 'settings';
 
-const TOOLS: { id: ToolId; label: string }[] = [
-  { id: 'saved', label: 'Saved' },
-  { id: 'gps', label: 'GPS/Compass' },
-  { id: 'ruler', label: 'Ruler' },
-  { id: 'settings', label: 'Settings' },
+const TOOLS: { id: ToolId; label: string; icon: string }[] = [
+  { id: 'saved', label: 'Saved', icon: '🔖' },
+  { id: 'gps', label: 'GPS/Compass', icon: '🧭' },
+  { id: 'ruler', label: 'Ruler', icon: '📏' },
+  { id: 'settings', label: 'Settings', icon: '⚙️' },
 ];
 
 function panelFor(id: ToolId) {
@@ -70,7 +70,10 @@ const DesktopToolsBar: Component = () => {
                 'flex-shrink': '0',
               }}
             >
-              {tool.label}
+              <span style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
+                <span style={{ 'font-size': '0.875rem' }}>{tool.icon}</span>
+                {tool.label}
+              </span>
               <svg
                 width="14" height="14" viewBox="0 0 24 24"
                 fill="none" stroke="currentColor" stroke-width="2.5"
@@ -84,12 +87,18 @@ const DesktopToolsBar: Component = () => {
               </svg>
             </button>
 
-            {/* Accordion content */}
-            <Show when={section() === tool.id}>
-              <div style={{ flex: '1', overflow: 'hidden' }}>
+            {/* Accordion content — grid trick animates both open and close */}
+            <div style={{
+              display: 'grid',
+              'grid-template-rows': section() === tool.id ? '1fr' : '0fr',
+              transition: 'grid-template-rows 0.2s ease',
+              flex: section() === tool.id ? '1' : '0',
+              'min-height': '0',
+            }}>
+              <div style={{ overflow: 'hidden', display: 'flex', 'flex-direction': 'column', 'min-height': '0' }}>
                 {panelFor(tool.id)}
               </div>
-            </Show>
+            </div>
           </div>
         )}
       </For>

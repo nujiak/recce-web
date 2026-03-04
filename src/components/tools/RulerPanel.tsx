@@ -22,18 +22,17 @@ const RulerPanel: Component = () => {
 
   return (
     <div style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '12px', height: '100%', 'box-sizing': 'border-box' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between' }}>
-        <span style={{ 'font-size': '0.875rem', 'font-weight': '600' }}>Ruler</span>
-        <Show when={points().length > 0}>
+      {/* Clear All button — header-level, only when there are points */}
+      <Show when={points().length > 0}>
+        <div style={{ display: 'flex', 'justify-content': 'flex-end' }}>
           <button
             onClick={clearRuler}
             style={{ background: 'none', border: '1px solid var(--color-danger)', 'border-radius': 'var(--radius-sm)', padding: '4px 10px', cursor: 'pointer', color: 'var(--color-danger)', 'font-size': '0.75rem', 'font-family': 'inherit' }}
           >
             Clear All
           </button>
-        </Show>
-      </div>
+        </div>
+      </Show>
 
       {/* Empty state */}
       <Show when={points().length === 0}>
