@@ -199,8 +199,9 @@ const SavedScreen: Component = () => {
         </Show>
       </div>
 
-      {/* Multi-select actions */}
-      <Show when={multiSelect()}>
+      {/* Multi-select actions — grid trick for slide-in/out animation */}
+      <div style={{ display: 'grid', 'grid-template-rows': multiSelect() ? '1fr' : '0fr', transition: 'grid-template-rows 0.2s ease', overflow: 'hidden' }}>
+        <div style={{ overflow: 'hidden' }}>
         <div style={{ padding: '8px 16px', background: 'var(--color-accent-bg)', 'border-bottom': '1px solid var(--color-accent-border)', display: 'flex', gap: '8px', 'align-items': 'center' }}>
           <span style={{ 'font-size': '0.75rem', color: 'var(--color-accent)', flex: 1 }}>{selected().size} selected</span>
           {/* Share */}
@@ -234,7 +235,8 @@ const SavedScreen: Component = () => {
             </svg>
           </button>
         </div>
-      </Show>
+        </div>
+      </div>
 
       {/* List */}
       <div style={{ flex: 1, 'overflow-y': 'auto', padding: '12px 16px', display: 'flex', 'flex-direction': 'column', gap: '8px' }}>
