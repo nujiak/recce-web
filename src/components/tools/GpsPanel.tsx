@@ -7,7 +7,7 @@ import {
   orientationAbsolute, setOrientationAbsolute,
 } from '../../stores/gps';
 import { usePrefs } from '../../context/PrefsContext';
-import { formatDistance } from '../../utils/geo';
+import { formatDistance, formatBearing } from '../../utils/geo';
 import CompassNeedle from './CompassNeedle';
 
 function copyText(text: string) {
@@ -94,6 +94,7 @@ const GpsPanel: Component = () => {
 
   const pos = () => gpsPosition();
   const lengthUnit = () => prefs.lengthUnit ?? 'metric';
+  const angleUnit = () => prefs.angleUnit ?? 'degrees';
 
   return (
     <div style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '16px' }}>
@@ -179,25 +180,32 @@ const GpsPanel: Component = () => {
         <Show when={!iosPrompt()}>
           <div style={{ display: 'flex', 'flex-direction': 'column', 'align-items': 'center', gap: '12px' }}>
             <CompassNeedle />
-            <Show when={!orientationAbsolute()}>
-              <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)', 'text-align': 'center' }}>
-                Compass not calibrated — hold phone flat and rotate in a figure-8
+            {/* Azimuth / Pitch / Roll values */}
+            <div style={{ display: 'grid', 'grid-template-columns': 'repeat(3, 1fr)', gap: '12px', width: '100%', 'text-align': 'center' }}>
+              <div style={{ display: 'flex', 'flex-direction': 'column', gap: '2px' }}>
+                <span style={{ 'font-size': '0.75rem', 'font-weight': '600', 'text-transform': 'uppercase', 'letter-spacing': '0.5px', color: 'var(--color-text-muted)' }}>Azimuth</span>
+                <span style={{ 'font-size': '1.1rem', 'font-weight': '600', 'font-variant-numeric': 'tabular-nums' }}>
+                  {gpsHeading() !== null ? formatBearing(gpsHeading()!, angleUnit()) : '--'}
+                </span>
               </div>
-            </Show>
-            <div style={{ display: 'flex', gap: '24px' }}>
-              <Show when={gpsPitch() !== null}>
-                <div style={{ 'text-align': 'center' }}>
-                  <div style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>Pitch</div>
-                  <div style={{ 'font-size': '0.875rem', 'font-variant-numeric': 'tabular-nums' }}>{gpsPitch()!.toFixed(1)}°</div>
-                </div>
-              </Show>
-              <Show when={gpsRoll() !== null}>
-                <div style={{ 'text-align': 'center' }}>
-                  <div style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>Roll</div>
-                  <div style={{ 'font-size': '0.875rem', 'font-variant-numeric': 'tabular-nums' }}>{gpsRoll()!.toFixed(1)}°</div>
-                </div>
-              </Show>
+              <div style={{ display: 'flex', 'flex-direction': 'column', gap: '2px' }}>
+                <span style={{ 'font-size': '0.75rem', 'font-weight': '600', 'text-transform': 'uppercase', 'letter-spacing': '0.5px', color: 'var(--color-text-muted)' }}>Pitch</span>
+                <span style={{ 'font-size': '1.1rem', 'font-weight': '600', 'font-variant-numeric': 'tabular-nums' }}>
+                  {gpsPitch() !== null ? `${gpsPitch()!.toFixed(1)}°` : '--'}
+                </span>
+              </div>
+              <div style={{ display: 'flex', 'flex-direction': 'column', gap: '2px' }}>
+                <span style={{ 'font-size': '0.75rem', 'font-weight': '600', 'text-transform': 'uppercase', 'letter-spacing': '0.5px', color: 'var(--color-text-muted)' }}>Roll</span>
+                <span style={{ 'font-size': '1.1rem', 'font-weight': '600', 'font-variant-numeric': 'tabular-nums' }}>
+                  {gpsRoll() !== null ? `${gpsRoll()!.toFixed(1)}°` : '--'}
+                </span>
+              </div>
             </div>
+            <Show when={!orientationAbsolute()}>
+              <p style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)', 'font-style': 'italic', 'text-align': 'center', margin: '0' }}>
+                Rotate device to calibrate compass
+              </p>
+            </Show>
           </div>
         </Show>
       </div>
