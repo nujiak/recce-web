@@ -24,8 +24,8 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
     const el = document.createElement('div');
     const img = document.createElement('img');
     img.src = COLOR_SVG[pin.color] ?? COLOR_SVG.red;
-    img.width = 36;
-    img.height = 36;
+    img.width = 48;
+    img.height = 48;
     img.alt = pin.name;
     img.style.cssText = 'display: block; cursor: pointer;';
     el.appendChild(img);
