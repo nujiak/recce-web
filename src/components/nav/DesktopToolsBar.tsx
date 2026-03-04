@@ -8,10 +8,10 @@ import SavedScreen from '../saved/SavedScreen';
 type ToolId = 'saved' | 'gps' | 'ruler' | 'settings';
 
 const TOOLS: { id: ToolId; label: string; icon: string }[] = [
-  { id: 'saved', label: 'Saved', icon: '🔖' },
-  { id: 'gps', label: 'GPS/Compass', icon: '🧭' },
-  { id: 'ruler', label: 'Ruler', icon: '📏' },
-  { id: 'settings', label: 'Settings', icon: '⚙️' },
+  { id: 'saved', label: 'Saved', icon: 'bookmarks' },
+  { id: 'gps', label: 'GPS/Compass', icon: 'satellite_alt' },
+  { id: 'ruler', label: 'Ruler', icon: 'straighten' },
+  { id: 'settings', label: 'Settings', icon: 'settings' },
 ];
 
 function panelFor(id: ToolId) {
@@ -80,24 +80,22 @@ const DesktopToolsBar: Component = () => {
               }}
             >
               <span style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
-                <span style={{ 'font-size': '0.875rem' }}>{tool.icon}</span>
+                <span class="material-symbols-outlined" style={{ 'font-size': '0.875rem' }}>
+                  {tool.icon}
+                </span>
                 {tool.label}
               </span>
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
+              <span
+                class="material-symbols-outlined"
                 style={{
+                  'font-size': '14px',
                   transform: section() === tool.id ? 'rotate(180deg)' : 'none',
                   transition: 'transform 0.15s ease',
                   'flex-shrink': '0',
                 }}
               >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
+                expand_more
+              </span>
             </button>
 
             {/* Accordion content — grid trick animates both open and close */}

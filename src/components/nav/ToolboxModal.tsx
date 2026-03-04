@@ -11,9 +11,9 @@ interface ToolCard {
 }
 
 const TOOL_CARDS: ToolCard[] = [
-  { id: 'gps', label: 'GPS/Compass', icon: '🧭' },
-  { id: 'ruler', label: 'Ruler', icon: '📏' },
-  { id: 'settings', label: 'Settings', icon: '⚙️' },
+  { id: 'gps', label: 'GPS/Compass', icon: 'satellite_alt' },
+  { id: 'ruler', label: 'Ruler', icon: 'straighten' },
+  { id: 'settings', label: 'Settings', icon: 'settings' },
 ];
 
 const ToolboxModal: Component = () => {
@@ -37,18 +37,35 @@ const ToolboxModal: Component = () => {
         <Show when={activeTool() !== null}>
           {/* Tool detail view */}
           <div style={{ display: 'flex', 'flex-direction': 'column', flex: 1, overflow: 'hidden' }}>
-            <div style={{ display: 'flex', 'align-items': 'center', gap: '8px', padding: '12px 16px', 'border-bottom': '1px solid var(--color-border)', background: 'var(--color-bg-secondary)' }}>
+            <div
+              style={{
+                display: 'flex',
+                'align-items': 'center',
+                gap: '8px',
+                padding: '12px 16px',
+                'border-bottom': '1px solid var(--color-border)',
+                background: 'var(--color-bg-secondary)',
+              }}
+            >
               <button
                 aria-label="Back"
                 onClick={() => setActiveTool(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text)', padding: '4px', display: 'flex', 'align-items': 'center' }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--color-text)',
+                  padding: '4px',
+                  display: 'flex',
+                  'align-items': 'center',
+                }}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M19 12H5M12 5l-7 7 7 7"/>
-                </svg>
+                <span class="material-symbols-outlined" style={{ 'font-size': '20px' }}>
+                  arrow_back
+                </span>
               </button>
               <span style={{ 'font-size': '0.875rem', 'font-weight': '600' }}>
-                {TOOL_CARDS.find(t => t.id === activeTool())?.label ?? activeTool()}
+                {TOOL_CARDS.find((t) => t.id === activeTool())?.label ?? activeTool()}
               </span>
             </div>
             <div style={{ flex: 1, overflow: 'auto' }}>
@@ -68,8 +85,12 @@ const ToolboxModal: Component = () => {
         <Show when={activeTool() === null}>
           {/* Grid view */}
           <div style={{ padding: '16px' }}>
-            <h2 style={{ 'font-size': '0.875rem', 'font-weight': '600', 'margin-bottom': '12px' }}>Tools</h2>
-            <div style={{ display: 'grid', 'grid-template-columns': 'repeat(3, 1fr)', gap: '12px' }}>
+            <h2 style={{ 'font-size': '0.875rem', 'font-weight': '600', 'margin-bottom': '12px' }}>
+              Tools
+            </h2>
+            <div
+              style={{ display: 'grid', 'grid-template-columns': 'repeat(3, 1fr)', gap: '12px' }}
+            >
               {TOOL_CARDS.map((tool) => (
                 <button
                   aria-label={tool.label}
@@ -89,7 +110,9 @@ const ToolboxModal: Component = () => {
                     'font-family': 'inherit',
                   }}
                 >
-                  <span style={{ 'font-size': '1.5rem' }}>{tool.icon}</span>
+                  <span class="material-symbols-outlined" style={{ 'font-size': '1.5rem' }}>
+                    {tool.icon}
+                  </span>
                   {tool.label}
                 </button>
               ))}

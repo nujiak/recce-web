@@ -85,17 +85,9 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
             onClick={handleAddPin}
             style={btnStyle('var(--color-accent)')}
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-              <circle cx="12" cy="10" r="3" />
-            </svg>
+            <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+              add_location
+            </span>
             Add Pin
           </button>
           <button
@@ -109,17 +101,9 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
             }}
             style={btnStyle('var(--color-bg-secondary)')}
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="12" cy="12" r="10" />
-              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-            </svg>
+            <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+              near_me
+            </span>
             Go To
           </button>
           <button
@@ -127,16 +111,9 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
             onClick={props.onStartPlot}
             style={btnStyle('var(--color-bg-secondary)')}
           >
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-            </svg>
+            <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+              route
+            </span>
             Track
           </button>
         </Show>
@@ -179,19 +156,9 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                     disabled={props.plotNodes.length === 0}
                     style={btnStyle('var(--color-bg-tertiary)')}
                   >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path d="M3 7v6h6" />
-                      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13" />
-                    </svg>
+                    <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+                      undo
+                    </span>
                   </button>
                   <button
                     aria-label="Save track"
@@ -199,38 +166,18 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                     disabled={props.plotNodes.length < 2}
                     style={btnStyle('var(--color-accent)')}
                   >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                      <polyline points="17 21 17 13 7 13 7 21" />
-                      <polyline points="7 3 7 8 15 8" />
-                    </svg>
+                    <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+                      save
+                    </span>
                   </button>
                   <button
                     aria-label="Cancel plotting"
                     onClick={handleCancel}
                     style={{ ...btnStyle('var(--color-danger)'), border: 'none', color: '#fff' }}
                   >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2.5"
-                      stroke-linecap="round"
-                    >
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
+                    <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+                      close
+                    </span>
                   </button>
                 </>
               }

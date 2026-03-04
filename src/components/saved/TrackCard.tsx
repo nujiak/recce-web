@@ -45,7 +45,12 @@ const TrackCard: Component<TrackCardProps> = (props) => {
       d += haversineDistance(nodes[i - 1].lat, nodes[i - 1].lng, nodes[i].lat, nodes[i].lng);
     }
     if (props.track.isCyclical && nodes.length > 2) {
-      d += haversineDistance(nodes[nodes.length - 1].lat, nodes[nodes.length - 1].lng, nodes[0].lat, nodes[0].lng);
+      d += haversineDistance(
+        nodes[nodes.length - 1].lat,
+        nodes[nodes.length - 1].lng,
+        nodes[0].lat,
+        nodes[0].lng
+      );
     }
     return d;
   };
@@ -76,20 +81,58 @@ const TrackCard: Component<TrackCardProps> = (props) => {
       }}
     >
       {/* Color chip + type indicator */}
-      <div style={{ display: 'flex', 'flex-direction': 'column', 'align-items': 'center', gap: '3px', 'flex-shrink': '0' }}>
-        <div style={{ width: '12px', height: '12px', 'border-radius': props.track.isCyclical ? '50%' : '2px', background: COLOR_MAP[props.track.color] ?? 'var(--color-text-muted)' }} />
+      <div
+        style={{
+          display: 'flex',
+          'flex-direction': 'column',
+          'align-items': 'center',
+          gap: '3px',
+          'flex-shrink': '0',
+        }}
+      >
+        <div
+          style={{
+            width: '12px',
+            height: '12px',
+            'border-radius': props.track.isCyclical ? '50%' : '2px',
+            background: COLOR_MAP[props.track.color] ?? 'var(--color-text-muted)',
+          }}
+        />
       </div>
 
       <div style={{ flex: 1, 'min-width': 0 }}>
-        <div style={{ 'font-size': '0.875rem', 'font-weight': '600', overflow: 'hidden', 'text-overflow': 'ellipsis', 'white-space': 'nowrap' }}>
+        <div
+          style={{
+            'font-size': '0.875rem',
+            'font-weight': '600',
+            overflow: 'hidden',
+            'text-overflow': 'ellipsis',
+            'white-space': 'nowrap',
+          }}
+        >
           {props.track.name}
         </div>
-        <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)', 'margin-top': '2px' }}>
+        <div
+          style={{
+            'font-size': '0.75rem',
+            color: 'var(--color-text-secondary)',
+            'margin-top': '2px',
+          }}
+        >
           {props.track.nodes.length} pts · {formatDistance(totalDistance(), prefs.lengthUnit)}
           {props.track.isCyclical ? ' · Area' : ''}
         </div>
         {firstCoord() && (
-          <div style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)', 'margin-top': '2px', overflow: 'hidden', 'text-overflow': 'ellipsis', 'white-space': 'nowrap' }}>
+          <div
+            style={{
+              'font-size': '0.625rem',
+              color: 'var(--color-text-muted)',
+              'margin-top': '2px',
+              overflow: 'hidden',
+              'text-overflow': 'ellipsis',
+              'white-space': 'nowrap',
+            }}
+          >
             {firstCoord()}
           </div>
         )}
@@ -97,13 +140,22 @@ const TrackCard: Component<TrackCardProps> = (props) => {
 
       <button
         aria-label={`Edit ${props.track.name}`}
-        onClick={(e) => { e.stopPropagation(); props.onEdit(); }}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', padding: '4px', 'flex-shrink': '0' }}
+        onClick={(e) => {
+          e.stopPropagation();
+          props.onEdit();
+        }}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          color: 'var(--color-text-secondary)',
+          padding: '4px',
+          'flex-shrink': '0',
+        }}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
+        <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+          edit
+        </span>
       </button>
     </div>
   );

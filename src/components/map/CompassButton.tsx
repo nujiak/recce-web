@@ -27,17 +27,18 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
         'z-index': '10',
       }}
     >
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        style={{ transform: `rotate(${-props.bearing}deg)`, transition: 'transform 0.2s' }}
+      <span
+        class="material-symbols-outlined"
+        style={{
+          'font-size': '22px',
+          color: '#e53935',
+          transform: `rotate(${-props.bearing}deg)`,
+          transition: 'transform 0.2s',
+          display: 'block',
+        }}
       >
-        {/* North (red) */}
-        <polygon points="12,2 9,12 12,10 15,12" fill="#e53935" />
-        {/* South (gray) */}
-        <polygon points="12,22 9,12 12,14 15,12" fill="#888" />
-      </svg>
+        navigation
+      </span>
     </button>
   );
 };

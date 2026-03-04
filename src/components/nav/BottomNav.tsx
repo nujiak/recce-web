@@ -35,9 +35,9 @@ const BottomNav: Component = () => {
           'font-family': 'inherit',
         }}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="3,6 9,3 15,6 21,3 21,18 15,21 9,18 3,21"/>
-        </svg>
+        <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
+          map
+        </span>
         Map
       </button>
 
@@ -61,9 +61,9 @@ const BottomNav: Component = () => {
           'font-family': 'inherit',
         }}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-        </svg>
+        <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
+          bookmarks
+        </span>
         Saved
       </button>
 
@@ -71,7 +71,10 @@ const BottomNav: Component = () => {
         class="bottom-nav__tab"
         aria-label="Tools"
         aria-pressed={activeNav() === 'tools'}
-        onClick={() => { setActiveNav('tools'); setActiveTool(null); }}
+        onClick={() => {
+          setActiveNav('tools');
+          setActiveTool(null);
+        }}
         style={{
           flex: 1,
           display: 'flex',
@@ -87,9 +90,9 @@ const BottomNav: Component = () => {
           'font-family': 'inherit',
         }}
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-        </svg>
+        <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
+          construction
+        </span>
         Tools
       </button>
     </nav>
