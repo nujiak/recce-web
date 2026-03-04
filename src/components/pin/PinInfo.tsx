@@ -1,6 +1,6 @@
 import { Component, For, Show, createEffect, onCleanup } from 'solid-js';
 import { useUI } from '../../context/UIContext';
-import { CoordinateTransformer, SYSTEMS } from '../../coords/index';
+import { CoordinateTransformer, SYSTEMS, SYSTEM_NAMES } from '../../coords/index';
 import { showToast } from '../Toast';
 import type { CoordinateSystem } from '../../types';
 
@@ -64,14 +64,14 @@ const PinInfo: Component = () => {
                 if (!display) return null;
                 return (
                   <button
-                    aria-label={`Copy ${sys} coordinate`}
+                    aria-label={`Copy ${SYSTEM_NAMES[sys]} coordinate`}
                     onClick={() => {
                       navigator.clipboard.writeText(display).catch(() => {});
-                      showToast(`Copied ${sys}`, 'success');
+                      showToast(`Copied ${SYSTEM_NAMES[sys]}`, 'success');
                     }}
                     style={{ display: 'flex', 'flex-direction': 'column', 'align-items': 'flex-start', padding: '8px 10px', background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', cursor: 'pointer', gap: '2px', width: '100%' }}
                   >
-                    <span style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>{sys}</span>
+                    <span style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>{SYSTEM_NAMES[sys]}</span>
                     <span style={{ 'font-size': '0.8rem', color: 'var(--color-text)' }}>{display}</span>
                   </button>
                 );

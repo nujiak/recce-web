@@ -4,6 +4,7 @@ import { CoordinateTransformer } from '../../coords/index';
 import { usePrefs } from '../../context/PrefsContext';
 import { addPin, updatePin, deletePin } from '../../db/db';
 import { showToast } from '../Toast';
+import { SYSTEM_NAMES } from '../../coords/index';
 import type { Pin, PinColor } from '../../types';
 
 const COLORS: PinColor[] = ['red', 'orange', 'green', 'azure', 'violet'];
@@ -67,7 +68,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
     }
     const result = CoordinateTransformer.parse(raw, prefs.coordinateSystem);
     if (!result) {
-      setCoordError(`Invalid ${prefs.coordinateSystem} coordinate`);
+      setCoordError(`Invalid ${SYSTEM_NAMES[prefs.coordinateSystem]} coordinate`);
       return null;
     }
     setCoordError('');
@@ -167,13 +168,13 @@ const PinEditor: Component<PinEditorProps> = (props) => {
 
           <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
             <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
-              Coordinate ({prefs.coordinateSystem})
+              Coordinate ({SYSTEM_NAMES[prefs.coordinateSystem]})
             </span>
             <input
               name="pin-coord"
               value={coordInput()}
               onInput={(e) => { setCoordInput(e.currentTarget.value); setCoordError(''); }}
-              placeholder={`Enter ${prefs.coordinateSystem} coordinate`}
+              placeholder={`Enter ${SYSTEM_NAMES[prefs.coordinateSystem]} coordinate`}
               style={{ background: 'var(--color-bg-tertiary)', border: `1px solid ${coordError() ? 'var(--color-danger)' : 'var(--color-border)'}`, 'border-radius': 'var(--radius-sm)', padding: '7px 10px', color: 'var(--color-text)', 'font-family': 'inherit', 'font-size': '0.875rem' }}
             />
             <Show when={coordError()}>

@@ -47,3 +47,12 @@ export const CoordinateTransformer = {
 };
 
 export const SYSTEMS: CoordinateSystem[] = Object.keys(systems) as CoordinateSystem[];
+
+export const SYSTEM_NAMES: Record<CoordinateSystem, string> = {
+  WGS84: 'WGS84',
+  UTM: 'UTM',
+  MGRS: 'MGRS',
+  BNG: 'BNG (British National Grid)',
+  QTH: 'QTH (Maidenhead)',
+  KERTAU: 'Kertau 1948',
+};

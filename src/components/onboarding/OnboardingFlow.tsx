@@ -1,5 +1,6 @@
 import { Component, createSignal } from 'solid-js';
 import { usePrefs } from '../../context/PrefsContext';
+import { SYSTEM_NAMES } from '../../coords/index';
 import type { CoordinateSystem, LengthUnit, Theme } from '../../types';
 
 const OnboardingFlow: Component = () => {
@@ -21,12 +22,12 @@ const OnboardingFlow: Component = () => {
               onChange={(e) => setPrefs('coordinateSystem', e.currentTarget.value as CoordinateSystem)}
               style={{ background: 'var(--color-bg-secondary)', color: 'var(--color-text)', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '8px 10px' }}
             >
-              <option value="WGS84">WGS84 (Decimal Degrees)</option>
-              <option value="UTM">UTM</option>
-              <option value="MGRS">MGRS</option>
-              <option value="BNG">British National Grid</option>
-              <option value="QTH">Maidenhead / QTH</option>
-              <option value="KERTAU">Kertau (Malaysia)</option>
+              <option value="WGS84">{SYSTEM_NAMES.WGS84}</option>
+              <option value="UTM">{SYSTEM_NAMES.UTM}</option>
+              <option value="MGRS">{SYSTEM_NAMES.MGRS}</option>
+              <option value="BNG">{SYSTEM_NAMES.BNG}</option>
+              <option value="QTH">{SYSTEM_NAMES.QTH}</option>
+              <option value="KERTAU">{SYSTEM_NAMES.KERTAU}</option>
             </select>
           </label>
         </div>

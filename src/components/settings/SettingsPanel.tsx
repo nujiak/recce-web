@@ -1,5 +1,6 @@
 import { Component } from 'solid-js';
 import { usePrefs } from '../../context/PrefsContext';
+import { SYSTEM_NAMES } from '../../coords/index';
 import type { CoordinateSystem, AngleUnit, LengthUnit, Theme } from '../../types';
 
 const selectStyle = {
@@ -25,12 +26,12 @@ const SettingsPanel: Component = () => {
           onChange={(e) => setPrefs('coordinateSystem', e.currentTarget.value as CoordinateSystem)}
           style={selectStyle}
         >
-          <option value="WGS84">WGS84</option>
-          <option value="UTM">UTM</option>
-          <option value="MGRS">MGRS</option>
-          <option value="BNG">BNG</option>
-          <option value="QTH">QTH</option>
-          <option value="KERTAU">KERTAU</option>
+          <option value="WGS84">{SYSTEM_NAMES.WGS84}</option>
+          <option value="UTM">{SYSTEM_NAMES.UTM}</option>
+          <option value="MGRS">{SYSTEM_NAMES.MGRS}</option>
+          <option value="BNG">{SYSTEM_NAMES.BNG}</option>
+          <option value="QTH">{SYSTEM_NAMES.QTH}</option>
+          <option value="KERTAU">{SYSTEM_NAMES.KERTAU}</option>
         </select>
       </label>
 
