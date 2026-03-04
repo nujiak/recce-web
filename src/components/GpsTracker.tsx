@@ -28,18 +28,44 @@ const GpsTracker: Component = () => {
   }
 
   function handleOrientation(e: DeviceOrientationEvent) {
+    const screenAngle = screen.orientation?.angle ?? 0;
+
     const ios = e as any;
+    let heading: number;
     if (ios.webkitCompassHeading !== undefined) {
-      setGpsHeading(ios.webkitCompassHeading);
+      heading = ios.webkitCompassHeading;
       setOrientationAbsolute(true);
     } else if (e.absolute && e.alpha !== null) {
-      setGpsHeading((360 - e.alpha) % 360);
+      heading = (360 - e.alpha) % 360;
       setOrientationAbsolute(true);
     } else {
       return;
     }
-    if (e.beta !== null) setGpsPitch(e.beta);
-    if (e.gamma !== null) setGpsRoll(e.gamma);
+
+    const beta = e.beta ?? 0;
+    const gamma = e.gamma ?? 0;
+
+    switch (screenAngle) {
+      case 90:
+        setGpsHeading((heading + 90) % 360);
+        setGpsPitch(-gamma);
+        setGpsRoll(beta);
+        break;
+      case 270:
+        setGpsHeading((heading - 90 + 360) % 360);
+        setGpsPitch(gamma);
+        setGpsRoll(-beta);
+        break;
+      case 180:
+        setGpsHeading((heading + 180) % 360);
+        setGpsPitch(-beta);
+        setGpsRoll(-gamma);
+        break;
+      default:
+        setGpsHeading(heading);
+        setGpsPitch(beta);
+        setGpsRoll(gamma);
+    }
   }
 
   async function requestOrientationPermission() {
