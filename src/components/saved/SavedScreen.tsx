@@ -24,6 +24,7 @@ const SavedScreen: Component = () => {
   const [importCode, setImportCode] = createSignal('');
 
   let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  let longPressFired = false;
 
   const refetch = () => { refetchPins(); refetchTracks(); };
 
@@ -52,7 +53,10 @@ const SavedScreen: Component = () => {
   });
 
   function startLongPress(key: string) {
+    longPressFired = false;
     longPressTimer = setTimeout(() => {
+      longPressFired = true;
+      longPressTimer = null;
       setMultiSelect(true);
       toggleSelect(key);
     }, 300);
@@ -72,6 +76,7 @@ const SavedScreen: Component = () => {
   }
 
   function handleCardClick(key: string) {
+    if (longPressFired) { longPressFired = false; return; }
     if (multiSelect()) toggleSelect(key);
   }
 
