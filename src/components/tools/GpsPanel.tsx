@@ -8,6 +8,7 @@ import {
 } from '../../stores/gps';
 import { usePrefs } from '../../context/PrefsContext';
 import { formatDistance, formatBearing } from '../../utils/geo';
+import { CoordinateTransformer, SYSTEM_NAMES } from '../../coords/index';
 import CompassNeedle from './CompassNeedle';
 
 function copyText(text: string) {
@@ -121,39 +122,43 @@ const GpsPanel: Component = () => {
         </Show>
 
         <Show when={pos()}>
-          {(coords) => (
-            <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-              <div style={{ display: 'flex', 'justify-content': 'space-between', 'align-items': 'center' }}>
+          {(coords) => {
+            const coordStr = () =>
+              CoordinateTransformer.toDisplay(coords().latitude, coords().longitude, prefs.coordinateSystem) ?? '';
+            return (
+              <div style={{ display: 'flex', 'flex-direction': 'column', gap: '8px' }}>
+                {/* Coordinates */}
                 <div>
-                  <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)' }}>Latitude</div>
-                  <div style={{ 'font-size': '0.875rem', 'font-variant-numeric': 'tabular-nums' }}>{coords().latitude.toFixed(6)}</div>
+                  <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)', 'margin-bottom': '2px' }}>
+                    Coordinates ({SYSTEM_NAMES[prefs.coordinateSystem]})
+                  </div>
+                  <div style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
+                    <div style={{ 'font-size': '0.875rem', 'font-variant-numeric': 'tabular-nums', flex: 1 }}>{coordStr()}</div>
+                    <button
+                      aria-label="Copy coordinates"
+                      onClick={() => copyText(coordStr())}
+                      style={{ background: 'none', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '4px 8px', cursor: 'pointer', color: 'var(--color-text-secondary)', 'font-size': '0.75rem', 'font-family': 'inherit', 'flex-shrink': '0' }}
+                    >
+                      Copy
+                    </button>
+                  </div>
                 </div>
-                <div>
-                  <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)' }}>Longitude</div>
-                  <div style={{ 'font-size': '0.875rem', 'font-variant-numeric': 'tabular-nums' }}>{coords().longitude.toFixed(6)}</div>
-                </div>
-                <button
-                  aria-label="Copy coordinates"
-                  onClick={() => copyText(`${coords().latitude.toFixed(6)}, ${coords().longitude.toFixed(6)}`)}
-                  style={{ background: 'none', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '4px 8px', cursor: 'pointer', color: 'var(--color-text-secondary)', 'font-size': '0.75rem', 'font-family': 'inherit' }}
-                >
-                  Copy
-                </button>
-              </div>
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <div>
-                  <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)' }}>Accuracy</div>
-                  <div style={{ 'font-size': '0.875rem' }}>{formatDistance(coords().accuracy, lengthUnit())}</div>
-                </div>
-                <Show when={coords().altitude !== null}>
+                {/* Altitude + Accuracy */}
+                <div style={{ display: 'flex', gap: '16px' }}>
                   <div>
                     <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)' }}>Altitude</div>
-                    <div style={{ 'font-size': '0.875rem' }}>{formatDistance(coords().altitude!, lengthUnit())}</div>
+                    <div style={{ 'font-size': '0.875rem' }}>
+                      {coords().altitude !== null ? formatDistance(coords().altitude!, lengthUnit()) : '—'}
+                    </div>
                   </div>
-                </Show>
+                  <div>
+                    <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)' }}>Accuracy</div>
+                    <div style={{ 'font-size': '0.875rem' }}>{formatDistance(coords().accuracy, lengthUnit())}</div>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
+            );
+          }}
         </Show>
       </div>
 

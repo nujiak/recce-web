@@ -24,6 +24,7 @@ const SavedScreen: Component = () => {
   const [importCode, setImportCode] = createSignal('');
 
   let longPressTimer: ReturnType<typeof setTimeout> | null = null;
+  let longPressFired = false;
 
   const refetch = () => { refetchPins(); refetchTracks(); };
 
@@ -52,7 +53,10 @@ const SavedScreen: Component = () => {
   });
 
   function startLongPress(key: string) {
+    longPressFired = false;
     longPressTimer = setTimeout(() => {
+      longPressFired = true;
+      longPressTimer = null;
       setMultiSelect(true);
       toggleSelect(key);
     }, 300);
@@ -72,6 +76,7 @@ const SavedScreen: Component = () => {
   }
 
   function handleCardClick(key: string) {
+    if (longPressFired) { longPressFired = false; return; }
     if (multiSelect()) toggleSelect(key);
   }
 
@@ -147,7 +152,7 @@ const SavedScreen: Component = () => {
             placeholder="Search…"
             value={search()}
             onInput={(e) => setSearch(e.currentTarget.value)}
-            style={{ flex: 1, background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '6px 10px', color: 'var(--color-text)', 'font-family': 'inherit', 'font-size': '0.875rem' }}
+            style={{ flex: 1, 'min-width': '0', background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '6px 10px', color: 'var(--color-text)', 'font-family': 'inherit', 'font-size': '0.875rem' }}
           />
           <button
             aria-label="New pin"
@@ -194,16 +199,44 @@ const SavedScreen: Component = () => {
         </Show>
       </div>
 
-      {/* Multi-select actions */}
-      <Show when={multiSelect()}>
+      {/* Multi-select actions — grid trick for slide-in/out animation */}
+      <div style={{ display: 'grid', 'grid-template-rows': multiSelect() ? '1fr' : '0fr', transition: 'grid-template-rows 0.2s ease', overflow: 'hidden' }}>
+        <div style={{ overflow: 'hidden' }}>
         <div style={{ padding: '8px 16px', background: 'var(--color-accent-bg)', 'border-bottom': '1px solid var(--color-accent-border)', display: 'flex', gap: '8px', 'align-items': 'center' }}>
           <span style={{ 'font-size': '0.75rem', color: 'var(--color-accent)', flex: 1 }}>{selected().size} selected</span>
-          <button onClick={shareSelected} style={{ background: 'none', border: '1px solid var(--color-accent-border)', 'border-radius': 'var(--radius-sm)', padding: '4px 10px', cursor: 'pointer', color: 'var(--color-accent)', 'font-size': '0.75rem', 'font-family': 'inherit' }}>Share</button>
-          <button onClick={addSelectedToRuler} style={{ background: 'none', border: '1px solid var(--color-accent-border)', 'border-radius': 'var(--radius-sm)', padding: '4px 10px', cursor: 'pointer', color: 'var(--color-accent)', 'font-size': '0.75rem', 'font-family': 'inherit' }}>Ruler</button>
-          <button onClick={bulkDelete} style={{ background: 'none', border: '1px solid var(--color-danger)', 'border-radius': 'var(--radius-sm)', padding: '4px 10px', cursor: 'pointer', color: 'var(--color-danger)', 'font-size': '0.75rem', 'font-family': 'inherit' }}>Delete</button>
-          <button onClick={() => { setSelected(new Set<string>()); setMultiSelect(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', 'font-size': '0.75rem', 'font-family': 'inherit' }}>Cancel</button>
+          {/* Share */}
+          <button aria-label="Share selected" onClick={shareSelected} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-accent)', padding: '4px', display: 'flex', 'align-items': 'center' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+          </button>
+          {/* Add to Ruler */}
+          <button aria-label="Add to ruler" onClick={addSelectedToRuler} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-accent)', padding: '4px', display: 'flex', 'align-items': 'center' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="10" width="20" height="5" rx="1"/>
+              <line x1="6" y1="10" x2="6" y2="7"/><line x1="10" y1="10" x2="10" y2="8"/>
+              <line x1="14" y1="10" x2="14" y2="8"/><line x1="18" y1="10" x2="18" y2="7"/>
+            </svg>
+          </button>
+          {/* Delete */}
+          <button aria-label="Delete selected" onClick={bulkDelete} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-danger)', padding: '4px', display: 'flex', 'align-items': 'center' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+            </svg>
+          </button>
+          {/* Cancel */}
+          <button aria-label="Cancel selection" onClick={() => { setSelected(new Set<string>()); setMultiSelect(false); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', padding: '4px', display: 'flex', 'align-items': 'center' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         </div>
-      </Show>
+        </div>
+      </div>
 
       {/* List */}
       <div style={{ flex: 1, 'overflow-y': 'auto', padding: '12px 16px', display: 'flex', 'flex-direction': 'column', gap: '8px' }}>

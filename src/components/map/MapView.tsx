@@ -56,15 +56,21 @@ const MapView: Component = () => {
       (window as any).__map = map;
     });
 
-    // Listen for flyTo events from PlotControls
+    // Listen for flyTo events from PlotControls / PinInfo / TrackInfo
     function handleFlyTo(e: Event) {
       const { lat, lng } = (e as CustomEvent).detail;
       map.flyTo({ center: [lng, lat], zoom: 15 });
     }
+    function handleFitBounds(e: Event) {
+      const { bounds } = (e as CustomEvent<{ bounds: [[number, number], [number, number]] }>).detail;
+      map.fitBounds(bounds, { padding: 48, maxZoom: 17 });
+    }
     window.addEventListener('mapFlyTo', handleFlyTo);
+    window.addEventListener('mapFitBounds', handleFitBounds);
 
     onCleanup(() => {
       window.removeEventListener('mapFlyTo', handleFlyTo);
+      window.removeEventListener('mapFitBounds', handleFitBounds);
       map.remove();
     });
   });

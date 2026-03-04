@@ -16,8 +16,6 @@ const SettingsPanel: Component = () => {
 
   return (
     <div class="settings-panel" style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '16px' }}>
-      <h2 style={{ 'font-size': '1rem', 'font-weight': '600' }}>Settings</h2>
-
       <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
         <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Coordinate System</span>
         <select

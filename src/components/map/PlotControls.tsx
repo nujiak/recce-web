@@ -22,6 +22,15 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
   const [showGoto, setShowGoto] = createSignal(false);
   const [gotoInput, setGotoInput] = createSignal('');
   const [gotoError, setGotoError] = createSignal(false);
+  const [confirmingCancel, setConfirmingCancel] = createSignal(false);
+
+  function handleCancel() {
+    if (props.plotNodes.length >= 3) {
+      setConfirmingCancel(true);
+    } else {
+      props.onCancel();
+    }
+  }
 
   let mapRef: maplibregl.Map | undefined;
 
@@ -95,18 +104,35 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
 
         <Show when={props.isPlotting}>
           <div style={{ display: 'flex', gap: '6px', background: 'var(--color-bg-secondary)', 'border-radius': '8px', padding: '6px', border: '1px solid var(--color-border)', 'align-items': 'center' }}>
-            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)', padding: '0 6px' }}>
-              {props.plotNodes.length} node{props.plotNodes.length !== 1 ? 's' : ''}
-            </span>
-            <button aria-label="Add node" onClick={props.onAddNode} style={btnStyle('var(--color-accent)')}>+ Node</button>
-            <button aria-label="Undo last node" onClick={props.onUndo} disabled={props.plotNodes.length === 0} style={btnStyle('var(--color-bg-tertiary)')}>Undo</button>
-            <button
-              aria-label="Save track"
-              onClick={props.onSave}
-              disabled={props.plotNodes.length < 2}
-              style={btnStyle('var(--color-accent)')}
-            >Save</button>
-            <button aria-label="Cancel plotting" onClick={props.onCancel} style={{ ...btnStyle('none'), border: '1px solid var(--color-danger)', color: 'var(--color-danger)' }}>Cancel</button>
+            <Show when={confirmingCancel()} fallback={
+              <>
+                <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)', padding: '0 6px' }}>
+                  {props.plotNodes.length} node{props.plotNodes.length !== 1 ? 's' : ''}
+                </span>
+                <button aria-label="Add node" onClick={props.onAddNode} style={btnStyle('var(--color-accent)')}>+ Node</button>
+                <button aria-label="Undo last node" onClick={props.onUndo} disabled={props.plotNodes.length === 0} style={btnStyle('var(--color-bg-tertiary)')}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+                  </svg>
+                </button>
+                <button aria-label="Save track" onClick={props.onSave} disabled={props.plotNodes.length < 2} style={btnStyle('var(--color-accent)')}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+                    <polyline points="17 21 17 13 7 13 7 21"/>
+                    <polyline points="7 3 7 8 15 8"/>
+                  </svg>
+                </button>
+                <button aria-label="Cancel plotting" onClick={handleCancel} style={{ ...btnStyle('var(--color-danger)'), border: 'none', color: '#fff' }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </>
+            }>
+              <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)', padding: '0 4px' }}>Discard track?</span>
+              <button onClick={() => { setConfirmingCancel(false); props.onCancel(); }} style={{ ...btnStyle('var(--color-danger)'), border: 'none', color: '#fff' }}>Discard</button>
+              <button onClick={() => setConfirmingCancel(false)} style={btnStyle('var(--color-bg-tertiary)')}>Keep</button>
+            </Show>
           </div>
         </Show>
       </div>
