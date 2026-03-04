@@ -54,7 +54,7 @@ function formatArea(m2: number, unit: string): string {
 }
 
 const TrackInfo: Component = () => {
-  const { viewingTrack, setViewingTrack, setEditingTrack } = useUI();
+  const { viewingTrack, setViewingTrack, setEditingTrack, setActiveNav } = useUI();
 
   createEffect(() => {
     if (!viewingTrack()) return;
@@ -63,6 +63,24 @@ const TrackInfo: Component = () => {
     onCleanup(() => window.removeEventListener('keydown', onKey));
   });
   const [prefs] = usePrefs();
+
+  function goTo() {
+    const t = viewingTrack();
+    if (!t || t.nodes.length === 0) return;
+    setViewingTrack(null);
+    setActiveNav('map');
+    if (t.nodes.length === 1) {
+      window.dispatchEvent(new CustomEvent('mapFlyTo', { detail: { lat: t.nodes[0].lat, lng: t.nodes[0].lng } }));
+    } else {
+      const lats = t.nodes.map(n => n.lat);
+      const lngs = t.nodes.map(n => n.lng);
+      const bounds: [[number, number], [number, number]] = [
+        [Math.min(...lngs), Math.min(...lats)],
+        [Math.max(...lngs), Math.max(...lats)],
+      ];
+      window.dispatchEvent(new CustomEvent('mapFitBounds', { detail: { bounds } }));
+    }
+  }
 
   function openEdit() {
     const t = viewingTrack();
@@ -140,6 +158,9 @@ const TrackInfo: Component = () => {
           )}
 
           <div style={{ display: 'flex', gap: '8px', 'margin-top': '4px' }}>
+            <button onClick={goTo} style={{ flex: 1, padding: '9px', background: 'none', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-md)', cursor: 'pointer', color: 'var(--color-text)', 'font-family': 'inherit', 'font-size': '0.875rem' }}>
+              Go To
+            </button>
             <button onClick={openEdit} style={{ flex: 1, padding: '9px', background: 'var(--color-accent)', border: 'none', 'border-radius': 'var(--radius-md)', cursor: 'pointer', color: 'oklch(0.1 0 0)', 'font-family': 'inherit', 'font-size': '0.875rem', 'font-weight': '600' }}>
               Edit
             </button>
