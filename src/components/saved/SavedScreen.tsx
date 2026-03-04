@@ -496,13 +496,13 @@ const SavedScreen: Component = () => {
               'justify-content': 'center',
               height: '200px',
               color: 'var(--color-text-muted)',
-              gap: '8px',
+              gap: '12px',
             }}
           >
             <img
               src="/icons/empty-state.svg"
-              width="48"
-              height="48"
+              width="96"
+              height="96"
               alt=""
               style={{ opacity: 0.5 }}
             />
