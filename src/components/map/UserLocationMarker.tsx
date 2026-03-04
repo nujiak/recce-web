@@ -33,19 +33,19 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   function createHeadingElement(): HTMLElement {
     const container = document.createElement('div');
     container.style.cssText =
-      'width: 40px; height: 40px; display: flex; align-items: flex-end; justify-content: center;';
+      'width: 32px; height: 32px; display: flex; align-items: flex-start; justify-content: center;';
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '20');
-    svg.setAttribute('height', '30');
-    svg.setAttribute('viewBox', '0 0 20 30');
+    svg.setAttribute('width', '8');
+    svg.setAttribute('height', '6');
+    svg.setAttribute('viewBox', '0 0 8 6');
     svg.style.cssText = 'display: block;';
 
     const triangle = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    triangle.setAttribute('points', '10,0 0,30 20,30');
+    triangle.setAttribute('points', '4,0 0,6 8,6');
     triangle.setAttribute('fill', '#53b54e');
     triangle.setAttribute('stroke', '#ffffff');
-    triangle.setAttribute('stroke-width', '2');
+    triangle.setAttribute('stroke-width', '1');
     svg.appendChild(triangle);
 
     container.appendChild(svg);
