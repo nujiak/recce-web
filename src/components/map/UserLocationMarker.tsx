@@ -1,7 +1,7 @@
 import { Component, createEffect, onCleanup } from 'solid-js';
 import maplibregl from 'maplibre-gl';
 import circle from '@turf/circle';
-import { gpsPosition } from '../../stores/gps';
+import { gpsPosition, gpsHeading } from '../../stores/gps';
 
 interface UserLocationMarkerProps {
   map: maplibregl.Map;
@@ -11,10 +11,11 @@ const ACCURACY_SOURCE_ID = 'user-location-accuracy';
 const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
 
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
-  let marker: maplibregl.Marker | null = null;
+  let locationMarker: maplibregl.Marker | null = null;
+  let headingMarker: maplibregl.Marker | null = null;
   let accuracyAdded = false;
 
-  function createMarkerElement(): HTMLElement {
+  function createLocationElement(): HTMLElement {
     const container = document.createElement('div');
     container.style.cssText = 'position: relative; width: 24px; height: 24px;';
 
@@ -26,6 +27,28 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     img.style.cssText = 'display: block;';
     container.appendChild(img);
 
+    return container;
+  }
+
+  function createHeadingElement(): HTMLElement {
+    const container = document.createElement('div');
+    container.style.cssText =
+      'width: 40px; height: 40px; display: flex; align-items: flex-end; justify-content: center;';
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '20');
+    svg.setAttribute('height', '30');
+    svg.setAttribute('viewBox', '0 0 20 30');
+    svg.style.cssText = 'display: block;';
+
+    const triangle = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    triangle.setAttribute('points', '10,0 0,30 20,30');
+    triangle.setAttribute('fill', '#53b54e');
+    triangle.setAttribute('stroke', '#ffffff');
+    triangle.setAttribute('stroke-width', '2');
+    svg.appendChild(triangle);
+
+    container.appendChild(svg);
     return container;
   }
 
@@ -74,9 +97,13 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     const pos = gpsPosition();
 
     if (!pos) {
-      if (marker) {
-        marker.remove();
-        marker = null;
+      if (locationMarker) {
+        locationMarker.remove();
+        locationMarker = null;
+      }
+      if (headingMarker) {
+        headingMarker.remove();
+        headingMarker = null;
       }
       removeAccuracyCircle();
       return;
@@ -84,9 +111,9 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
 
     updateAccuracyCircle(pos.longitude, pos.latitude, pos.accuracy);
 
-    if (!marker) {
-      const el = createMarkerElement();
-      marker = new maplibregl.Marker({
+    if (!locationMarker) {
+      const el = createLocationElement();
+      locationMarker = new maplibregl.Marker({
         element: el,
         rotationAlignment: 'map',
         pitchAlignment: 'map',
@@ -94,13 +121,48 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
         .setLngLat([pos.longitude, pos.latitude])
         .addTo(props.map);
     } else {
-      marker.setLngLat([pos.longitude, pos.latitude]);
+      locationMarker.setLngLat([pos.longitude, pos.latitude]);
+    }
+  });
+
+  createEffect(() => {
+    const heading = gpsHeading();
+    const pos = gpsPosition();
+
+    if (!pos) {
+      if (headingMarker) {
+        headingMarker.remove();
+        headingMarker = null;
+      }
+      return;
+    }
+
+    if (heading !== null) {
+      if (!headingMarker) {
+        const el = createHeadingElement();
+        headingMarker = new maplibregl.Marker({
+          element: el,
+          rotationAlignment: 'map',
+          pitchAlignment: 'map',
+        })
+          .setLngLat([pos.longitude, pos.latitude])
+          .setRotation(heading)
+          .addTo(props.map);
+      } else {
+        headingMarker.setLngLat([pos.longitude, pos.latitude]);
+        headingMarker.setRotation(heading);
+      }
+    } else if (headingMarker) {
+      headingMarker.remove();
+      headingMarker = null;
     }
   });
 
   onCleanup(() => {
-    marker?.remove();
-    marker = null;
+    locationMarker?.remove();
+    locationMarker = null;
+    headingMarker?.remove();
+    headingMarker = null;
     removeAccuracyCircle();
   });
 
