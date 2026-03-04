@@ -1,7 +1,12 @@
 import { Component, For, Show } from 'solid-js';
 import { rulerPoints, clearRuler } from '../../stores/ruler';
 import { usePrefs } from '../../context/PrefsContext';
-import { haversineDistance, calculateBearing, formatDistance, formatBearing } from '../../utils/geo';
+import {
+  haversineDistance,
+  calculateBearing,
+  formatDistance,
+  formatBearing,
+} from '../../utils/geo';
 
 const RulerPanel: Component = () => {
   const [prefs] = usePrefs();
@@ -21,13 +26,31 @@ const RulerPanel: Component = () => {
   };
 
   return (
-    <div style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '12px', height: '100%', 'box-sizing': 'border-box' }}>
+    <div
+      style={{
+        padding: '16px',
+        display: 'flex',
+        'flex-direction': 'column',
+        gap: '12px',
+        height: '100%',
+        'box-sizing': 'border-box',
+      }}
+    >
       {/* Clear All button — header-level, only when there are points */}
       <Show when={points().length > 0}>
         <div style={{ display: 'flex', 'justify-content': 'flex-end' }}>
           <button
             onClick={clearRuler}
-            style={{ background: 'none', border: '1px solid var(--color-danger)', 'border-radius': 'var(--radius-sm)', padding: '4px 10px', cursor: 'pointer', color: 'var(--color-danger)', 'font-size': '0.75rem', 'font-family': 'inherit' }}
+            style={{
+              background: 'none',
+              border: '1px solid var(--color-danger)',
+              'border-radius': 'var(--radius-sm)',
+              padding: '4px 10px',
+              cursor: 'pointer',
+              color: 'var(--color-danger)',
+              'font-size': '0.75rem',
+              'font-family': 'inherit',
+            }}
           >
             Clear All
           </button>
@@ -36,27 +59,88 @@ const RulerPanel: Component = () => {
 
       {/* Empty state */}
       <Show when={points().length === 0}>
-        <div style={{ display: 'flex', 'flex-direction': 'column', 'align-items': 'center', 'justify-content': 'center', flex: 1, color: 'var(--color-text-muted)', gap: '8px' }}>
-          <span style={{ 'font-size': '2rem' }}>📏</span>
+        <div
+          style={{
+            display: 'flex',
+            'flex-direction': 'column',
+            'align-items': 'center',
+            'justify-content': 'center',
+            flex: 1,
+            color: 'var(--color-text-muted)',
+            gap: '8px',
+          }}
+        >
+          <span class="material-symbols-outlined" style={{ 'font-size': '2rem' }}>
+            straighten
+          </span>
           <span style={{ 'font-size': '0.875rem' }}>No points yet</span>
-          <span style={{ 'font-size': '0.75rem', 'text-align': 'center' }}>Long-press items in Saved and tap "Add to Ruler"</span>
+          <span style={{ 'font-size': '0.75rem', 'text-align': 'center' }}>
+            Long-press items in Saved and tap "Add to Ruler"
+          </span>
         </div>
       </Show>
 
       {/* Points list */}
       <Show when={points().length > 0}>
-        <div style={{ flex: 1, 'overflow-y': 'auto', display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
+        <div
+          style={{
+            flex: 1,
+            'overflow-y': 'auto',
+            display: 'flex',
+            'flex-direction': 'column',
+            gap: '4px',
+          }}
+        >
           <For each={points()}>
             {(point, i) => (
               <>
                 {/* Point row */}
-                <div style={{ display: 'flex', 'align-items': 'center', gap: '8px', padding: '8px', background: 'var(--color-bg-secondary)', 'border-radius': 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
-                  <div style={{ width: '20px', height: '20px', 'border-radius': '50%', background: 'var(--color-accent)', display: 'flex', 'align-items': 'center', 'justify-content': 'center', 'font-size': '0.625rem', color: 'oklch(0.1 0 0)', 'font-weight': '700', 'flex-shrink': '0' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    'align-items': 'center',
+                    gap: '8px',
+                    padding: '8px',
+                    background: 'var(--color-bg-secondary)',
+                    'border-radius': 'var(--radius-sm)',
+                    border: '1px solid var(--color-border)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '20px',
+                      height: '20px',
+                      'border-radius': '50%',
+                      background: 'var(--color-accent)',
+                      display: 'flex',
+                      'align-items': 'center',
+                      'justify-content': 'center',
+                      'font-size': '0.625rem',
+                      color: 'oklch(0.1 0 0)',
+                      'font-weight': '700',
+                      'flex-shrink': '0',
+                    }}
+                  >
                     {i() + 1}
                   </div>
                   <div style={{ flex: 1, 'min-width': '0' }}>
-                    <div style={{ 'font-size': '0.875rem', overflow: 'hidden', 'text-overflow': 'ellipsis', 'white-space': 'nowrap' }}>{point.name || `Point ${i() + 1}`}</div>
-                    <div style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)', 'font-variant-numeric': 'tabular-nums' }}>
+                    <div
+                      style={{
+                        'font-size': '0.875rem',
+                        overflow: 'hidden',
+                        'text-overflow': 'ellipsis',
+                        'white-space': 'nowrap',
+                      }}
+                    >
+                      {point.name || `Point ${i() + 1}`}
+                    </div>
+                    <div
+                      style={{
+                        'font-size': '0.625rem',
+                        color: 'var(--color-text-muted)',
+                        'font-variant-numeric': 'tabular-nums',
+                      }}
+                    >
                       {point.lat.toFixed(5)}, {point.lng.toFixed(5)}
                     </div>
                   </div>
@@ -64,15 +148,42 @@ const RulerPanel: Component = () => {
 
                 {/* Leg row (between consecutive points) */}
                 <Show when={i() < points().length - 1}>
-                  <div style={{ display: 'flex', 'align-items': 'center', gap: '8px', padding: '4px 8px 4px 28px', color: 'var(--color-text-muted)', 'font-size': '0.75rem' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style={{ 'flex-shrink': '0' }}>
-                      <line x1="12" y1="5" x2="12" y2="19" />
-                      <polyline points="19 12 12 19 5 12" />
-                    </svg>
+                  <div
+                    style={{
+                      display: 'flex',
+                      'align-items': 'center',
+                      gap: '8px',
+                      padding: '4px 8px 4px 28px',
+                      color: 'var(--color-text-muted)',
+                      'font-size': '0.75rem',
+                    }}
+                  >
+                    <span
+                      class="material-symbols-outlined"
+                      style={{ 'font-size': '14px', 'flex-shrink': '0' }}
+                    >
+                      arrow_downward
+                    </span>
                     <span>
-                      {formatDistance(haversineDistance(point.lat, point.lng, points()[i() + 1].lat, points()[i() + 1].lng), lengthUnit())}
+                      {formatDistance(
+                        haversineDistance(
+                          point.lat,
+                          point.lng,
+                          points()[i() + 1].lat,
+                          points()[i() + 1].lng
+                        ),
+                        lengthUnit()
+                      )}
                       {' · '}
-                      {formatBearing(calculateBearing(point.lat, point.lng, points()[i() + 1].lat, points()[i() + 1].lng), angleUnit())}
+                      {formatBearing(
+                        calculateBearing(
+                          point.lat,
+                          point.lng,
+                          points()[i() + 1].lat,
+                          points()[i() + 1].lng
+                        ),
+                        angleUnit()
+                      )}
                     </span>
                   </div>
                 </Show>
@@ -82,9 +193,25 @@ const RulerPanel: Component = () => {
         </div>
 
         {/* Total */}
-        <div style={{ 'border-top': '1px solid var(--color-border)', 'padding-top': '12px', display: 'flex', 'justify-content': 'space-between', 'align-items': 'center' }}>
-          <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)' }}>Total distance</span>
-          <span style={{ 'font-size': '0.875rem', 'font-weight': '600', 'font-variant-numeric': 'tabular-nums' }}>
+        <div
+          style={{
+            'border-top': '1px solid var(--color-border)',
+            'padding-top': '12px',
+            display: 'flex',
+            'justify-content': 'space-between',
+            'align-items': 'center',
+          }}
+        >
+          <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)' }}>
+            Total distance
+          </span>
+          <span
+            style={{
+              'font-size': '0.875rem',
+              'font-weight': '600',
+              'font-variant-numeric': 'tabular-nums',
+            }}
+          >
             {formatDistance(totalDistance(), lengthUnit())}
           </span>
         </div>

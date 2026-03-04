@@ -47,20 +47,12 @@ const GpsPanel: Component = () => {
         }}
       >
         <div style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="var(--color-accent)"
-            stroke-width="2"
+          <span
+            class="material-symbols-outlined"
+            style={{ 'font-size': '16px', color: 'var(--color-accent)' }}
           >
-            <circle cx="12" cy="12" r="4" />
-            <line x1="12" y1="2" x2="12" y2="6" />
-            <line x1="12" y1="18" x2="12" y2="22" />
-            <line x1="2" y1="12" x2="6" y2="12" />
-            <line x1="18" y1="12" x2="22" y2="12" />
-          </svg>
+            my_location
+          </span>
           <span style={{ 'font-size': '0.875rem', 'font-weight': '600' }}>Location</span>
         </div>
 
@@ -144,17 +136,12 @@ const GpsPanel: Component = () => {
         }}
       >
         <div style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="var(--color-accent)"
-            stroke-width="2"
+          <span
+            class="material-symbols-outlined"
+            style={{ 'font-size': '16px', color: 'var(--color-accent)' }}
           >
-            <circle cx="12" cy="12" r="10" />
-            <polygon points="12,2 10,12 12,10 14,12" fill="var(--color-accent)" stroke="none" />
-          </svg>
+            explore
+          </span>
           <span style={{ 'font-size': '0.875rem', 'font-weight': '600' }}>Compass</span>
         </div>
 

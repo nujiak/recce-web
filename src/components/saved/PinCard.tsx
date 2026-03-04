@@ -47,23 +47,48 @@ const PinCard: Component<PinCardProps> = (props) => {
       }}
     >
       {/* Color chip */}
-      <div style={{
-        width: '12px',
-        height: '12px',
-        'border-radius': '50%',
-        background: COLOR_MAP[props.pin.color] ?? 'var(--color-text-muted)',
-        'flex-shrink': '0',
-      }} />
+      <div
+        style={{
+          width: '12px',
+          height: '12px',
+          'border-radius': '50%',
+          background: COLOR_MAP[props.pin.color] ?? 'var(--color-text-muted)',
+          'flex-shrink': '0',
+        }}
+      />
 
       <div style={{ flex: 1, 'min-width': 0 }}>
-        <div style={{ 'font-size': '0.875rem', 'font-weight': '600', overflow: 'hidden', 'text-overflow': 'ellipsis', 'white-space': 'nowrap' }}>
+        <div
+          style={{
+            'font-size': '0.875rem',
+            'font-weight': '600',
+            overflow: 'hidden',
+            'text-overflow': 'ellipsis',
+            'white-space': 'nowrap',
+          }}
+        >
           {props.pin.name}
         </div>
-        <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)', 'margin-top': '2px', overflow: 'hidden', 'text-overflow': 'ellipsis', 'white-space': 'nowrap' }}>
+        <div
+          style={{
+            'font-size': '0.75rem',
+            color: 'var(--color-text-secondary)',
+            'margin-top': '2px',
+            overflow: 'hidden',
+            'text-overflow': 'ellipsis',
+            'white-space': 'nowrap',
+          }}
+        >
           {coordDisplay()}
         </div>
         {props.pin.group && (
-          <div style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)', 'margin-top': '2px' }}>
+          <div
+            style={{
+              'font-size': '0.625rem',
+              color: 'var(--color-text-muted)',
+              'margin-top': '2px',
+            }}
+          >
             {props.pin.group}
           </div>
         )}
@@ -71,13 +96,22 @@ const PinCard: Component<PinCardProps> = (props) => {
 
       <button
         aria-label={`Edit ${props.pin.name}`}
-        onClick={(e) => { e.stopPropagation(); props.onEdit(); }}
-        style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', padding: '4px', 'flex-shrink': '0' }}
+        onClick={(e) => {
+          e.stopPropagation();
+          props.onEdit();
+        }}
+        style={{
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          color: 'var(--color-text-secondary)',
+          padding: '4px',
+          'flex-shrink': '0',
+        }}
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-        </svg>
+        <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+          edit
+        </span>
       </button>
     </div>
   );

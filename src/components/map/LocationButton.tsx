@@ -29,13 +29,15 @@ const LocationButton: Component<LocationButtonProps> = (props) => {
         'z-index': '10',
       }}
     >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={hasGps() ? 'var(--color-accent)' : 'var(--color-text-secondary)'} stroke-width="2">
-        <circle cx="12" cy="12" r="4" />
-        <line x1="12" y1="2" x2="12" y2="6" />
-        <line x1="12" y1="18" x2="12" y2="22" />
-        <line x1="2" y1="12" x2="6" y2="12" />
-        <line x1="18" y1="12" x2="22" y2="12" />
-      </svg>
+      <span
+        class="material-symbols-outlined"
+        style={{
+          'font-size': '20px',
+          color: hasGps() ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+        }}
+      >
+        my_location
+      </span>
     </button>
   );
 };
