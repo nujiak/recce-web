@@ -1,4 +1,4 @@
-import { Component, createEffect, onCleanup } from 'solid-js';
+import { Component, createEffect, onCleanup, createSignal } from 'solid-js';
 import maplibregl from 'maplibre-gl';
 import { gpsPosition, gpsHeading, orientationAbsolute } from '../../stores/gps';
 
@@ -8,11 +8,21 @@ interface UserLocationMarkerProps {
 
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let marker: maplibregl.Marker | null = null;
+  let containerEl: HTMLDivElement | null = null;
   let headingEl: HTMLDivElement | null = null;
+  const [mapBearing, setMapBearing] = createSignal(0);
+
+  function updateRotation() {
+    if (!containerEl) return;
+    const bearing = props.map.getBearing();
+    setMapBearing(bearing);
+    containerEl.style.transform = `rotate(${-bearing}deg)`;
+  }
 
   function createMarkerElement(): HTMLElement {
     const container = document.createElement('div');
     container.style.cssText = 'position: relative; width: 24px; height: 24px;';
+    containerEl = container;
 
     const img = document.createElement('img');
     img.src = '/icons/gps-location.svg';
@@ -41,10 +51,23 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     return container;
   }
 
-  createEffect(() => {
-    const pos = gpsPosition();
+  function updateHeading() {
     const heading = gpsHeading();
     const hasAbsolute = orientationAbsolute();
+    const bearing = mapBearing();
+
+    if (headingEl && heading !== null && hasAbsolute) {
+      headingEl.style.opacity = '1';
+      const triangleRotation = heading - bearing;
+      headingEl.style.transform = `translateX(-50%) rotate(${triangleRotation}deg)`;
+      headingEl.style.transformOrigin = 'center calc(100% + 17px)';
+    } else if (headingEl) {
+      headingEl.style.opacity = '0';
+    }
+  }
+
+  createEffect(() => {
+    const pos = gpsPosition();
 
     if (!pos) {
       if (marker) {
@@ -59,20 +82,23 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
       marker = new maplibregl.Marker({ element: el })
         .setLngLat([pos.longitude, pos.latitude])
         .addTo(props.map);
+
+      props.map.on('rotate', updateRotation);
+      updateRotation();
     } else {
       marker.setLngLat([pos.longitude, pos.latitude]);
     }
 
-    if (headingEl && heading !== null && hasAbsolute) {
-      headingEl.style.opacity = '1';
-      headingEl.style.transform = `translateX(-50%) rotate(${heading}deg)`;
-      headingEl.style.transformOrigin = 'center calc(100% + 17px)';
-    } else if (headingEl) {
-      headingEl.style.opacity = '0';
-    }
+    updateHeading();
+  });
+
+  createEffect(() => {
+    mapBearing();
+    updateHeading();
   });
 
   onCleanup(() => {
+    props.map.off('rotate', updateRotation);
     marker?.remove();
     marker = null;
   });
