@@ -119,7 +119,9 @@ const DesktopToolsBar: Component = () => {
                   'min-height': '0',
                 }}
               >
-                {panelFor(tool.id)}
+                <div style={{ 'overflow-y': 'auto', 'min-height': '0', flex: '1' }}>
+                  {panelFor(tool.id)}
+                </div>
               </div>
             </div>
           </div>
