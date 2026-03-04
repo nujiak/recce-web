@@ -171,8 +171,8 @@ const MapView: Component = () => {
       <Show when={mapInstance()}>
         {(map) => (
           <MapContext.Provider value={map()}>
-            <PinMarkers map={map()} pins={pins() ?? []} />
             <UserLocationMarker map={map()} />
+            <PinMarkers map={map()} pins={pins() ?? []} />
             <TrackLayers
               map={map()}
               tracks={tracks() ?? []}

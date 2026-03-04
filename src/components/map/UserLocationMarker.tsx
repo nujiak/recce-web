@@ -1,4 +1,4 @@
-import { Component, createEffect, onCleanup, Show } from 'solid-js';
+import { Component, createEffect, onCleanup } from 'solid-js';
 import maplibregl from 'maplibre-gl';
 import { gpsPosition, gpsHeading, orientationAbsolute } from '../../stores/gps';
 
@@ -14,33 +14,13 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     const container = document.createElement('div');
     container.style.cssText = 'position: relative; width: 24px; height: 24px;';
 
-    const circle = document.createElement('div');
-    circle.style.cssText = `
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      background: #ffffff;
-      box-shadow: 0 0 0 2px rgba(83, 181, 78, 0.4);
-    `;
-
-    const innerCircle = document.createElement('div');
-    innerCircle.style.cssText = `
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      background: #53b54e;
-    `;
-
-    circle.appendChild(innerCircle);
-    container.appendChild(circle);
+    const img = document.createElement('img');
+    img.src = '/icons/gps-location.svg';
+    img.width = 24;
+    img.height = 24;
+    img.alt = 'Your location';
+    img.style.cssText = 'display: block;';
+    container.appendChild(img);
 
     headingEl = document.createElement('div');
     headingEl.style.cssText = `
