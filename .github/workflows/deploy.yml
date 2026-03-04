@@ -12,8 +12,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    if: github.event.action != 'closed'
+  build-production:
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,14 +23,33 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          VITE_BASE: /recce-web/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  build-preview:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+        env:
+          VITE_BASE: /recce-web/pr-preview/pr-${{ github.event.pull_request.number }}/
       - uses: actions/upload-artifact@v4
         with:
           name: dist
           path: dist/
 
   deploy-production:
-    needs: build
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-production
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -48,8 +67,7 @@ jobs:
           force: false
 
   deploy-preview:
-    needs: build
-    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    needs: build-preview
     runs-on: ubuntu-latest
     permissions:
       contents: write
