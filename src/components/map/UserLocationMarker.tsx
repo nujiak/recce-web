@@ -1,18 +1,19 @@
 import { Component, createEffect, onCleanup } from 'solid-js';
 import maplibregl from 'maplibre-gl';
+import circle from '@turf/circle';
 import { gpsPosition } from '../../stores/gps';
 
 interface UserLocationMarkerProps {
   map: maplibregl.Map;
 }
 
-const SOURCE_ID = 'user-location-accuracy';
-const LAYER_ID = 'user-location-accuracy-circle';
+const ACCURACY_SOURCE_ID = 'user-location-accuracy';
+const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
 
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let marker: maplibregl.Marker | null = null;
   let containerEl: HTMLDivElement | null = null;
-  let sourceAdded = false;
+  let accuracyAdded = false;
 
   function updateRotation() {
     if (!containerEl) return;
@@ -37,65 +38,43 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   }
 
   function updateAccuracyCircle(lng: number, lat: number, accuracy: number) {
-    if (!sourceAdded) {
-      props.map.addSource(SOURCE_ID, {
+    const circleGeojson = circle([lng, lat], accuracy, {
+      steps: 64,
+      units: 'meters',
+    });
+
+    if (!accuracyAdded) {
+      props.map.addSource(ACCURACY_SOURCE_ID, {
         type: 'geojson',
-        data: {
-          type: 'Feature',
-          geometry: {
-            type: 'Point',
-            coordinates: [lng, lat],
-          },
-          properties: {
-            accuracy,
-          },
-        },
+        data: circleGeojson,
       });
 
       props.map.addLayer({
-        id: LAYER_ID,
-        type: 'circle',
-        source: SOURCE_ID,
+        id: ACCURACY_LAYER_ID,
+        type: 'fill',
+        source: ACCURACY_SOURCE_ID,
         paint: {
-          'circle-radius': [
-            '/',
-            ['*', ['get', 'accuracy'], ['^', 2, ['zoom']]],
-            ['*', 156543.03392, ['cos', ['*', ['get', 'lat'], ['/', Math.PI, 180]]]],
-          ],
-          'circle-color': '#53b54e',
-          'circle-opacity': 0.15,
-          'circle-stroke-color': '#53b54e',
-          'circle-stroke-opacity': 0.4,
-          'circle-stroke-width': 1,
+          'fill-color': '#53b54e',
+          'fill-opacity': 0.15,
         },
       });
 
-      sourceAdded = true;
+      accuracyAdded = true;
+    } else {
+      const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource;
+      source?.setData(circleGeojson);
     }
-
-    const source = props.map.getSource(SOURCE_ID) as maplibregl.GeoJSONSource;
-    source?.setData({
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: [lng, lat],
-      },
-      properties: {
-        accuracy,
-        lat,
-      },
-    });
   }
 
   function removeAccuracyCircle() {
-    if (sourceAdded) {
-      if (props.map.getLayer(LAYER_ID)) {
-        props.map.removeLayer(LAYER_ID);
+    if (accuracyAdded) {
+      if (props.map.getLayer(ACCURACY_LAYER_ID)) {
+        props.map.removeLayer(ACCURACY_LAYER_ID);
       }
-      if (props.map.getSource(SOURCE_ID)) {
-        props.map.removeSource(SOURCE_ID);
+      if (props.map.getSource(ACCURACY_SOURCE_ID)) {
+        props.map.removeSource(ACCURACY_SOURCE_ID);
       }
-      sourceAdded = false;
+      accuracyAdded = false;
     }
   }
 
