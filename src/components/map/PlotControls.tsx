@@ -3,7 +3,7 @@ import { useUI } from '../../context/UIContext';
 import { usePrefs } from '../../context/PrefsContext';
 import { CoordinateTransformer } from '../../coords/index';
 import { showToast } from '../Toast';
-import type { TrackNode, PinColor, Pin } from '../../types';
+import type { TrackNode, Pin } from '../../types';
 
 interface PlotControlsProps {
   center: [number, number]; // [lng, lat]
@@ -32,11 +32,8 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
     }
   }
 
-  let mapRef: maplibregl.Map | undefined;
-
   function handleAddPin() {
     const [lng, lat] = props.center;
-    const coordStr = CoordinateTransformer.toDisplay(lat, lng, prefs.coordinateSystem) ?? '';
     setEditingPin({
       id: 0,
       name: '',

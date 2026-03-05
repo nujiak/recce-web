@@ -1,4 +1,11 @@
-import { createContext, useContext, createSignal, onCleanup, ParentComponent } from 'solid-js';
+import {
+  createContext,
+  useContext,
+  createSignal,
+  onMount,
+  onCleanup,
+  ParentComponent,
+} from 'solid-js';
 import type { Pin, Track } from '../types';
 
 type NavTab = 'map' | 'saved' | 'tools';
@@ -41,10 +48,10 @@ export const UIProvider: ParentComponent = (props) => {
   // Reset mobile-only tabs (saved/tools) when viewport widens to desktop,
   // and open the corresponding desktop accordion section for a seamless transition.
   const DESKTOP_BREAKPOINT = 768;
-  const [isDesktop, setIsDesktop] = createSignal(window.innerWidth >= DESKTOP_BREAKPOINT);
+  let wasDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
   const onResize = () => {
     const desktop = window.innerWidth >= DESKTOP_BREAKPOINT;
-    if (desktop && !isDesktop()) {
+    if (desktop && !wasDesktop) {
       const tab = activeNav();
       if (tab === 'saved') {
         setDesktopSection('saved');
@@ -55,10 +62,12 @@ export const UIProvider: ParentComponent = (props) => {
         setActiveNav('map');
       }
     }
-    setIsDesktop(desktop);
+    wasDesktop = desktop;
   };
-  window.addEventListener('resize', onResize);
-  onCleanup(() => window.removeEventListener('resize', onResize));
+  onMount(() => {
+    window.addEventListener('resize', onResize);
+    onCleanup(() => window.removeEventListener('resize', onResize));
+  });
 
   const [activeModal, setActiveModal] = createSignal<string | null>(null);
   const [isMultiSelect, setIsMultiSelect] = createSignal(false);

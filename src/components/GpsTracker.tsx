@@ -1,4 +1,4 @@
-import { Component, onMount, onCleanup, createSignal } from 'solid-js';
+import { Component, onMount, onCleanup } from 'solid-js';
 import {
   gpsPosition,
   setGpsPosition,
@@ -13,7 +13,6 @@ import {
 } from '../stores/gps';
 
 const GpsTracker: Component = () => {
-  const [iosPrompt, setIosPrompt] = createSignal(false);
   let watchId: number | null = null;
 
   function startWatch() {
@@ -76,7 +75,6 @@ const GpsTracker: Component = () => {
         if (perm === 'granted') {
           window.addEventListener('deviceorientationabsolute', handleOrientation as any, true);
           window.addEventListener('deviceorientation', handleOrientation as any, true);
-          setIosPrompt(false);
         }
       } catch {}
     }
@@ -86,9 +84,7 @@ const GpsTracker: Component = () => {
     startWatch();
 
     const doe = DeviceOrientationEvent as any;
-    if (typeof doe.requestPermission === 'function') {
-      setIosPrompt(true);
-    } else {
+    if (typeof doe.requestPermission !== 'function') {
       window.addEventListener('deviceorientationabsolute', handleOrientation as any, true);
       window.addEventListener('deviceorientation', handleOrientation as any, true);
     }

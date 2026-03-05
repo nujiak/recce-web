@@ -7,7 +7,6 @@ import type { Track, PinColor, TrackNode } from '../../types';
 import ColorPicker from '../ColorPicker';
 
 interface TrackEditorProps {
-  prefillNodes?: TrackNode[];
   onSaved?: () => void;
 }
 
@@ -32,13 +31,6 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
       setGroup(t.group);
       setDescription(t.description);
       setNodes(t.nodes);
-    } else if (props.prefillNodes) {
-      setNodes(props.prefillNodes);
-      setName('');
-      setIsCyclical(false);
-      setColor('azure');
-      setGroup('');
-      setDescription('');
     } else {
       setName('');
       setIsCyclical(false);
