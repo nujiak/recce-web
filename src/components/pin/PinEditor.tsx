@@ -1,4 +1,5 @@
-import { Component, createSignal, createEffect, onCleanup, Show } from 'solid-js';
+import { Component, createSignal, createEffect, Show } from 'solid-js';
+import { useEscapeToClose } from '../../utils/hooks';
 import { useUI } from '../../context/UIContext';
 import { CoordinateTransformer } from '../../coords/index';
 import { usePrefs } from '../../context/PrefsContext';
@@ -25,15 +26,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
   const [group, setGroup] = createSignal('');
   const [description, setDescription] = createSignal('');
 
-  // Close on Escape
-  createEffect(() => {
-    if (!pin()) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setEditingPin(null);
-    }
-    window.addEventListener('keydown', onKey);
-    onCleanup(() => window.removeEventListener('keydown', onKey));
-  });
+  useEscapeToClose(pin, () => setEditingPin(null));
 
   // Populate fields when pin changes
   createEffect(() => {

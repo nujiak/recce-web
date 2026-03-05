@@ -1,4 +1,5 @@
-import { Component, createSignal, createEffect, onCleanup, Show } from 'solid-js';
+import { Component, createSignal, createEffect, Show } from 'solid-js';
+import { useEscapeToClose } from '../../utils/hooks';
 import { useUI } from '../../context/UIContext';
 import { addTrack, updateTrack, deleteTrack } from '../../db/db';
 import { showToast } from '../Toast';
@@ -20,15 +21,7 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
   const [description, setDescription] = createSignal('');
   const [nodes, setNodes] = createSignal<TrackNode[]>([]);
 
-  // Close on Escape
-  createEffect(() => {
-    if (!editingTrack()) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setEditingTrack(null);
-    }
-    window.addEventListener('keydown', onKey);
-    onCleanup(() => window.removeEventListener('keydown', onKey));
-  });
+  useEscapeToClose(editingTrack, () => setEditingTrack(null));
 
   createEffect(() => {
     const t = editingTrack();

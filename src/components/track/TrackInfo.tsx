@@ -1,20 +1,14 @@
-import { Component, For, Show, createEffect, onCleanup } from 'solid-js';
+import { Component, For, Show } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import { usePrefs } from '../../context/PrefsContext';
 import { calculateTotalDistance, calculateArea, formatDistance, formatArea } from '../../utils/geo';
+import { useEscapeToClose } from '../../utils/hooks';
 
 const TrackInfo: Component = () => {
   const { viewingTrack, setViewingTrack, setEditingTrack, setActiveNav } = useUI();
-
-  createEffect(() => {
-    if (!viewingTrack()) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setViewingTrack(null);
-    }
-    window.addEventListener('keydown', onKey);
-    onCleanup(() => window.removeEventListener('keydown', onKey));
-  });
   const [prefs] = usePrefs();
+
+  useEscapeToClose(viewingTrack, () => setViewingTrack(null));
 
   function goTo() {
     const t = viewingTrack();
