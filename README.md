@@ -1,7 +1,7 @@
 # Recce Web
 
 A mapping and reconnaissance utility for the browser — a feature-complete rewrite of the
-Recce Android app in plain HTML, JavaScript, and CSS, built with Vite and deployed as a
+Recce Android app in SolidJS, TypeScript, and Tailwind CSS v4, built with Vite and deployed as a
 fully static site.
 
 ---
@@ -131,10 +131,13 @@ displays, compass azimuth, GPS overlay, ruler segments, saved list).
 
 | Concern        | Choice                              |
 | -------------- | ----------------------------------- |
+| Framework      | SolidJS + TypeScript                |
+| Styling        | Tailwind CSS v4                     |
 | Build          | Vite + vite-plugin-pwa              |
 | Map            | MapLibre GL JS + OpenFreeMap tiles  |
+| Map utilities  | @turf/circle                        |
 | Database       | Dexie (IndexedDB)                   |
-| Coordinates    | proj4js + custom parsers            |
+| Coordinates    | proj4js + utm-latlng                |
 | Compression    | pako (zlib / deflate)               |
 | Share encoding | Base62 (custom, no deps)            |
 | Icons          | Material Symbols (Google Fonts CDN) |
