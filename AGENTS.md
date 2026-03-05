@@ -136,6 +136,18 @@ App state is reactive and managed using SolidJS signals, contexts, and stores. D
 
 ## Feature Specifications
 
+### Screens & Flows (Quick Context)
+
+- **Onboarding:** First launch 3-step modal sets coordinate system, units, theme; blocks map until completed; sets `onboardingDone`.
+- **Map (default):** Full-screen on mobile, left pane on desktop. Crosshair shows centre; tapping/long-press can create a pin; GPS overlays accuracy circle and live readouts; compass/location controls live here.
+- **Pin Editor/Info:** Editor is a bottom sheet on mobile, dialog on desktop; Info modal lists all coordinate systems with actions (copy/open in Maps).
+- **Track Editor:** Plot mode from map; taps add nodes, ghost line previews next segment; undo/save in editor; `isCyclical` toggles path vs area.
+- **Saved:** Unified list of pins/tracks; search + sort; long-press enters multi-select for bulk actions (delete/share/add to ruler).
+- **Tools:** Mobile uses modal grid launcher; desktop shows tool icons below Saved with accordion panels.
+- **Ruler:** Consumes selected pins/tracks from Saved; shows multi-point distance/bearing; resets on reload.
+- **Settings:** Updates `recce_prefs` and applies immediately (coord system, units, theme).
+- **Share:** Share-code encodes pins/tracks; decode opens in Saved for review/import.
+
 ### Map Screen
 
 - Full-screen MapLibre map as the default view.
