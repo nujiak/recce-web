@@ -31,31 +31,41 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   }
 
   function createHeadingElement(): HTMLElement {
-    // SVG from ic_twotone_play_arrow_24.xml: 24×24, points right.
-    // Android anchor(-0.2, 0.5) = the geographic point is at (-4.8, 12) in
-    // the original SVG coordinate space.
-    // MapLibre rotates around the element center, so we make a 0×0 container
-    // positioned at the latlng, then absolutely position the SVG so that the
-    // point (-4.8, 12) in SVG space lands exactly at the container's origin.
-    // That means: left = 4.8px, top = -12px (shifting the SVG left and up).
+    // A triangle that orbits the location dot, pointing toward the azimuth.
+    // The SVG canvas is 40×40; the geographic point (dot center) maps to the
+    // SVG center (20, 20). The triangle sits above the center so that when
+    // MapLibre calls setRotation(heading) it sweeps around the dot.
+    //
+    // Triangle vertices (isosceles, pointing up):
+    //   tip:         (20,  3)  — apex, ~17px above center
+    //   base-left:   (14, 14)  — base corners
+    //   base-right:  (26, 14)
+    //
+    // MapLibre anchor = "center" (default) → rotation origin = (20, 20) = geo point.
+    // rotationAlignment/pitchAlignment: 'map' keeps the element glued to map space.
     const container = document.createElement('div');
-    container.style.cssText = 'width: 0; height: 0; position: relative;';
+    container.style.cssText = 'width: 40px; height: 40px; position: relative;';
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '24');
-    svg.setAttribute('height', '24');
-    svg.setAttribute('viewBox', '0 0 24 24');
-    svg.style.cssText = 'display: block; position: absolute; left: 4.8px; top: -12px;';
+    svg.setAttribute('width', '40');
+    svg.setAttribute('height', '40');
+    svg.setAttribute('viewBox', '0 0 40 40');
+    svg.style.cssText = 'display: block; position: absolute; left: 0; top: 0;';
 
-    const inner = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    inner.setAttribute('d', 'M10,8.64v6.72L15.27,12z');
+    // White outline (slightly larger triangle for contrast)
+    const outline = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    outline.setAttribute('points', '20,1 13,15 27,15');
+    outline.setAttribute('fill', 'white');
+    outline.setAttribute('stroke', 'white');
+    outline.setAttribute('stroke-width', '2');
+    outline.setAttribute('stroke-linejoin', 'round');
+    svg.appendChild(outline);
+
+    // Green filled triangle
+    const inner = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    inner.setAttribute('points', '20,3 14,14 26,14');
     inner.setAttribute('fill', '#53b54e');
     svg.appendChild(inner);
-
-    const outline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    outline.setAttribute('d', 'M8,19l11,-7L8,5v14zM10,8.64L15.27,12 10,15.36L10,8.64z');
-    outline.setAttribute('fill', 'white');
-    svg.appendChild(outline);
 
     container.appendChild(svg);
     return container;
