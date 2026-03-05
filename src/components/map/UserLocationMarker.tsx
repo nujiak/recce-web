@@ -11,10 +11,10 @@ const ACCURACY_SOURCE_ID = 'user-location-accuracy';
 const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
 
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
-  let marker: maplibregl.Marker | null = null;
+  let locationMarker: maplibregl.Marker | null = null;
   let accuracyAdded = false;
 
-  function createMarkerElement(): HTMLElement {
+  function createLocationElement(): HTMLElement {
     const container = document.createElement('div');
     container.style.cssText = 'position: relative; width: 24px; height: 24px;';
 
@@ -74,9 +74,9 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     const pos = gpsPosition();
 
     if (!pos) {
-      if (marker) {
-        marker.remove();
-        marker = null;
+      if (locationMarker) {
+        locationMarker.remove();
+        locationMarker = null;
       }
       removeAccuracyCircle();
       return;
@@ -84,19 +84,23 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
 
     updateAccuracyCircle(pos.longitude, pos.latitude, pos.accuracy);
 
-    if (!marker) {
-      const el = createMarkerElement();
-      marker = new maplibregl.Marker({ element: el })
+    if (!locationMarker) {
+      const el = createLocationElement();
+      locationMarker = new maplibregl.Marker({
+        element: el,
+        rotationAlignment: 'map',
+        pitchAlignment: 'map',
+      })
         .setLngLat([pos.longitude, pos.latitude])
         .addTo(props.map);
     } else {
-      marker.setLngLat([pos.longitude, pos.latitude]);
+      locationMarker.setLngLat([pos.longitude, pos.latitude]);
     }
   });
 
   onCleanup(() => {
-    marker?.remove();
-    marker = null;
+    locationMarker?.remove();
+    locationMarker = null;
     removeAccuracyCircle();
   });
 
