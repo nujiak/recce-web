@@ -13,6 +13,7 @@ const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let locationMarker: maplibregl.Marker | null = null;
   let headingMarker: maplibregl.Marker | null = null;
+  let headingIconEl: HTMLElement | null = null;
   let accuracyAdded = false;
 
   function createLocationElement(): HTMLElement {
@@ -31,22 +32,17 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   }
 
   function createHeadingElement(): HTMLElement {
-    // The play_arrow icon points right natively. We rotate it -90deg in CSS so
-    // it points up at rotation=0 (north). MapLibre setRotation then rotates it
-    // to the user's heading. The offset [13, 0] shifts the anchor point to just
-    // outside the location dot (8px radius + ~5px gap), matching the Android
-    // anchor(-0.2, 0.5) on a 24dp icon.
-    const container = document.createElement('div');
-    container.style.cssText =
-      'display: flex; align-items: center; justify-content: center; transform: rotate(-90deg);';
-
+    // The play_arrow icon points right natively.
+    // CSS transform applies right-to-left:
+    //   1. translateX(16px) — offset the icon to the right of the location dot
+    //   2. rotate(azimuth - 90deg) — rotate around the location dot center
     const icon = document.createElement('span');
     icon.className = 'material-symbols-outlined';
     icon.textContent = 'play_arrow';
-    icon.style.cssText = 'font-size: 24px; color: #53b54e; -webkit-text-stroke: 1px white;';
-    container.appendChild(icon);
-
-    return container;
+    icon.style.cssText =
+      'font-size: 24px; color: #53b54e; -webkit-text-stroke: 1px white; display: block;';
+    headingIconEl = icon;
+    return icon;
   }
 
   function updateAccuracyCircle(lng: number, lat: number, accuracy: number) {
@@ -135,24 +131,21 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     }
 
     if (heading !== null) {
+      const deg = heading - 90;
       if (!headingMarker) {
         const el = createHeadingElement();
-        headingMarker = new maplibregl.Marker({
-          element: el,
-          rotationAlignment: 'map',
-          pitchAlignment: 'map',
-          offset: [13, 0],
-        })
+        el.style.transform = `rotate(${deg}deg) translateX(16px)`;
+        headingMarker = new maplibregl.Marker({ element: el })
           .setLngLat([pos.longitude, pos.latitude])
-          .setRotation(heading)
           .addTo(props.map);
       } else {
         headingMarker.setLngLat([pos.longitude, pos.latitude]);
-        headingMarker.setRotation(heading);
+        if (headingIconEl) headingIconEl.style.transform = `rotate(${deg}deg) translateX(16px)`;
       }
     } else if (headingMarker) {
       headingMarker.remove();
       headingMarker = null;
+      headingIconEl = null;
     }
   });
 
@@ -161,6 +154,7 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     locationMarker = null;
     headingMarker?.remove();
     headingMarker = null;
+    headingIconEl = null;
     removeAccuracyCircle();
   });
 
