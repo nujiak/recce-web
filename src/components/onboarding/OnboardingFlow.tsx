@@ -1,4 +1,4 @@
-import { Component, createSignal } from 'solid-js';
+import { Component, createSignal, Index } from 'solid-js';
 import { usePrefs } from '../../context/PrefsContext';
 import { SYSTEM_NAMES } from '../../coords/index';
 import type { AngleUnit, CoordinateSystem, LengthUnit, Theme } from '../../types';
@@ -177,16 +177,18 @@ const OnboardingFlow: Component = () => {
       >
         {/* Step dots */}
         <div style={{ display: 'flex', gap: '6px', 'justify-content': 'center' }}>
-          {steps.map((_, i) => (
-            <div
-              style={{
-                width: '6px',
-                height: '6px',
-                'border-radius': '50%',
-                background: i === step() ? 'var(--color-accent)' : 'var(--color-border)',
-              }}
-            />
-          ))}
+          <Index each={steps}>
+            {(_, i) => (
+              <div
+                style={{
+                  width: '6px',
+                  height: '6px',
+                  'border-radius': '50%',
+                  background: i === step() ? 'var(--color-accent)' : 'var(--color-border)',
+                }}
+              />
+            )}
+          </Index>
         </div>
 
         <div>

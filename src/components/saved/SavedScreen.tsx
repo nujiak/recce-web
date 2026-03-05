@@ -258,8 +258,8 @@ const SavedScreen: Component = () => {
 
         <div style={{ display: 'flex', gap: '6px', 'align-items': 'center' }}>
           <span style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>Sort:</span>
-          {(['date-new', 'date-old', 'name-asc', 'name-desc', 'color'] as SortMode[]).map(
-            (mode) => (
+          <For each={['date-new', 'date-old', 'name-asc', 'name-desc', 'color'] as SortMode[]}>
+            {(mode) => (
               <button
                 onClick={() => setSortMode(mode)}
                 style={{
@@ -285,8 +285,8 @@ const SavedScreen: Component = () => {
                         ? 'Z→A'
                         : 'Color'}
               </button>
-            )
-          )}
+            )}
+          </For>
         </div>
 
         {/* Import input */}

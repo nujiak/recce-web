@@ -1,4 +1,4 @@
-import { Component, Show } from 'solid-js';
+import { Component, Show, For } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import SettingsPanel from '../settings/SettingsPanel';
 import GpsPanel from '../tools/GpsPanel';
@@ -91,31 +91,33 @@ const ToolboxModal: Component = () => {
             <div
               style={{ display: 'grid', 'grid-template-columns': 'repeat(3, 1fr)', gap: '12px' }}
             >
-              {TOOL_CARDS.map((tool) => (
-                <button
-                  aria-label={tool.label}
-                  onClick={() => setActiveTool(tool.id)}
-                  style={{
-                    display: 'flex',
-                    'flex-direction': 'column',
-                    'align-items': 'center',
-                    gap: '8px',
-                    padding: '16px 8px',
-                    background: 'var(--color-bg-secondary)',
-                    border: '1px solid var(--color-border)',
-                    'border-radius': 'var(--radius-md)',
-                    cursor: 'pointer',
-                    color: 'var(--color-text)',
-                    'font-size': '0.75rem',
-                    'font-family': 'inherit',
-                  }}
-                >
-                  <span class="material-symbols-outlined" style={{ 'font-size': '1.5rem' }}>
-                    {tool.icon}
-                  </span>
-                  {tool.label}
-                </button>
-              ))}
+              <For each={TOOL_CARDS}>
+                {(tool) => (
+                  <button
+                    aria-label={tool.label}
+                    onClick={() => setActiveTool(tool.id)}
+                    style={{
+                      display: 'flex',
+                      'flex-direction': 'column',
+                      'align-items': 'center',
+                      gap: '8px',
+                      padding: '16px 8px',
+                      background: 'var(--color-bg-secondary)',
+                      border: '1px solid var(--color-border)',
+                      'border-radius': 'var(--radius-md)',
+                      cursor: 'pointer',
+                      color: 'var(--color-text)',
+                      'font-size': '0.75rem',
+                      'font-family': 'inherit',
+                    }}
+                  >
+                    <span class="material-symbols-outlined" style={{ 'font-size': '1.5rem' }}>
+                      {tool.icon}
+                    </span>
+                    {tool.label}
+                  </button>
+                )}
+              </For>
             </div>
           </div>
         </Show>
