@@ -46,11 +46,3 @@ export interface CoordResult {
 }
 
 export type ToastType = 'success' | 'error' | 'info';
-
-export interface SwipeOptions {
-  sheet: HTMLElement;
-  backdrop?: HTMLElement | null;
-  onDismiss?: () => void;
-  threshold?: number;
-  openClass?: string;
-}
