@@ -2,14 +2,7 @@ import { Component } from 'solid-js';
 import { usePrefs } from '../../context/PrefsContext';
 import { CoordinateTransformer } from '../../coords/index';
 import type { Pin } from '../../types';
-
-const COLOR_MAP: Record<string, string> = {
-  red: 'var(--color-red)',
-  orange: 'var(--color-orange)',
-  green: 'var(--color-green)',
-  azure: 'var(--color-azure)',
-  violet: 'var(--color-violet)',
-};
+import { PIN_COLOR_CSS } from '../../utils/colors';
 
 interface PinCardProps {
   pin: Pin;
@@ -52,7 +45,7 @@ const PinCard: Component<PinCardProps> = (props) => {
           width: '12px',
           height: '12px',
           'border-radius': '50%',
-          background: COLOR_MAP[props.pin.color] ?? 'var(--color-text-muted)',
+          background: PIN_COLOR_CSS[props.pin.color] ?? 'var(--color-text-muted)',
           'flex-shrink': '0',
         }}
       />

@@ -6,15 +6,7 @@ import { addPin, updatePin, deletePin } from '../../db/db';
 import { showToast } from '../Toast';
 import { SYSTEM_NAMES } from '../../coords/index';
 import type { Pin, PinColor } from '../../types';
-
-const COLORS: PinColor[] = ['red', 'orange', 'green', 'azure', 'violet'];
-const COLOR_VALUES: Record<PinColor, string> = {
-  red: 'var(--color-red)',
-  orange: 'var(--color-orange)',
-  green: 'var(--color-green)',
-  azure: 'var(--color-azure)',
-  violet: 'var(--color-violet)',
-};
+import { PIN_COLOR_CSS, PIN_COLORS } from '../../utils/colors';
 
 interface PinEditorProps {
   onSaved?: () => void;
@@ -36,7 +28,9 @@ const PinEditor: Component<PinEditorProps> = (props) => {
   // Close on Escape
   createEffect(() => {
     if (!pin()) return;
-    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setEditingPin(null); }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setEditingPin(null);
+    }
     window.addEventListener('keydown', onKey);
     onCleanup(() => window.removeEventListener('keydown', onKey));
   });
@@ -132,13 +126,21 @@ const PinEditor: Component<PinEditorProps> = (props) => {
         onKeyDown={(e) => {
           if (e.key !== 'Tab') return;
           const el = e.currentTarget;
-          const focusable = Array.from(el.querySelectorAll<HTMLElement>(
-            'button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
-          )).filter(n => !n.hasAttribute('disabled'));
+          const focusable = Array.from(
+            el.querySelectorAll<HTMLElement>(
+              'button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
+            )
+          ).filter((n) => !n.hasAttribute('disabled'));
           if (focusable.length === 0) return;
-          const first = focusable[0], last = focusable[focusable.length - 1];
-          if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-          else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+          const first = focusable[0],
+            last = focusable[focusable.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
         }}
         style={{
           position: 'fixed',
@@ -146,23 +148,60 @@ const PinEditor: Component<PinEditorProps> = (props) => {
           background: 'var(--color-bg-secondary)',
           border: '1px solid var(--color-border)',
           ...(isDesktop()
-            ? { top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '360px', 'border-radius': 'var(--radius-xl)' }
-            : { bottom: 0, left: 0, right: 0, 'border-radius': 'var(--radius-xl) var(--radius-xl) 0 0' }),
+            ? {
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: '360px',
+                'border-radius': 'var(--radius-xl)',
+              }
+            : {
+                bottom: 0,
+                left: 0,
+                right: 0,
+                'border-radius': 'var(--radius-xl) var(--radius-xl) 0 0',
+              }),
         }}
       >
         <div style={{ padding: '20px', display: 'flex', 'flex-direction': 'column', gap: '14px' }}>
-          <div style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between' }}>
-            <h2 style={{ 'font-size': '1rem', 'font-weight': '700' }}>{pin()?.id ? 'Edit Pin' : 'New Pin'}</h2>
-            <button aria-label="Close" onClick={() => setEditingPin(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)', padding: '4px' }}>✕</button>
+          <div
+            style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between' }}
+          >
+            <h2 style={{ 'font-size': '1rem', 'font-weight': '700' }}>
+              {pin()?.id ? 'Edit Pin' : 'New Pin'}
+            </h2>
+            <button
+              aria-label="Close"
+              onClick={() => setEditingPin(null)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'var(--color-text-secondary)',
+                padding: '4px',
+              }}
+            >
+              ✕
+            </button>
           </div>
 
           <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
-            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Name</span>
+            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+              Name
+            </span>
             <input
               name="pin-name"
               value={name()}
               onInput={(e) => setName(e.currentTarget.value)}
-              style={{ background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '7px 10px', color: 'var(--color-text)', 'font-family': 'inherit', 'font-size': '0.875rem' }}
+              style={{
+                background: 'var(--color-bg-tertiary)',
+                border: '1px solid var(--color-border)',
+                'border-radius': 'var(--radius-sm)',
+                padding: '7px 10px',
+                color: 'var(--color-text)',
+                'font-family': 'inherit',
+                'font-size': '0.875rem',
+              }}
             />
           </label>
 
@@ -173,48 +212,91 @@ const PinEditor: Component<PinEditorProps> = (props) => {
             <input
               name="pin-coord"
               value={coordInput()}
-              onInput={(e) => { setCoordInput(e.currentTarget.value); setCoordError(''); }}
+              onInput={(e) => {
+                setCoordInput(e.currentTarget.value);
+                setCoordError('');
+              }}
               placeholder={`Enter ${SYSTEM_NAMES[prefs.coordinateSystem]} coordinate`}
-              style={{ background: 'var(--color-bg-tertiary)', border: `1px solid ${coordError() ? 'var(--color-danger)' : 'var(--color-border)'}`, 'border-radius': 'var(--radius-sm)', padding: '7px 10px', color: 'var(--color-text)', 'font-family': 'inherit', 'font-size': '0.875rem' }}
+              style={{
+                background: 'var(--color-bg-tertiary)',
+                border: `1px solid ${coordError() ? 'var(--color-danger)' : 'var(--color-border)'}`,
+                'border-radius': 'var(--radius-sm)',
+                padding: '7px 10px',
+                color: 'var(--color-text)',
+                'font-family': 'inherit',
+                'font-size': '0.875rem',
+              }}
             />
             <Show when={coordError()}>
-              <span style={{ 'font-size': '0.75rem', color: 'var(--color-danger)' }}>{coordError()}</span>
+              <span style={{ 'font-size': '0.75rem', color: 'var(--color-danger)' }}>
+                {coordError()}
+              </span>
             </Show>
           </label>
 
           {/* Color picker */}
           <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Color</span>
+            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+              Color
+            </span>
             <div style={{ display: 'flex', gap: '8px' }}>
-              {COLORS.map(c => (
+              {PIN_COLORS.map((c) => (
                 <button
                   aria-label={c}
                   aria-pressed={color() === c}
                   onClick={() => setColor(c)}
-                  style={{ width: '28px', height: '28px', 'border-radius': '50%', background: COLOR_VALUES[c], border: color() === c ? '2px solid var(--color-text)' : '2px solid transparent', cursor: 'pointer' }}
+                  style={{
+                    width: '28px',
+                    height: '28px',
+                    'border-radius': '50%',
+                    background: PIN_COLOR_CSS[c],
+                    border: color() === c ? '2px solid var(--color-text)' : '2px solid transparent',
+                    cursor: 'pointer',
+                  }}
                 />
               ))}
             </div>
           </div>
 
           <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
-            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Group</span>
+            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+              Group
+            </span>
             <input
               name="pin-group"
               value={group()}
               onInput={(e) => setGroup(e.currentTarget.value)}
-              style={{ background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '7px 10px', color: 'var(--color-text)', 'font-family': 'inherit', 'font-size': '0.875rem' }}
+              style={{
+                background: 'var(--color-bg-tertiary)',
+                border: '1px solid var(--color-border)',
+                'border-radius': 'var(--radius-sm)',
+                padding: '7px 10px',
+                color: 'var(--color-text)',
+                'font-family': 'inherit',
+                'font-size': '0.875rem',
+              }}
             />
           </label>
 
           <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
-            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Description</span>
+            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+              Description
+            </span>
             <textarea
               name="pin-desc"
               value={description()}
               onInput={(e) => setDescription(e.currentTarget.value)}
               rows={2}
-              style={{ background: 'var(--color-bg-tertiary)', border: '1px solid var(--color-border)', 'border-radius': 'var(--radius-sm)', padding: '7px 10px', color: 'var(--color-text)', 'font-family': 'inherit', 'font-size': '0.875rem', resize: 'none' }}
+              style={{
+                background: 'var(--color-bg-tertiary)',
+                border: '1px solid var(--color-border)',
+                'border-radius': 'var(--radius-sm)',
+                padding: '7px 10px',
+                color: 'var(--color-text)',
+                'font-family': 'inherit',
+                'font-size': '0.875rem',
+                resize: 'none',
+              }}
             />
           </label>
 
@@ -222,14 +304,34 @@ const PinEditor: Component<PinEditorProps> = (props) => {
             <Show when={pin()?.id != null}>
               <button
                 onClick={handleDelete}
-                style={{ padding: '9px 14px', background: 'none', border: '1px solid var(--color-danger)', 'border-radius': 'var(--radius-md)', cursor: 'pointer', color: 'var(--color-danger)', 'font-family': 'inherit', 'font-size': '0.875rem' }}
+                style={{
+                  padding: '9px 14px',
+                  background: 'none',
+                  border: '1px solid var(--color-danger)',
+                  'border-radius': 'var(--radius-md)',
+                  cursor: 'pointer',
+                  color: 'var(--color-danger)',
+                  'font-family': 'inherit',
+                  'font-size': '0.875rem',
+                }}
               >
                 Delete
               </button>
             </Show>
             <button
               onClick={handleSave}
-              style={{ flex: 1, padding: '9px', background: 'var(--color-accent)', border: 'none', 'border-radius': 'var(--radius-md)', cursor: 'pointer', color: 'oklch(0.1 0 0)', 'font-family': 'inherit', 'font-size': '0.875rem', 'font-weight': '600' }}
+              style={{
+                flex: 1,
+                padding: '9px',
+                background: 'var(--color-accent)',
+                border: 'none',
+                'border-radius': 'var(--radius-md)',
+                cursor: 'pointer',
+                color: 'oklch(0.1 0 0)',
+                'font-family': 'inherit',
+                'font-size': '0.875rem',
+                'font-weight': '600',
+              }}
             >
               Save
             </button>

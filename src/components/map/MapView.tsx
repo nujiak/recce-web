@@ -14,6 +14,7 @@ import CompassButton from './CompassButton';
 import LocationButton from './LocationButton';
 import UserLocationMarker from './UserLocationMarker';
 import type { TrackNode, PinColor } from '../../types';
+import { PIN_COLOR_HEX } from '../../utils/colors';
 
 interface PlotState {
   active: boolean;
@@ -58,7 +59,6 @@ const MapView: Component = () => {
 
     map.on('load', () => {
       setMapInstance(map);
-      (window as any).__map = map;
     });
 
     // Listen for flyTo events from PlotControls / PinInfo / TrackInfo
@@ -86,10 +86,7 @@ const MapView: Component = () => {
     if (!src || nodes.length === 0) return;
     const last = nodes[nodes.length - 1];
     const c = map.getCenter();
-    const hexColor =
-      { red: '#e53935', orange: '#fb8c00', green: '#43a047', azure: '#1e88e5', violet: '#8e24aa' }[
-        color
-      ] ?? '#1e88e5';
+    const hexColor = PIN_COLOR_HEX[color] ?? PIN_COLOR_HEX.azure;
     src.setData({
       type: 'FeatureCollection',
       features: [
