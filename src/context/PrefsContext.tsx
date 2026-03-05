@@ -16,11 +16,7 @@ export const PrefsProvider: ParentComponent = (props) => {
     }
   });
 
-  return (
-    <PrefsContext.Provider value={[prefs, setPrefs]}>
-      {props.children}
-    </PrefsContext.Provider>
-  );
+  return <PrefsContext.Provider value={[prefs, setPrefs]}>{props.children}</PrefsContext.Provider>;
 };
 
 export function usePrefs(): PrefsContextValue {

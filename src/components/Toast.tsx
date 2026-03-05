@@ -38,11 +38,12 @@ const Toast: Component = () => {
           style={{
             padding: '8px 16px',
             'border-radius': 'var(--radius-md)',
-            background: t.type === 'error'
-              ? 'var(--color-danger)'
-              : t.type === 'success'
-              ? 'var(--color-accent)'
-              : 'var(--color-bg-secondary)',
+            background:
+              t.type === 'error'
+                ? 'var(--color-danger)'
+                : t.type === 'success'
+                  ? 'var(--color-accent)'
+                  : 'var(--color-bg-secondary)',
             color: 'var(--color-text)',
             border: '1px solid var(--color-border)',
             'font-size': '0.875rem',

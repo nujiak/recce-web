@@ -50,7 +50,7 @@ export function toWGS84(
   zone: number,
   band: string,
   easting: number,
-  northing: number,
+  northing: number
 ): CoordResult | null {
   const result = utmConverter.convertUtmToLatLng(easting, northing, zone, band);
   if (typeof result === 'string') return null;
