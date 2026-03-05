@@ -1,16 +1,9 @@
 import { Component } from 'solid-js';
 import { usePrefs } from '../../context/PrefsContext';
 import { CoordinateTransformer } from '../../coords/index';
-import { haversineDistance } from '../../utils/geo';
+import { calculateTotalDistance, formatDistance } from '../../utils/geo';
 import type { Track } from '../../types';
-
-const COLOR_MAP: Record<string, string> = {
-  red: 'var(--color-red)',
-  orange: 'var(--color-orange)',
-  green: 'var(--color-green)',
-  azure: 'var(--color-azure)',
-  violet: 'var(--color-violet)',
-};
+import { PIN_COLOR_CSS } from '../../utils/colors';
 
 interface TrackCardProps {
   track: Track;
@@ -23,37 +16,10 @@ interface TrackCardProps {
   onPointerCancel: () => void;
 }
 
-function formatDistance(meters: number, unit: string): string {
-  if (unit === 'imperial') {
-    const miles = meters / 1609.344;
-    return miles >= 0.1 ? `${miles.toFixed(2)} mi` : `${Math.round(meters * 3.281)} ft`;
-  }
-  if (unit === 'nautical') {
-    return `${(meters / 1852).toFixed(2)} nm`;
-  }
-  return meters >= 1000 ? `${(meters / 1000).toFixed(2)} km` : `${Math.round(meters)} m`;
-}
-
 const TrackCard: Component<TrackCardProps> = (props) => {
   const [prefs] = usePrefs();
 
-  const totalDistance = () => {
-    const nodes = props.track.nodes;
-    if (nodes.length < 2) return 0;
-    let d = 0;
-    for (let i = 1; i < nodes.length; i++) {
-      d += haversineDistance(nodes[i - 1].lat, nodes[i - 1].lng, nodes[i].lat, nodes[i].lng);
-    }
-    if (props.track.isCyclical && nodes.length > 2) {
-      d += haversineDistance(
-        nodes[nodes.length - 1].lat,
-        nodes[nodes.length - 1].lng,
-        nodes[0].lat,
-        nodes[0].lng
-      );
-    }
-    return d;
-  };
+  const totalDistance = () => calculateTotalDistance(props.track.nodes, props.track.isCyclical);
 
   const firstCoord = () => {
     const n = props.track.nodes[0];
@@ -95,7 +61,7 @@ const TrackCard: Component<TrackCardProps> = (props) => {
             width: '12px',
             height: '12px',
             'border-radius': props.track.isCyclical ? '50%' : '2px',
-            background: COLOR_MAP[props.track.color] ?? 'var(--color-text-muted)',
+            background: PIN_COLOR_CSS[props.track.color] ?? 'var(--color-text-muted)',
           }}
         />
       </div>
