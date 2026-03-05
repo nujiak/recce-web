@@ -15,9 +15,14 @@ const SettingsPanel: Component = () => {
   const [prefs, setPrefs] = usePrefs();
 
   return (
-    <div class="settings-panel" style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '16px' }}>
+    <div
+      class="settings-panel"
+      style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '16px' }}
+    >
       <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
-        <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Coordinate System</span>
+        <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+          Coordinate System
+        </span>
         <select
           name="coordinateSystem"
           value={prefs.coordinateSystem}
@@ -34,7 +39,9 @@ const SettingsPanel: Component = () => {
       </label>
 
       <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
-        <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Angle Unit</span>
+        <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+          Angle Unit
+        </span>
         <select
           name="angleUnit"
           value={prefs.angleUnit}
@@ -47,7 +54,9 @@ const SettingsPanel: Component = () => {
       </label>
 
       <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
-        <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Length Unit</span>
+        <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+          Length Unit
+        </span>
         <select
           name="lengthUnit"
           value={prefs.lengthUnit}

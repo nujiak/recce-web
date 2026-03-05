@@ -9,7 +9,7 @@ export interface RulerPoint {
 export const [rulerPoints, setRulerPoints] = createSignal<RulerPoint[]>([]);
 
 export function addToRuler(points: RulerPoint[]) {
-  setRulerPoints(prev => [...prev, ...points]);
+  setRulerPoints((prev) => [...prev, ...points]);
 }
 
 export function clearRuler() {

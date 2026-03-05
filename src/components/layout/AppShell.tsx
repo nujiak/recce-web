@@ -44,12 +44,18 @@ const AppShell: ParentComponent<AppShellProps> = (props) => {
       `}</style>
 
       {/* Main content area — map + mobile nav panes */}
-      <div class="main-pane" style={{ position: 'relative', overflow: 'hidden', background: 'var(--color-bg)' }}>
+      <div
+        class="main-pane"
+        style={{ position: 'relative', overflow: 'hidden', background: 'var(--color-bg)' }}
+      >
         {props.children}
       </div>
 
       {/* Desktop: right sidebar — accordion (Saved / GPS / Ruler / Settings) */}
-      <div class="side-pane" style={{ display: 'none', background: 'var(--color-bg)', 'flex-direction': 'column' }}>
+      <div
+        class="side-pane"
+        style={{ display: 'none', background: 'var(--color-bg)', 'flex-direction': 'column' }}
+      >
         <DesktopToolsBar />
       </div>
 
