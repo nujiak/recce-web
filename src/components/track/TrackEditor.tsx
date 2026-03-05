@@ -4,7 +4,7 @@ import { useUI } from '../../context/UIContext';
 import { addTrack, updateTrack, deleteTrack } from '../../db/db';
 import { showToast } from '../Toast';
 import type { Track, PinColor, TrackNode } from '../../types';
-import { PIN_COLOR_CSS, PIN_COLORS } from '../../utils/colors';
+import ColorPicker from '../ColorPicker';
 
 interface TrackEditorProps {
   prefillNodes?: TrackNode[];
@@ -224,29 +224,7 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
             </div>
           </div>
 
-          {/* Color */}
-          <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
-              Color
-            </span>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {PIN_COLORS.map((c) => (
-                <button
-                  aria-label={c}
-                  aria-pressed={color() === c}
-                  onClick={() => setColor(c)}
-                  style={{
-                    width: '28px',
-                    height: '28px',
-                    'border-radius': '50%',
-                    background: PIN_COLOR_CSS[c],
-                    border: color() === c ? '2px solid var(--color-text)' : '2px solid transparent',
-                    cursor: 'pointer',
-                  }}
-                />
-              ))}
-            </div>
-          </div>
+          <ColorPicker value={color()} onChange={setColor} />
 
           <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
             <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
