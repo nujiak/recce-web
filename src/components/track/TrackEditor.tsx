@@ -5,6 +5,7 @@ import { addTrack, updateTrack, deleteTrack } from '../../db/db';
 import { showToast } from '../Toast';
 import type { Track, PinColor, TrackNode } from '../../types';
 import ColorPicker from '../ColorPicker';
+import { DESKTOP_BREAKPOINT } from '../../utils/constants';
 
 interface TrackEditorProps {
   onSaved?: () => void;
@@ -76,7 +77,7 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
     props.onSaved?.();
   }
 
-  const isDesktop = () => window.innerWidth >= 768;
+  const isDesktop = () => window.innerWidth >= DESKTOP_BREAKPOINT;
 
   return (
     <Show when={editingTrack() !== null}>

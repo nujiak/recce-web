@@ -7,6 +7,7 @@ import {
   ParentComponent,
 } from 'solid-js';
 import type { Pin, Track } from '../types';
+import { DESKTOP_BREAKPOINT } from '../utils/constants';
 
 type NavTab = 'map' | 'saved' | 'tools';
 export type DesktopSection = 'saved' | 'gps' | 'ruler' | 'settings' | null;
@@ -47,7 +48,6 @@ export const UIProvider: ParentComponent = (props) => {
 
   // Reset mobile-only tabs (saved/tools) when viewport widens to desktop,
   // and open the corresponding desktop accordion section for a seamless transition.
-  const DESKTOP_BREAKPOINT = 768;
   let wasDesktop = window.innerWidth >= DESKTOP_BREAKPOINT;
   const onResize = () => {
     const desktop = window.innerWidth >= DESKTOP_BREAKPOINT;

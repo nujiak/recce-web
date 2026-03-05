@@ -8,6 +8,7 @@ import { showToast } from '../Toast';
 import { SYSTEM_NAMES } from '../../coords/index';
 import type { Pin, PinColor } from '../../types';
 import ColorPicker from '../ColorPicker';
+import { DESKTOP_BREAKPOINT } from '../../utils/constants';
 
 interface PinEditorProps {
   onSaved?: () => void;
@@ -101,7 +102,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
     props.onSaved?.();
   }
 
-  const isDesktop = () => window.innerWidth >= 768;
+  const isDesktop = () => window.innerWidth >= DESKTOP_BREAKPOINT;
 
   return (
     <Show when={pin() !== null}>

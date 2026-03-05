@@ -15,6 +15,7 @@ import LocationButton from './LocationButton';
 import UserLocationMarker from './UserLocationMarker';
 import type { TrackNode, PinColor } from '../../types';
 import { PIN_COLOR_HEX } from '../../utils/colors';
+import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/constants';
 
 interface PlotState {
   active: boolean;
@@ -27,7 +28,7 @@ const MapView: Component = () => {
 
   const { savedVersion, setEditingTrack } = useUI();
   const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | null>(null);
-  const [center, setCenter] = createSignal<[number, number]>([103.795, 1.376]);
+  const [center, setCenter] = createSignal<[number, number]>(DEFAULT_MAP_CENTER);
   const [bearing, setBearing] = createSignal(0);
   const [plotState, setPlotState] = createStore<PlotState>({
     active: false,
@@ -42,8 +43,8 @@ const MapView: Component = () => {
     const map = new maplibregl.Map({
       container: containerRef,
       style: 'https://tiles.openfreemap.org/styles/liberty',
-      center: [103.795, 1.376],
-      zoom: 9.5,
+      center: DEFAULT_MAP_CENTER,
+      zoom: DEFAULT_MAP_ZOOM,
     });
 
     map.on('move', () => {
