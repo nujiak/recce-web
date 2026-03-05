@@ -13,7 +13,6 @@ const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let locationMarker: maplibregl.Marker | null = null;
   let headingMarker: maplibregl.Marker | null = null;
-  let headingIconEl: HTMLElement | null = null;
   let accuracyAdded = false;
 
   function createLocationElement(): HTMLElement {
@@ -32,17 +31,33 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   }
 
   function createHeadingElement(): HTMLElement {
-    // The play_arrow icon points right natively.
-    // CSS transform applies right-to-left:
-    //   1. translateX(16px) — offset the icon to the right of the location dot
-    //   2. rotate(azimuth - 90deg) — rotate around the location dot center
-    const icon = document.createElement('span');
-    icon.className = 'material-symbols-outlined';
-    icon.textContent = 'play_arrow';
-    icon.style.cssText =
-      'font-size: 24px; color: #53b54e; -webkit-text-stroke: 1px white; display: block;';
-    headingIconEl = icon;
-    return icon;
+    // SVG converted from ic_twotone_play_arrow_24.xml (24×24dp, points right).
+    // anchor(-0.2, 0.5) in Android = 4.8px left of the icon left edge is the
+    // geographic point, so MapLibre offset [17, 0] places the icon center 17px
+    // to the right of the latlng. Combined with rotationAlignment:'map' and
+    // setRotation(azimuth), the arrow rotates around the location dot center
+    // and always points in the user's heading direction.
+    const container = document.createElement('div');
+    container.style.cssText = 'width: 24px; height: 24px;';
+
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '24');
+    svg.setAttribute('height', '24');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.style.cssText = 'display: block;';
+
+    const inner = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    inner.setAttribute('d', 'M10,8.64v6.72L15.27,12z');
+    inner.setAttribute('fill', '#53b54e');
+    svg.appendChild(inner);
+
+    const outline = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    outline.setAttribute('d', 'M8,19l11,-7L8,5v14zM10,8.64L15.27,12 10,15.36L10,8.64z');
+    outline.setAttribute('fill', 'white');
+    svg.appendChild(outline);
+
+    container.appendChild(svg);
+    return container;
   }
 
   function updateAccuracyCircle(lng: number, lat: number, accuracy: number) {
@@ -131,21 +146,24 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     }
 
     if (heading !== null) {
-      const deg = heading - 90;
       if (!headingMarker) {
         const el = createHeadingElement();
-        el.style.transform = `rotate(${deg}deg) translateX(16px)`;
-        headingMarker = new maplibregl.Marker({ element: el })
+        headingMarker = new maplibregl.Marker({
+          element: el,
+          rotationAlignment: 'map',
+          pitchAlignment: 'map',
+          offset: [17, 0],
+        })
           .setLngLat([pos.longitude, pos.latitude])
+          .setRotation(heading)
           .addTo(props.map);
       } else {
         headingMarker.setLngLat([pos.longitude, pos.latitude]);
-        if (headingIconEl) headingIconEl.style.transform = `rotate(${deg}deg) translateX(16px)`;
+        headingMarker.setRotation(heading);
       }
     } else if (headingMarker) {
       headingMarker.remove();
       headingMarker = null;
-      headingIconEl = null;
     }
   });
 
@@ -154,7 +172,6 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     locationMarker = null;
     headingMarker?.remove();
     headingMarker = null;
-    headingIconEl = null;
     removeAccuracyCircle();
   });
 
