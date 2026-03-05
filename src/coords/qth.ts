@@ -76,7 +76,7 @@ function getUppercaseLetter(index: number): string {
 }
 
 function getLowercaseLetter(index: number): string {
-  return String.fromCharCode(65 + index);
+  return String.fromCharCode(97 + index);
 }
 
 function getIndex(letter: string): number {
