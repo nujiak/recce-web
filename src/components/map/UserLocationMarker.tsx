@@ -31,20 +31,21 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   }
 
   function createHeadingElement(): HTMLElement {
-    // SVG converted from ic_twotone_play_arrow_24.xml (24×24dp, points right).
-    // anchor(-0.2, 0.5) in Android = 4.8px left of the icon left edge is the
-    // geographic point, so MapLibre offset [17, 0] places the icon center 17px
-    // to the right of the latlng. Combined with rotationAlignment:'map' and
-    // setRotation(azimuth), the arrow rotates around the location dot center
-    // and always points in the user's heading direction.
+    // SVG from ic_twotone_play_arrow_24.xml: 24×24, points right.
+    // Android anchor(-0.2, 0.5) = the geographic point is at (-4.8, 12) in
+    // the original SVG coordinate space.
+    // MapLibre rotates around the element center, so we make a 0×0 container
+    // positioned at the latlng, then absolutely position the SVG so that the
+    // point (-4.8, 12) in SVG space lands exactly at the container's origin.
+    // That means: left = 4.8px, top = -12px (shifting the SVG left and up).
     const container = document.createElement('div');
-    container.style.cssText = 'width: 24px; height: 24px;';
+    container.style.cssText = 'width: 0; height: 0; position: relative;';
 
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', '24');
     svg.setAttribute('height', '24');
     svg.setAttribute('viewBox', '0 0 24 24');
-    svg.style.cssText = 'display: block;';
+    svg.style.cssText = 'display: block; position: absolute; left: 4.8px; top: -12px;';
 
     const inner = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     inner.setAttribute('d', 'M10,8.64v6.72L15.27,12z');
@@ -152,7 +153,6 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
           element: el,
           rotationAlignment: 'map',
           pitchAlignment: 'map',
-          offset: [17, 0],
         })
           .setLngLat([pos.longitude, pos.latitude])
           .setRotation(heading)
