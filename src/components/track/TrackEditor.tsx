@@ -1,20 +1,13 @@
-import { Component, createSignal, createEffect, onCleanup, Show } from 'solid-js';
+import { Component, createSignal, createEffect, Show } from 'solid-js';
+import { useEscapeToClose } from '../../utils/hooks';
 import { useUI } from '../../context/UIContext';
 import { addTrack, updateTrack, deleteTrack } from '../../db/db';
 import { showToast } from '../Toast';
 import type { Track, PinColor, TrackNode } from '../../types';
-
-const COLORS: PinColor[] = ['red', 'orange', 'green', 'azure', 'violet'];
-const COLOR_VALUES: Record<PinColor, string> = {
-  red: 'var(--color-red)',
-  orange: 'var(--color-orange)',
-  green: 'var(--color-green)',
-  azure: 'var(--color-azure)',
-  violet: 'var(--color-violet)',
-};
+import ColorPicker from '../ColorPicker';
+import { DESKTOP_BREAKPOINT } from '../../utils/constants';
 
 interface TrackEditorProps {
-  prefillNodes?: TrackNode[];
   onSaved?: () => void;
 }
 
@@ -28,15 +21,7 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
   const [description, setDescription] = createSignal('');
   const [nodes, setNodes] = createSignal<TrackNode[]>([]);
 
-  // Close on Escape
-  createEffect(() => {
-    if (!editingTrack()) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setEditingTrack(null);
-    }
-    window.addEventListener('keydown', onKey);
-    onCleanup(() => window.removeEventListener('keydown', onKey));
-  });
+  useEscapeToClose(editingTrack, () => setEditingTrack(null));
 
   createEffect(() => {
     const t = editingTrack();
@@ -47,13 +32,6 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
       setGroup(t.group);
       setDescription(t.description);
       setNodes(t.nodes);
-    } else if (props.prefillNodes) {
-      setNodes(props.prefillNodes);
-      setName('');
-      setIsCyclical(false);
-      setColor('azure');
-      setGroup('');
-      setDescription('');
     } else {
       setName('');
       setIsCyclical(false);
@@ -79,7 +57,7 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
       description: description().trim(),
       createdAt: existing?.createdAt ?? Date.now(),
     };
-    if (existing?.id != null) {
+    if (existing && existing.id !== 0) {
       await updateTrack(existing.id, data);
       showToast('Track updated', 'success');
     } else {
@@ -92,14 +70,14 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
 
   async function handleDelete() {
     const t = editingTrack();
-    if (t?.id == null) return;
+    if (!t || t.id === 0) return;
     await deleteTrack(t.id);
     showToast('Track deleted', 'success');
     setEditingTrack(null);
     props.onSaved?.();
   }
 
-  const isDesktop = () => window.innerWidth >= 768;
+  const isDesktop = () => window.innerWidth >= DESKTOP_BREAKPOINT;
 
   return (
     <Show when={editingTrack() !== null}>
@@ -110,7 +88,9 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
 
       <div
         role="dialog"
-        aria-label={editingTrack()?.id ? `Edit ${editingTrack()?.name}` : 'New Track'}
+        aria-label={
+          editingTrack() && editingTrack()!.id !== 0 ? `Edit ${editingTrack()!.name}` : 'New Track'
+        }
         aria-modal="true"
         onKeyDown={(e) => {
           if (e.key !== 'Tab') return;
@@ -157,7 +137,7 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
             style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between' }}
           >
             <h2 style={{ 'font-size': '1rem', 'font-weight': '700' }}>
-              {editingTrack()?.id ? 'Edit Track' : 'New Track'}
+              {editingTrack() && editingTrack()!.id !== 0 ? 'Edit Track' : 'New Track'}
             </h2>
             <button
               aria-label="Close"
@@ -237,29 +217,7 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
             </div>
           </div>
 
-          {/* Color */}
-          <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
-              Color
-            </span>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {COLORS.map((c) => (
-                <button
-                  aria-label={c}
-                  aria-pressed={color() === c}
-                  onClick={() => setColor(c)}
-                  style={{
-                    width: '28px',
-                    height: '28px',
-                    'border-radius': '50%',
-                    background: COLOR_VALUES[c],
-                    border: color() === c ? '2px solid var(--color-text)' : '2px solid transparent',
-                    cursor: 'pointer',
-                  }}
-                />
-              ))}
-            </div>
-          </div>
+          <ColorPicker value={color()} onChange={setColor} />
 
           <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
             <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
@@ -304,7 +262,7 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
           </label>
 
           <div style={{ display: 'flex', gap: '8px', 'margin-top': '4px' }}>
-            <Show when={editingTrack()?.id != null}>
+            <Show when={editingTrack() && editingTrack()!.id !== 0}>
               <button
                 onClick={handleDelete}
                 style={{

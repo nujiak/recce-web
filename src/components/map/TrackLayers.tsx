@@ -3,14 +3,7 @@ import maplibregl from 'maplibre-gl';
 import { useUI } from '../../context/UIContext';
 import { getTrackBounds } from '../../utils/geo';
 import type { Track, TrackNode, PinColor } from '../../types';
-
-const COLOR_HEX: Record<string, string> = {
-  red: '#e53935',
-  orange: '#fb8c00',
-  green: '#43a047',
-  azure: '#1e88e5',
-  violet: '#8e24aa',
-};
+import { PIN_COLOR_HEX } from '../../utils/colors';
 
 const SRC_TRACKS = 'ts-tracks';
 const SRC_CHECKPOINTS = 'ts-checkpoints';
@@ -33,7 +26,7 @@ type GeoFeature = GeoJSON.Feature<GeoJSON.Geometry, GeoJSON.GeoJsonProperties>;
 
 function tracksToGeoJSON(tracks: Track[]) {
   const features: GeoFeature[] = tracks.flatMap((t) => {
-    const color = COLOR_HEX[t.color] ?? COLOR_HEX.red;
+    const color = PIN_COLOR_HEX[t.color] ?? PIN_COLOR_HEX.red;
     if (t.nodes.length < 2) return [] as GeoFeature[];
     const coords = t.nodes.map((n) => [n.lng, n.lat]);
     if (t.isCyclical && t.nodes.length >= 3) {
@@ -181,7 +174,7 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
   createEffect(() => {
     const m = props.map;
     if (!m.getSource(SRC_TEMP)) return;
-    const color = COLOR_HEX[props.plotColor] ?? COLOR_HEX.red;
+    const color = PIN_COLOR_HEX[props.plotColor] ?? PIN_COLOR_HEX.red;
     (m.getSource(SRC_TEMP) as maplibregl.GeoJSONSource).setData(
       nodesToLineGeoJSON(props.plotNodes, color)
     );

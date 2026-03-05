@@ -1,20 +1,15 @@
-import { Component, For, Show, createEffect, onCleanup } from 'solid-js';
+import { Component, For, Show } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import { CoordinateTransformer, SYSTEMS, SYSTEM_NAMES } from '../../coords/index';
 import { showToast } from '../Toast';
+import { useEscapeToClose } from '../../utils/hooks';
+import { copyToClipboard } from '../../utils/clipboard';
 import type { CoordinateSystem } from '../../types';
 
 const PinInfo: Component = () => {
   const { viewingPin, setViewingPin, setEditingPin, setActiveNav } = useUI();
 
-  createEffect(() => {
-    if (!viewingPin()) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setViewingPin(null);
-    }
-    window.addEventListener('keydown', onKey);
-    onCleanup(() => window.removeEventListener('keydown', onKey));
-  });
+  useEscapeToClose(viewingPin, () => setViewingPin(null));
 
   function openInMaps() {
     const p = viewingPin();
@@ -92,7 +87,7 @@ const PinInfo: Component = () => {
                   <button
                     aria-label={`Copy ${SYSTEM_NAMES[sys]} coordinate`}
                     onClick={() => {
-                      navigator.clipboard.writeText(display).catch(() => {});
+                      copyToClipboard(display);
                       showToast(`Copied ${SYSTEM_NAMES[sys]}`, 'success');
                     }}
                     style={{

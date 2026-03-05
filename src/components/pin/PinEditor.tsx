@@ -1,4 +1,5 @@
-import { Component, createSignal, createEffect, onCleanup, Show } from 'solid-js';
+import { Component, createSignal, createEffect, Show } from 'solid-js';
+import { useEscapeToClose } from '../../utils/hooks';
 import { useUI } from '../../context/UIContext';
 import { CoordinateTransformer } from '../../coords/index';
 import { usePrefs } from '../../context/PrefsContext';
@@ -6,15 +7,8 @@ import { addPin, updatePin, deletePin } from '../../db/db';
 import { showToast } from '../Toast';
 import { SYSTEM_NAMES } from '../../coords/index';
 import type { Pin, PinColor } from '../../types';
-
-const COLORS: PinColor[] = ['red', 'orange', 'green', 'azure', 'violet'];
-const COLOR_VALUES: Record<PinColor, string> = {
-  red: 'var(--color-red)',
-  orange: 'var(--color-orange)',
-  green: 'var(--color-green)',
-  azure: 'var(--color-azure)',
-  violet: 'var(--color-violet)',
-};
+import ColorPicker from '../ColorPicker';
+import { DESKTOP_BREAKPOINT } from '../../utils/constants';
 
 interface PinEditorProps {
   onSaved?: () => void;
@@ -33,15 +27,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
   const [group, setGroup] = createSignal('');
   const [description, setDescription] = createSignal('');
 
-  // Close on Escape
-  createEffect(() => {
-    if (!pin()) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setEditingPin(null);
-    }
-    window.addEventListener('keydown', onKey);
-    onCleanup(() => window.removeEventListener('keydown', onKey));
-  });
+  useEscapeToClose(pin, () => setEditingPin(null));
 
   // Populate fields when pin changes
   createEffect(() => {
@@ -96,7 +82,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
       createdAt: existing?.createdAt ?? Date.now(),
     };
 
-    if (existing?.id != null) {
+    if (existing && existing.id !== 0) {
       await updatePin(existing.id, data);
       showToast('Pin updated', 'success');
     } else {
@@ -109,14 +95,14 @@ const PinEditor: Component<PinEditorProps> = (props) => {
 
   async function handleDelete() {
     const p = pin();
-    if (p?.id == null) return;
+    if (!p || p.id === 0) return;
     await deletePin(p.id);
     showToast('Pin deleted', 'success');
     setEditingPin(null);
     props.onSaved?.();
   }
 
-  const isDesktop = () => window.innerWidth >= 768;
+  const isDesktop = () => window.innerWidth >= DESKTOP_BREAKPOINT;
 
   return (
     <Show when={pin() !== null}>
@@ -176,7 +162,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
             style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between' }}
           >
             <h2 style={{ 'font-size': '1rem', 'font-weight': '700' }}>
-              {pin()?.id ? 'Edit Pin' : 'New Pin'}
+              {pin() && pin()!.id !== 0 ? 'Edit Pin' : 'New Pin'}
             </h2>
             <button
               aria-label="Close"
@@ -242,29 +228,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
             </Show>
           </label>
 
-          {/* Color picker */}
-          <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
-              Color
-            </span>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              {COLORS.map((c) => (
-                <button
-                  aria-label={c}
-                  aria-pressed={color() === c}
-                  onClick={() => setColor(c)}
-                  style={{
-                    width: '28px',
-                    height: '28px',
-                    'border-radius': '50%',
-                    background: COLOR_VALUES[c],
-                    border: color() === c ? '2px solid var(--color-text)' : '2px solid transparent',
-                    cursor: 'pointer',
-                  }}
-                />
-              ))}
-            </div>
-          </div>
+          <ColorPicker value={color()} onChange={setColor} />
 
           <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
             <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
@@ -309,7 +273,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
           </label>
 
           <div style={{ display: 'flex', gap: '8px', 'margin-top': '4px' }}>
-            <Show when={pin()?.id != null}>
+            <Show when={pin() && pin()!.id !== 0}>
               <button
                 onClick={handleDelete}
                 style={{

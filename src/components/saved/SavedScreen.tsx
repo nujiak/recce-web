@@ -1,8 +1,6 @@
 import { Component, createResource, createSignal, createMemo, For, Show } from 'solid-js';
-import { getAllPins, getAllTracks, deletePin, deleteTrack } from '../../db/db';
-import { encode } from '../../share/share';
-import { decode } from '../../share/share';
-import { addPin, addTrack } from '../../db/db';
+import { getAllPins, getAllTracks, deletePin, deleteTrack, addPin, addTrack } from '../../db/db';
+import { encode, decode } from '../../share/share';
 import { showToast } from '../Toast';
 import { useUI } from '../../context/UIContext';
 import { addToRuler } from '../../stores/ruler';
@@ -149,17 +147,20 @@ const SavedScreen: Component = () => {
       showToast('Invalid share code', 'error');
       return;
     }
-    const existing = new Set([...(pins() ?? []).map((p) => p.name + p.lat + p.lng)]);
+    const existingPinTimestamps = new Set((pins() ?? []).map((p) => p.createdAt));
+    const existingTrackTimestamps = new Set((tracks() ?? []).map((t) => t.createdAt));
     let added = 0;
     for (const p of result.pins) {
-      if (!existing.has(p.name + p.lat + p.lng)) {
-        await addPin({ ...p, createdAt: p.createdAt || Date.now() });
+      if (!existingPinTimestamps.has(p.createdAt)) {
+        await addPin({ ...p });
         added++;
       }
     }
     for (const t of result.tracks) {
-      await addTrack({ ...t, createdAt: t.createdAt || Date.now() });
-      added++;
+      if (!existingTrackTimestamps.has(t.createdAt)) {
+        await addTrack({ ...t });
+        added++;
+      }
     }
     refetch();
     setShowImport(false);
@@ -213,6 +214,7 @@ const SavedScreen: Component = () => {
             aria-label="New pin"
             onClick={() =>
               setEditingPin({
+                id: 0,
                 name: '',
                 lat: 0,
                 lng: 0,
@@ -220,7 +222,7 @@ const SavedScreen: Component = () => {
                 group: '',
                 description: '',
                 createdAt: Date.now(),
-              } as Pin)
+              })
             }
             style={{
               background: 'var(--color-accent)',
@@ -256,8 +258,8 @@ const SavedScreen: Component = () => {
 
         <div style={{ display: 'flex', gap: '6px', 'align-items': 'center' }}>
           <span style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>Sort:</span>
-          {(['date-new', 'date-old', 'name-asc', 'name-desc', 'color'] as SortMode[]).map(
-            (mode) => (
+          <For each={['date-new', 'date-old', 'name-asc', 'name-desc', 'color'] as SortMode[]}>
+            {(mode) => (
               <button
                 onClick={() => setSortMode(mode)}
                 style={{
@@ -283,8 +285,8 @@ const SavedScreen: Component = () => {
                         ? 'Z→A'
                         : 'Color'}
               </button>
-            )
-          )}
+            )}
+          </For>
         </div>
 
         {/* Import input */}

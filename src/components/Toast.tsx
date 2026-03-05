@@ -1,4 +1,4 @@
-import { Component, createSignal, Show } from 'solid-js';
+import { Component, createSignal, For } from 'solid-js';
 import type { ToastType } from '../types';
 
 interface ToastMessage {
@@ -33,26 +33,28 @@ const Toast: Component = () => {
         'pointer-events': 'none',
       }}
     >
-      {toasts().map((t) => (
-        <div
-          style={{
-            padding: '8px 16px',
-            'border-radius': 'var(--radius-md)',
-            background:
-              t.type === 'error'
-                ? 'var(--color-danger)'
-                : t.type === 'success'
-                  ? 'var(--color-accent)'
-                  : 'var(--color-bg-secondary)',
-            color: 'var(--color-text)',
-            border: '1px solid var(--color-border)',
-            'font-size': '0.875rem',
-            'white-space': 'nowrap',
-          }}
-        >
-          {t.text}
-        </div>
-      ))}
+      <For each={toasts()}>
+        {(t) => (
+          <div
+            style={{
+              padding: '8px 16px',
+              'border-radius': 'var(--radius-md)',
+              background:
+                t.type === 'error'
+                  ? 'var(--color-danger)'
+                  : t.type === 'success'
+                    ? 'var(--color-accent)'
+                    : 'var(--color-bg-secondary)',
+              color: 'var(--color-text)',
+              border: '1px solid var(--color-border)',
+              'font-size': '0.875rem',
+              'white-space': 'nowrap',
+            }}
+          >
+            {t.text}
+          </div>
+        )}
+      </For>
     </div>
   );
 };

@@ -3,6 +3,7 @@ import { usePrefs } from '../../context/PrefsContext';
 import { CoordinateTransformer } from '../../coords/index';
 import { showToast } from '../Toast';
 import { gpsPosition } from '../../stores/gps';
+import { copyToClipboard } from '../../utils/clipboard';
 import {
   haversineDistance,
   calculateBearing,
@@ -37,7 +38,7 @@ const Crosshair: Component<CrosshairProps> = (props) => {
   function copyCoord() {
     const text = coordDisplay();
     if (!text) return;
-    navigator.clipboard.writeText(text).catch(() => {});
+    copyToClipboard(text);
     showToast('Coordinates copied', 'success');
   }
 

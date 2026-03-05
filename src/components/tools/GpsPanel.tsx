@@ -4,11 +4,8 @@ import { requestCompassPermission } from '../GpsTracker';
 import { usePrefs } from '../../context/PrefsContext';
 import { formatDistance, formatBearing } from '../../utils/geo';
 import { CoordinateTransformer, SYSTEM_NAMES } from '../../coords/index';
+import { copyToClipboard } from '../../utils/clipboard';
 import CompassNeedle from './CompassNeedle';
-
-function copyText(text: string) {
-  navigator.clipboard.writeText(text).catch(() => {});
-}
 
 const GpsPanel: Component = () => {
   const [prefs] = usePrefs();
@@ -27,10 +24,6 @@ const GpsPanel: Component = () => {
       setIosPrompt(false);
     }
   }
-
-  const pos = () => gpsPosition();
-  const lengthUnit = () => prefs.lengthUnit ?? 'metric';
-  const angleUnit = () => prefs.angleUnit ?? 'degrees';
 
   return (
     <div style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '16px' }}>
@@ -56,13 +49,13 @@ const GpsPanel: Component = () => {
           <span style={{ 'font-size': '0.875rem', 'font-weight': '600' }}>Location</span>
         </div>
 
-        <Show when={!pos()}>
+        <Show when={!gpsPosition()}>
           <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
             Acquiring GPS fix…
           </div>
         </Show>
 
-        <Show when={pos()}>
+        <Show when={gpsPosition()}>
           {(coords) => {
             const coordStr = () =>
               CoordinateTransformer.toDisplay(
@@ -86,7 +79,7 @@ const GpsPanel: Component = () => {
                   <div
                     role="button"
                     aria-label="Copy coordinates"
-                    onClick={() => copyText(coordStr())}
+                    onClick={() => copyToClipboard(coordStr())}
                     style={{
                       'font-size': '0.875rem',
                       'font-variant-numeric': 'tabular-nums',
@@ -104,7 +97,7 @@ const GpsPanel: Component = () => {
                     </div>
                     <div style={{ 'font-size': '0.875rem' }}>
                       {coords().altitude !== null
-                        ? formatDistance(coords().altitude!, lengthUnit())
+                        ? formatDistance(coords().altitude!, prefs.lengthUnit)
                         : '—'}
                     </div>
                   </div>
@@ -113,7 +106,7 @@ const GpsPanel: Component = () => {
                       Accuracy
                     </div>
                     <div style={{ 'font-size': '0.875rem' }}>
-                      ±{formatDistance(coords().accuracy, lengthUnit())}
+                      ±{formatDistance(coords().accuracy, prefs.lengthUnit)}
                     </div>
                   </div>
                 </div>
@@ -203,7 +196,7 @@ const GpsPanel: Component = () => {
                     'font-variant-numeric': 'tabular-nums',
                   }}
                 >
-                  {gpsHeading() !== null ? formatBearing(gpsHeading()!, angleUnit()) : '--'}
+                  {gpsHeading() !== null ? formatBearing(gpsHeading()!, prefs.angleUnit) : '--'}
                 </span>
               </div>
               <div style={{ display: 'flex', 'flex-direction': 'column', gap: '2px' }}>

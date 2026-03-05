@@ -10,9 +10,6 @@ import {
 
 const RulerPanel: Component = () => {
   const [prefs] = usePrefs();
-  const lengthUnit = () => prefs.lengthUnit ?? 'metric';
-  const angleUnit = () => prefs.angleUnit ?? 'degrees';
-
   const points = rulerPoints;
 
   const totalDistance = () => {
@@ -172,7 +169,7 @@ const RulerPanel: Component = () => {
                           points()[i() + 1].lat,
                           points()[i() + 1].lng
                         ),
-                        lengthUnit()
+                        prefs.lengthUnit
                       )}
                       {' · '}
                       {formatBearing(
@@ -182,7 +179,7 @@ const RulerPanel: Component = () => {
                           points()[i() + 1].lat,
                           points()[i() + 1].lng
                         ),
-                        angleUnit()
+                        prefs.angleUnit
                       )}
                     </span>
                   </div>
@@ -212,7 +209,7 @@ const RulerPanel: Component = () => {
               'font-variant-numeric': 'tabular-nums',
             }}
           >
-            {formatDistance(totalDistance(), lengthUnit())}
+            {formatDistance(totalDistance(), prefs.lengthUnit)}
           </span>
         </div>
       </Show>

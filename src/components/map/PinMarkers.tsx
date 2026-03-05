@@ -40,7 +40,7 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
 
   createEffect(() => {
     const currentPins = props.pins;
-    const currentIds = new Set(currentPins.map((p) => p.id!));
+    const currentIds = new Set(currentPins.map((p) => p.id));
 
     // Remove stale markers
     for (const [id, marker] of markerMap) {
@@ -52,7 +52,6 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
 
     // Add/update markers
     for (const pin of currentPins) {
-      if (pin.id == null) continue;
       if (markerMap.has(pin.id)) {
         // Update position
         markerMap.get(pin.id)!.setLngLat([pin.lng, pin.lat]);

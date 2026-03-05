@@ -14,6 +14,8 @@ import CompassButton from './CompassButton';
 import LocationButton from './LocationButton';
 import UserLocationMarker from './UserLocationMarker';
 import type { TrackNode, PinColor } from '../../types';
+import { PIN_COLOR_HEX } from '../../utils/colors';
+import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/constants';
 
 interface PlotState {
   active: boolean;
@@ -26,7 +28,7 @@ const MapView: Component = () => {
 
   const { savedVersion, setEditingTrack } = useUI();
   const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | null>(null);
-  const [center, setCenter] = createSignal<[number, number]>([103.795, 1.376]);
+  const [center, setCenter] = createSignal<[number, number]>(DEFAULT_MAP_CENTER);
   const [bearing, setBearing] = createSignal(0);
   const [plotState, setPlotState] = createStore<PlotState>({
     active: false,
@@ -41,8 +43,8 @@ const MapView: Component = () => {
     const map = new maplibregl.Map({
       container: containerRef,
       style: 'https://tiles.openfreemap.org/styles/liberty',
-      center: [103.795, 1.376],
-      zoom: 9.5,
+      center: DEFAULT_MAP_CENTER,
+      zoom: DEFAULT_MAP_ZOOM,
     });
 
     map.on('move', () => {
@@ -58,7 +60,6 @@ const MapView: Component = () => {
 
     map.on('load', () => {
       setMapInstance(map);
-      (window as any).__map = map;
     });
 
     // Listen for flyTo events from PlotControls / PinInfo / TrackInfo
@@ -86,10 +87,7 @@ const MapView: Component = () => {
     if (!src || nodes.length === 0) return;
     const last = nodes[nodes.length - 1];
     const c = map.getCenter();
-    const hexColor =
-      { red: '#e53935', orange: '#fb8c00', green: '#43a047', azure: '#1e88e5', violet: '#8e24aa' }[
-        color
-      ] ?? '#1e88e5';
+    const hexColor = PIN_COLOR_HEX[color] ?? PIN_COLOR_HEX.azure;
     src.setData({
       type: 'FeatureCollection',
       features: [
@@ -142,6 +140,7 @@ const MapView: Component = () => {
     }));
     setPlotState({ active: false, nodes: [], color: 'red' });
     setEditingTrack({
+      id: 0,
       name: '',
       nodes,
       isCyclical: false,
@@ -149,7 +148,7 @@ const MapView: Component = () => {
       group: '',
       description: '',
       createdAt: Date.now(),
-    } as any);
+    });
   }
 
   function handleCancel() {
