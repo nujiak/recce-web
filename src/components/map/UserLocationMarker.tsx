@@ -33,22 +33,15 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   function createHeadingElement(): HTMLElement {
     const container = document.createElement('div');
     container.style.cssText =
-      'width: 32px; height: 32px; display: flex; align-items: flex-start; justify-content: center;';
+      'position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;';
 
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '8');
-    svg.setAttribute('height', '6');
-    svg.setAttribute('viewBox', '0 0 8 6');
-    svg.style.cssText = 'display: block;';
+    const icon = document.createElement('span');
+    icon.className = 'material-symbols-outlined';
+    icon.textContent = 'play_arrow';
+    icon.style.cssText =
+      'font-size: 20px; color: #53b54e; transform: rotate(-90deg); text-shadow: 0 0 2px #ffffff;';
+    container.appendChild(icon);
 
-    const triangle = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    triangle.setAttribute('points', '4,0 0,6 8,6');
-    triangle.setAttribute('fill', '#53b54e');
-    triangle.setAttribute('stroke', '#ffffff');
-    triangle.setAttribute('stroke-width', '1');
-    svg.appendChild(triangle);
-
-    container.appendChild(svg);
     return container;
   }
 
@@ -144,6 +137,7 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
           element: el,
           rotationAlignment: 'map',
           pitchAlignment: 'map',
+          offset: [16, 0],
         })
           .setLngLat([pos.longitude, pos.latitude])
           .setRotation(heading)
