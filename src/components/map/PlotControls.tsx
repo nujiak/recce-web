@@ -38,6 +38,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
     const [lng, lat] = props.center;
     const coordStr = CoordinateTransformer.toDisplay(lat, lng, prefs.coordinateSystem) ?? '';
     setEditingPin({
+      id: 0,
       name: '',
       lat,
       lng,
@@ -45,7 +46,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
       group: '',
       description: '',
       createdAt: Date.now(),
-    } as Pin);
+    });
   }
 
   function handleGotoSubmit() {

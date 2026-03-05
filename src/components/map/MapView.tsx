@@ -139,6 +139,7 @@ const MapView: Component = () => {
     }));
     setPlotState({ active: false, nodes: [], color: 'red' });
     setEditingTrack({
+      id: 0,
       name: '',
       nodes,
       isCyclical: false,
@@ -146,7 +147,7 @@ const MapView: Component = () => {
       group: '',
       description: '',
       createdAt: Date.now(),
-    } as any);
+    });
   }
 
   function handleCancel() {

@@ -11,7 +11,7 @@ export interface TrackNode {
 }
 
 export interface Pin {
-  id?: number;
+  id: number;
   createdAt: number;
   name: string;
   lat: number;
@@ -22,7 +22,7 @@ export interface Pin {
 }
 
 export interface Track {
-  id?: number;
+  id: number;
   createdAt: number;
   name: string;
   nodes: TrackNode[];

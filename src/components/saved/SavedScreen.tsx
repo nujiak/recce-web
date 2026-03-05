@@ -213,6 +213,7 @@ const SavedScreen: Component = () => {
             aria-label="New pin"
             onClick={() =>
               setEditingPin({
+                id: 0,
                 name: '',
                 lat: 0,
                 lng: 0,
@@ -220,7 +221,7 @@ const SavedScreen: Component = () => {
                 group: '',
                 description: '',
                 createdAt: Date.now(),
-              } as Pin)
+              })
             }
             style={{
               background: 'var(--color-accent)',

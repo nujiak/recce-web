@@ -88,7 +88,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
       createdAt: existing?.createdAt ?? Date.now(),
     };
 
-    if (existing?.id != null) {
+    if (existing && existing.id !== 0) {
       await updatePin(existing.id, data);
       showToast('Pin updated', 'success');
     } else {
@@ -101,7 +101,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
 
   async function handleDelete() {
     const p = pin();
-    if (p?.id == null) return;
+    if (!p || p.id === 0) return;
     await deletePin(p.id);
     showToast('Pin deleted', 'success');
     setEditingPin(null);
@@ -168,7 +168,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
             style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between' }}
           >
             <h2 style={{ 'font-size': '1rem', 'font-weight': '700' }}>
-              {pin()?.id ? 'Edit Pin' : 'New Pin'}
+              {pin() && pin()!.id !== 0 ? 'Edit Pin' : 'New Pin'}
             </h2>
             <button
               aria-label="Close"
@@ -301,7 +301,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
           </label>
 
           <div style={{ display: 'flex', gap: '8px', 'margin-top': '4px' }}>
-            <Show when={pin()?.id != null}>
+            <Show when={pin() && pin()!.id !== 0}>
               <button
                 onClick={handleDelete}
                 style={{

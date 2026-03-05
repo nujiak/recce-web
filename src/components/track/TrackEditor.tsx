@@ -71,7 +71,7 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
       description: description().trim(),
       createdAt: existing?.createdAt ?? Date.now(),
     };
-    if (existing?.id != null) {
+    if (existing && existing.id !== 0) {
       await updateTrack(existing.id, data);
       showToast('Track updated', 'success');
     } else {
@@ -84,7 +84,7 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
 
   async function handleDelete() {
     const t = editingTrack();
-    if (t?.id == null) return;
+    if (!t || t.id === 0) return;
     await deleteTrack(t.id);
     showToast('Track deleted', 'success');
     setEditingTrack(null);
@@ -102,7 +102,9 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
 
       <div
         role="dialog"
-        aria-label={editingTrack()?.id ? `Edit ${editingTrack()?.name}` : 'New Track'}
+        aria-label={
+          editingTrack() && editingTrack()!.id !== 0 ? `Edit ${editingTrack()!.name}` : 'New Track'
+        }
         aria-modal="true"
         onKeyDown={(e) => {
           if (e.key !== 'Tab') return;
@@ -149,7 +151,7 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
             style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between' }}
           >
             <h2 style={{ 'font-size': '1rem', 'font-weight': '700' }}>
-              {editingTrack()?.id ? 'Edit Track' : 'New Track'}
+              {editingTrack() && editingTrack()!.id !== 0 ? 'Edit Track' : 'New Track'}
             </h2>
             <button
               aria-label="Close"
@@ -296,7 +298,7 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
           </label>
 
           <div style={{ display: 'flex', gap: '8px', 'margin-top': '4px' }}>
-            <Show when={editingTrack()?.id != null}>
+            <Show when={editingTrack() && editingTrack()!.id !== 0}>
               <button
                 onClick={handleDelete}
                 style={{
