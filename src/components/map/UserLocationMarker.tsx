@@ -31,15 +31,19 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   }
 
   function createHeadingElement(): HTMLElement {
+    // The play_arrow icon points right natively. We rotate it -90deg in CSS so
+    // it points up at rotation=0 (north). MapLibre setRotation then rotates it
+    // to the user's heading. The offset [13, 0] shifts the anchor point to just
+    // outside the location dot (8px radius + ~5px gap), matching the Android
+    // anchor(-0.2, 0.5) on a 24dp icon.
     const container = document.createElement('div');
     container.style.cssText =
-      'position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;';
+      'display: flex; align-items: center; justify-content: center; transform: rotate(-90deg);';
 
     const icon = document.createElement('span');
     icon.className = 'material-symbols-outlined';
     icon.textContent = 'play_arrow';
-    icon.style.cssText =
-      'font-size: 20px; color: #53b54e; transform: rotate(-90deg); text-shadow: 0 0 2px #ffffff;';
+    icon.style.cssText = 'font-size: 24px; color: #53b54e; -webkit-text-stroke: 1px white;';
     container.appendChild(icon);
 
     return container;
@@ -137,7 +141,7 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
           element: el,
           rotationAlignment: 'map',
           pitchAlignment: 'map',
-          offset: [16, 0],
+          offset: [13, 0],
         })
           .setLngLat([pos.longitude, pos.latitude])
           .setRotation(heading)
