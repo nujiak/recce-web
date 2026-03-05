@@ -1,8 +1,6 @@
 import { Component, createResource, createSignal, createMemo, For, Show } from 'solid-js';
-import { getAllPins, getAllTracks, deletePin, deleteTrack } from '../../db/db';
-import { encode } from '../../share/share';
-import { decode } from '../../share/share';
-import { addPin, addTrack } from '../../db/db';
+import { getAllPins, getAllTracks, deletePin, deleteTrack, addPin, addTrack } from '../../db/db';
+import { encode, decode } from '../../share/share';
 import { showToast } from '../Toast';
 import { useUI } from '../../context/UIContext';
 import { addToRuler } from '../../stores/ruler';
@@ -149,17 +147,20 @@ const SavedScreen: Component = () => {
       showToast('Invalid share code', 'error');
       return;
     }
-    const existing = new Set([...(pins() ?? []).map((p) => p.name + p.lat + p.lng)]);
+    const existingPinTimestamps = new Set((pins() ?? []).map((p) => p.createdAt));
+    const existingTrackTimestamps = new Set((tracks() ?? []).map((t) => t.createdAt));
     let added = 0;
     for (const p of result.pins) {
-      if (!existing.has(p.name + p.lat + p.lng)) {
-        await addPin({ ...p, createdAt: p.createdAt || Date.now() });
+      if (!existingPinTimestamps.has(p.createdAt)) {
+        await addPin({ ...p });
         added++;
       }
     }
     for (const t of result.tracks) {
-      await addTrack({ ...t, createdAt: t.createdAt || Date.now() });
-      added++;
+      if (!existingTrackTimestamps.has(t.createdAt)) {
+        await addTrack({ ...t });
+        added++;
+      }
     }
     refetch();
     setShowImport(false);
