@@ -37,6 +37,18 @@ const REMOVED_LAYER_PATTERNS = [
 let standardStylePromise: Promise<StyleSpecification> | null = null;
 let satelliteStylePromise: Promise<StyleSpecification> | null = null;
 
+function cacheStylePromise(
+  loader: () => Promise<StyleSpecification>,
+  assign: (promise: Promise<StyleSpecification> | null) => void
+) {
+  const promise = loader().catch((error) => {
+    assign(null);
+    throw error;
+  });
+  assign(promise);
+  return promise;
+}
+
 function cloneStyle(style: StyleSpecification): StyleSpecification {
   return structuredClone(style);
 }
@@ -60,7 +72,9 @@ async function fetchOpenFreeMapStyle(): Promise<StyleSpecification> {
 
 async function getStandardStyleDefinition() {
   if (!standardStylePromise) {
-    standardStylePromise = fetchOpenFreeMapStyle();
+    standardStylePromise = cacheStylePromise(fetchOpenFreeMapStyle, (promise) => {
+      standardStylePromise = promise;
+    });
   }
 
   return cloneStyle(await standardStylePromise);
@@ -68,46 +82,51 @@ async function getStandardStyleDefinition() {
 
 async function getSatelliteStyleDefinition() {
   if (!satelliteStylePromise) {
-    satelliteStylePromise = (async () => {
-      const libertyStyle = await fetchOpenFreeMapStyle();
-      const overlayLayers = (libertyStyle.layers ?? []).filter((layer) => {
-        if (!layer.id) return false;
-        if (shouldRemoveLayer(layer.id)) return false;
-        return shouldKeepOverlayLayer(layer.id);
-      });
+    satelliteStylePromise = cacheStylePromise(
+      async () => {
+        const libertyStyle = await fetchOpenFreeMapStyle();
+        const overlayLayers = (libertyStyle.layers ?? []).filter((layer) => {
+          if (!layer.id) return false;
+          if (shouldRemoveLayer(layer.id)) return false;
+          return shouldKeepOverlayLayer(layer.id);
+        });
 
-      return {
-        version: libertyStyle.version,
-        name: 'OpenFreeMap Liberty Satellite Hybrid',
-        glyphs: libertyStyle.glyphs,
-        sprite: libertyStyle.sprite,
-        projection: libertyStyle.projection,
-        terrain: libertyStyle.terrain,
-        sky: libertyStyle.sky,
-        light: libertyStyle.light,
-        transition: libertyStyle.transition,
-        sources: {
-          [SATELLITE_SOURCE_ID]: {
-            type: 'raster',
-            tiles: [SATELLITE_TILE_URL],
-            tileSize: 256,
-            attribution: SATELLITE_ATTRIBUTION,
-            maxzoom: 19,
+        return {
+          version: libertyStyle.version,
+          name: 'OpenFreeMap Liberty Satellite Hybrid',
+          glyphs: libertyStyle.glyphs,
+          sprite: libertyStyle.sprite,
+          projection: libertyStyle.projection,
+          terrain: libertyStyle.terrain,
+          sky: libertyStyle.sky,
+          light: libertyStyle.light,
+          transition: libertyStyle.transition,
+          sources: {
+            [SATELLITE_SOURCE_ID]: {
+              type: 'raster',
+              tiles: [SATELLITE_TILE_URL],
+              tileSize: 256,
+              attribution: SATELLITE_ATTRIBUTION,
+              maxzoom: 19,
+            },
+            ...libertyStyle.sources,
           },
-          ...libertyStyle.sources,
-        },
-        layers: [
-          {
-            id: 'satellite-base',
-            type: 'raster',
-            source: SATELLITE_SOURCE_ID,
-            minzoom: 0,
-            maxzoom: 22,
-          },
-          ...overlayLayers,
-        ],
-      } satisfies StyleSpecification;
-    })();
+          layers: [
+            {
+              id: 'satellite-base',
+              type: 'raster',
+              source: SATELLITE_SOURCE_ID,
+              minzoom: 0,
+              maxzoom: 22,
+            },
+            ...overlayLayers,
+          ],
+        } satisfies StyleSpecification;
+      },
+      (promise) => {
+        satelliteStylePromise = promise;
+      }
+    );
   }
 
   return cloneStyle(await satelliteStylePromise);

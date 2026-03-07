@@ -23,7 +23,7 @@ import CompassButton from './CompassButton';
 import LocationButton from './LocationButton';
 import LayerButton from './LayerButton';
 import UserLocationMarker from './UserLocationMarker';
-import type { TrackNode, PinColor } from '../../types';
+import type { TrackNode, PinColor, MapStyle } from '../../types';
 import { PIN_COLOR_HEX } from '../../utils/colors';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/constants';
 import { getDefaultMapStyle, getMapStyleDefinition } from '../../utils/mapStyles';
@@ -55,6 +55,29 @@ const MapView: Component = () => {
 
   let latestStyleRequest = 0;
 
+  function finalizeStyleLoad(
+    map: maplibregl.Map,
+    targetStyle: MapStyle,
+    centerBefore: maplibregl.LngLat | null,
+    zoomBefore: number,
+    bearingBefore: number,
+    pitchBefore: number
+  ) {
+    if (centerBefore) {
+      map.jumpTo({
+        center: centerBefore,
+        zoom: zoomBefore,
+        bearing: bearingBefore,
+        pitch: pitchBefore,
+      });
+    }
+
+    const updatedCenter = map.getCenter();
+    setCenter([updatedCenter.lng, updatedCenter.lat]);
+    setBearing(map.getBearing());
+    appliedMapStyle = targetStyle;
+  }
+
   async function applyMapStyle(map: maplibregl.Map, preserveView: boolean) {
     const requestId = ++latestStyleRequest;
     const centerBefore = preserveView ? map.getCenter() : null;
@@ -66,42 +89,46 @@ const MapView: Component = () => {
 
     try {
       const targetStyle = prefs.mapStyle ?? getDefaultMapStyle();
-      const style = await getMapStyleDefinition(targetStyle);
-      if (requestId !== latestStyleRequest) return;
+      const tryApplyStyle = async (requestedStyle: MapStyle) => {
+        const style = await getMapStyleDefinition(requestedStyle);
+        if (requestId !== latestStyleRequest) return false;
 
-      await new Promise<void>((resolve, reject) => {
-        const handleLoad = () => {
-          map.off('error', handleError);
-          if (requestId !== latestStyleRequest) {
+        await new Promise<void>((resolve) => {
+          const handleLoad = () => {
+            if (requestId === latestStyleRequest) {
+              finalizeStyleLoad(
+                map,
+                requestedStyle,
+                centerBefore,
+                zoomBefore,
+                bearingBefore,
+                pitchBefore
+              );
+            }
             resolve();
-            return;
-          }
+          };
 
-          if (centerBefore) {
-            map.jumpTo({
-              center: centerBefore,
-              zoom: zoomBefore,
-              bearing: bearingBefore,
-              pitch: pitchBefore,
-            });
-          }
+          map.once('style.load', handleLoad);
+          map.setStyle(style);
+        });
 
-          const updatedCenter = map.getCenter();
-          setCenter([updatedCenter.lng, updatedCenter.lat]);
-          setBearing(map.getBearing());
-          appliedMapStyle = targetStyle;
-          resolve();
-        };
+        return true;
+      };
 
-        const handleError = (event: { error?: Error }) => {
-          map.off('style.load', handleLoad);
-          reject(event.error ?? new Error('Failed to apply map style'));
-        };
+      try {
+        const applied = await tryApplyStyle(targetStyle);
+        if (applied || requestId !== latestStyleRequest) return;
+      } catch (error) {
+        if (targetStyle !== 'satellite' || requestId !== latestStyleRequest) {
+          throw error;
+        }
 
-        map.once('style.load', handleLoad);
-        map.once('error', handleError);
-        map.setStyle(style);
-      });
+        try {
+          await tryApplyStyle('standard');
+        } catch {
+          throw error;
+        }
+      }
     } finally {
       if (requestId === latestStyleRequest) {
         setStyleLoading(false);
