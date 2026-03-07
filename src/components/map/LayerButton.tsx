@@ -8,10 +8,12 @@ interface LayerButtonProps {
 
 const LayerButton: Component<LayerButtonProps> = (props) => {
   const isSatellite = () => props.mapStyle === 'satellite';
+  const label = () => (isSatellite() ? 'Switch to standard map' : 'Switch to satellite map');
 
   return (
     <button
-      aria-label={isSatellite() ? 'Switch to standard map' : 'Switch to satellite map'}
+      aria-label={label()}
+      title={label()}
       onClick={props.onToggle}
       style={{
         position: 'absolute',
@@ -37,7 +39,7 @@ const LayerButton: Component<LayerButtonProps> = (props) => {
           color: isSatellite() ? 'var(--color-accent)' : 'var(--color-text-secondary)',
         }}
       >
-        {isSatellite() ? 'map' : 'satellite_alt'}
+        satellite
       </span>
     </button>
   );
