@@ -10,9 +10,41 @@ interface UserLocationMarkerProps {
 const ACCURACY_SOURCE_ID = 'user-location-accuracy';
 const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
 
+function ensureAccuracyLayer(
+  map: maplibregl.Map,
+  data: GeoJSON.Feature | GeoJSON.FeatureCollection
+) {
+  if (!map.getSource(ACCURACY_SOURCE_ID)) {
+    map.addSource(ACCURACY_SOURCE_ID, {
+      type: 'geojson',
+      data,
+    });
+  }
+
+  if (!map.getLayer(ACCURACY_LAYER_ID)) {
+    map.addLayer({
+      id: ACCURACY_LAYER_ID,
+      type: 'fill',
+      source: ACCURACY_SOURCE_ID,
+      paint: {
+        'fill-color': '#53b54e',
+        'fill-opacity': 0.15,
+      },
+    });
+  }
+}
+
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let locationMarker: maplibregl.Marker | null = null;
   let accuracyAdded = false;
+
+  const handleStyleLoad = () => {
+    const pos = gpsPosition();
+    if (!pos) return;
+    updateAccuracyCircle(pos.longitude, pos.latitude, pos.accuracy);
+  };
+
+  props.map.on('style.load', handleStyleLoad);
 
   function createLocationElement(): HTMLElement {
     const container = document.createElement('div');
@@ -35,27 +67,10 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
       units: 'meters',
     });
 
-    if (!accuracyAdded) {
-      props.map.addSource(ACCURACY_SOURCE_ID, {
-        type: 'geojson',
-        data: circleGeojson,
-      });
-
-      props.map.addLayer({
-        id: ACCURACY_LAYER_ID,
-        type: 'fill',
-        source: ACCURACY_SOURCE_ID,
-        paint: {
-          'fill-color': '#53b54e',
-          'fill-opacity': 0.15,
-        },
-      });
-
-      accuracyAdded = true;
-    } else {
-      const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource;
-      source?.setData(circleGeojson);
-    }
+    ensureAccuracyLayer(props.map, circleGeojson);
+    const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource;
+    source?.setData(circleGeojson);
+    accuracyAdded = true;
   }
 
   function removeAccuracyCircle() {
@@ -99,6 +114,7 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   });
 
   onCleanup(() => {
+    props.map.off('style.load', handleStyleLoad);
     locationMarker?.remove();
     locationMarker = null;
     removeAccuracyCircle();

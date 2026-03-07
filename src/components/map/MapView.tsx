@@ -1,9 +1,18 @@
-import { Component, createSignal, createResource, onMount, onCleanup, Show } from 'solid-js';
+import {
+  Component,
+  createSignal,
+  createResource,
+  createEffect,
+  onMount,
+  onCleanup,
+  Show,
+} from 'solid-js';
 import { createStore } from 'solid-js/store';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { getAllPins, getAllTracks } from '../../db/db';
 import { useUI } from '../../context/UIContext';
+import { usePrefs } from '../../context/PrefsContext';
 import { gpsPosition } from '../../stores/gps';
 import { MapContext } from './MapContext';
 import Crosshair from './Crosshair';
@@ -16,6 +25,7 @@ import UserLocationMarker from './UserLocationMarker';
 import type { TrackNode, PinColor } from '../../types';
 import { PIN_COLOR_HEX } from '../../utils/colors';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/constants';
+import { getDefaultMapStyle, getMapStyleDefinition } from '../../utils/mapStyles';
 
 interface PlotState {
   active: boolean;
@@ -27,9 +37,11 @@ const MapView: Component = () => {
   let containerRef!: HTMLDivElement;
 
   const { savedVersion, setEditingTrack } = useUI();
+  const [prefs] = usePrefs();
   const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | null>(null);
   const [center, setCenter] = createSignal<[number, number]>(DEFAULT_MAP_CENTER);
   const [bearing, setBearing] = createSignal(0);
+  const [styleLoading, setStyleLoading] = createSignal(true);
   const [plotState, setPlotState] = createStore<PlotState>({
     active: false,
     nodes: [],
@@ -38,11 +50,68 @@ const MapView: Component = () => {
 
   const [pins] = createResource(savedVersion, getAllPins);
   const [tracks] = createResource(savedVersion, getAllTracks);
+  let appliedMapStyle = '';
+
+  let latestStyleRequest = 0;
+
+  async function applyMapStyle(map: maplibregl.Map, preserveView: boolean) {
+    const requestId = ++latestStyleRequest;
+    const centerBefore = preserveView ? map.getCenter() : null;
+    const zoomBefore = preserveView ? map.getZoom() : DEFAULT_MAP_ZOOM;
+    const bearingBefore = preserveView ? map.getBearing() : 0;
+    const pitchBefore = preserveView ? map.getPitch() : 0;
+
+    setStyleLoading(true);
+
+    try {
+      const targetStyle = prefs.mapStyle ?? getDefaultMapStyle();
+      const style = await getMapStyleDefinition(targetStyle);
+      if (requestId !== latestStyleRequest) return;
+
+      await new Promise<void>((resolve, reject) => {
+        const handleLoad = () => {
+          map.off('error', handleError);
+          if (requestId !== latestStyleRequest) {
+            resolve();
+            return;
+          }
+
+          if (centerBefore) {
+            map.jumpTo({
+              center: centerBefore,
+              zoom: zoomBefore,
+              bearing: bearingBefore,
+              pitch: pitchBefore,
+            });
+          }
+
+          const updatedCenter = map.getCenter();
+          setCenter([updatedCenter.lng, updatedCenter.lat]);
+          setBearing(map.getBearing());
+          appliedMapStyle = targetStyle;
+          resolve();
+        };
+
+        const handleError = (event: { error?: Error }) => {
+          map.off('style.load', handleLoad);
+          reject(event.error ?? new Error('Failed to apply map style'));
+        };
+
+        map.once('style.load', handleLoad);
+        map.once('error', handleError);
+        map.setStyle(style);
+      });
+    } finally {
+      if (requestId === latestStyleRequest) {
+        setStyleLoading(false);
+      }
+    }
+  }
 
   onMount(() => {
     const map = new maplibregl.Map({
       container: containerRef,
-      style: 'https://tiles.openfreemap.org/styles/liberty',
+      style: { version: 8, sources: {}, layers: [] },
       center: DEFAULT_MAP_CENTER,
       zoom: DEFAULT_MAP_ZOOM,
     });
@@ -58,9 +127,8 @@ const MapView: Component = () => {
       }
     });
 
-    map.on('load', () => {
-      setMapInstance(map);
-    });
+    setMapInstance(map);
+    void applyMapStyle(map, false);
 
     // Listen for flyTo events from PlotControls / PinInfo / TrackInfo
     function handleFlyTo(e: Event) {
@@ -80,6 +148,15 @@ const MapView: Component = () => {
       window.removeEventListener('mapFitBounds', handleFitBounds);
       map.remove();
     });
+  });
+
+  createEffect(() => {
+    const map = mapInstance();
+    const mapStyle = prefs.mapStyle ?? getDefaultMapStyle();
+    if (!map || styleLoading()) return;
+
+    if (appliedMapStyle === mapStyle) return;
+    void applyMapStyle(map, true);
   });
 
   function updatePreviewLine(map: maplibregl.Map, nodes: TrackNode[], color: PinColor) {
@@ -169,29 +246,31 @@ const MapView: Component = () => {
 
       <Show when={mapInstance()}>
         {(map) => (
-          <MapContext.Provider value={map()}>
-            <UserLocationMarker map={map()} />
-            <PinMarkers map={map()} pins={pins() ?? []} />
-            <TrackLayers
-              map={map()}
-              tracks={tracks() ?? []}
-              plotNodes={plotState.nodes}
-              plotColor={plotState.color}
-            />
-            <Crosshair center={center()} />
-            <PlotControls
-              center={center()}
-              plotNodes={plotState.nodes}
-              isPlotting={plotState.active}
-              onStartPlot={handleStartPlot}
-              onAddNode={handleAddNode}
-              onUndo={handleUndo}
-              onSave={handleSave}
-              onCancel={handleCancel}
-            />
-            <CompassButton bearing={bearing()} onReset={() => map().resetNorth()} />
-            <LocationButton onLocate={handleLocate} />
-          </MapContext.Provider>
+          <Show when={!styleLoading()}>
+            <MapContext.Provider value={map()}>
+              <UserLocationMarker map={map()} />
+              <PinMarkers map={map()} pins={pins() ?? []} />
+              <TrackLayers
+                map={map()}
+                tracks={tracks() ?? []}
+                plotNodes={plotState.nodes}
+                plotColor={plotState.color}
+              />
+              <Crosshair center={center()} />
+              <PlotControls
+                center={center()}
+                plotNodes={plotState.nodes}
+                isPlotting={plotState.active}
+                onStartPlot={handleStartPlot}
+                onAddNode={handleAddNode}
+                onUndo={handleUndo}
+                onSave={handleSave}
+                onCancel={handleCancel}
+              />
+              <CompassButton bearing={bearing()} onReset={() => map().resetNorth()} />
+              <LocationButton onLocate={handleLocate} />
+            </MapContext.Provider>
+          </Show>
         )}
       </Show>
     </div>
