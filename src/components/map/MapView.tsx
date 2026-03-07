@@ -21,6 +21,7 @@ import TrackLayers from './TrackLayers';
 import PlotControls from './PlotControls';
 import CompassButton from './CompassButton';
 import LocationButton from './LocationButton';
+import LayerButton from './LayerButton';
 import UserLocationMarker from './UserLocationMarker';
 import type { TrackNode, PinColor } from '../../types';
 import { PIN_COLOR_HEX } from '../../utils/colors';
@@ -269,6 +270,7 @@ const MapView: Component = () => {
               />
               <CompassButton bearing={bearing()} onReset={() => map().resetNorth()} />
               <LocationButton onLocate={handleLocate} />
+              <LayerButton />
             </MapContext.Provider>
           </Show>
         )}
