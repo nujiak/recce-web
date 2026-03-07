@@ -1,4 +1,4 @@
-import { Component, createEffect, onCleanup } from 'solid-js';
+import { Component, createEffect, onMount, onCleanup } from 'solid-js';
 import maplibregl from 'maplibre-gl';
 import circle from '@turf/circle';
 import { gpsPosition } from '../../stores/gps';
@@ -12,7 +12,6 @@ const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
 
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let locationMarker: maplibregl.Marker | null = null;
-  let accuracyAdded = false;
 
   function createLocationElement(): HTMLElement {
     const container = document.createElement('div');
@@ -35,7 +34,7 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
       units: 'meters',
     });
 
-    if (!accuracyAdded) {
+    if (!props.map.getSource(ACCURACY_SOURCE_ID)) {
       props.map.addSource(ACCURACY_SOURCE_ID, {
         type: 'geojson',
         data: circleGeojson,
@@ -50,8 +49,6 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
           'fill-opacity': 0.15,
         },
       });
-
-      accuracyAdded = true;
     } else {
       const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource;
       source?.setData(circleGeojson);
@@ -59,16 +56,28 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   }
 
   function removeAccuracyCircle() {
-    if (accuracyAdded) {
-      if (props.map.getLayer(ACCURACY_LAYER_ID)) {
-        props.map.removeLayer(ACCURACY_LAYER_ID);
-      }
-      if (props.map.getSource(ACCURACY_SOURCE_ID)) {
-        props.map.removeSource(ACCURACY_SOURCE_ID);
-      }
-      accuracyAdded = false;
+    if (props.map.getLayer(ACCURACY_LAYER_ID)) {
+      props.map.removeLayer(ACCURACY_LAYER_ID);
+    }
+    if (props.map.getSource(ACCURACY_SOURCE_ID)) {
+      props.map.removeSource(ACCURACY_SOURCE_ID);
     }
   }
+
+  onMount(() => {
+    const handleStyleLoad = () => {
+      const pos = gpsPosition();
+      if (!pos) return;
+      updateAccuracyCircle(pos.longitude, pos.latitude, pos.accuracy);
+      locationMarker?.addTo(props.map);
+    };
+
+    props.map.on('style.load', handleStyleLoad);
+
+    onCleanup(() => {
+      props.map.off('style.load', handleStyleLoad);
+    });
+  });
 
   createEffect(() => {
     const pos = gpsPosition();
