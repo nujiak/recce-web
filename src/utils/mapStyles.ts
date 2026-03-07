@@ -27,8 +27,11 @@ const KEPT_LAYER_IDS = new Set(['airport', 'waterway_line_label']);
 
 export type MapStyleDefinition = string | Promise<StyleSpecification>;
 
-export function getMapStyleDefinition(mapStyle: MapStyle): MapStyleDefinition {
-  return mapStyle === 'standard' ? LIBERTY_STYLE_URL : getHybridSatelliteStyle();
+export function getMapStyleDefinition(
+  mapStyle: MapStyle,
+  signal?: AbortSignal
+): MapStyleDefinition {
+  return mapStyle === 'standard' ? LIBERTY_STYLE_URL : getHybridSatelliteStyle(signal);
 }
 
 export async function fetchLibertyStyle(signal?: AbortSignal): Promise<StyleSpecification> {
