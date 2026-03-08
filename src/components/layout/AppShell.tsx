@@ -27,7 +27,6 @@ const AppShell: ParentComponent<AppShellProps> = (props) => {
           }
           .app-shell .desktop-tools-bar { display: flex !important; }
           .app-shell .bottom-nav { display: none !important; }
-          .app-shell > .bottom-nav { display: none !important; }
           .app-shell .main-pane { grid-column: 1; }
           .app-shell .side-pane {
             grid-column: 2;
