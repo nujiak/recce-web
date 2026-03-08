@@ -60,9 +60,10 @@ const MapView: Component = () => {
       style: initialStyle,
       center: DEFAULT_MAP_CENTER,
       zoom: DEFAULT_MAP_ZOOM,
+      attributionControl: false,
     });
 
-    map.addControl(new maplibregl.AttributionControl({ compact: true }));
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'top-right');
 
     map.on('move', () => {
       const c = map.getCenter();
@@ -199,6 +200,49 @@ const MapView: Component = () => {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <style>{`
+        .maplibregl-ctrl-top-right {
+          top: 64px;
+          left: 16px;
+          right: auto;
+          max-width: calc(100% - 32px);
+        }
+
+        .maplibregl-ctrl-top-right .maplibregl-ctrl {
+          margin: 0;
+          float: left;
+        }
+
+        .maplibregl-ctrl-attrib {
+          max-width: min(280px, calc(100vw - 32px));
+        }
+
+        .maplibregl-ctrl-attrib.maplibregl-compact {
+          display: inline-flex;
+          flex-direction: row;
+          align-items: flex-start;
+        }
+
+        .maplibregl-ctrl-attrib-button {
+          order: -1;
+          flex: 0 0 auto;
+          margin-left: 0;
+          margin-right: 8px;
+          position: static;
+        }
+
+        .maplibregl-ctrl-attrib-inner {
+          order: 1;
+          margin-left: 0;
+          display: block;
+          padding-right: 0;
+        }
+
+        .maplibregl-ctrl-attrib-inner {
+          max-width: 100%;
+          white-space: normal;
+        }
+      `}</style>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
 
       <Show when={mapInstance()}>
