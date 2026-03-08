@@ -13,6 +13,7 @@ const LAYER_LINE = 'tl-line';
 const LAYER_CHECKPOINTS = 'tl-checkpoints';
 const LAYER_TEMP = 'tl-temp';
 const LAYER_PREVIEW = 'tl-preview';
+const TRACK_LAYER_SLOT = 'airport';
 
 interface TrackLayersProps {
   map: maplibregl.Map;
@@ -100,6 +101,7 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
 
   function ensureTrackLayers() {
     const m = props.map;
+    const beforeId = m.getLayer(TRACK_LAYER_SLOT) ? TRACK_LAYER_SLOT : undefined;
 
     if (!m.getSource(SRC_TRACKS)) {
       m.addSource(SRC_TRACKS, {
@@ -124,56 +126,72 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
     }
 
     if (!m.getLayer(LAYER_FILL)) {
-      m.addLayer({
-        id: LAYER_FILL,
-        type: 'fill',
-        source: SRC_TRACKS,
-        filter: ['==', '$type', 'Polygon'],
-        paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.25 },
-      });
+      m.addLayer(
+        {
+          id: LAYER_FILL,
+          type: 'fill',
+          source: SRC_TRACKS,
+          filter: ['==', '$type', 'Polygon'],
+          paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.25 },
+        },
+        beforeId
+      );
     }
     if (!m.getLayer(LAYER_LINE)) {
-      m.addLayer({
-        id: LAYER_LINE,
-        type: 'line',
-        source: SRC_TRACKS,
-        paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-opacity': 0.9 },
-      });
+      m.addLayer(
+        {
+          id: LAYER_LINE,
+          type: 'line',
+          source: SRC_TRACKS,
+          filter: ['==', '$type', 'LineString'],
+          paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-opacity': 0.9 },
+        },
+        beforeId
+      );
     }
     if (!m.getLayer(LAYER_CHECKPOINTS)) {
-      m.addLayer({
-        id: LAYER_CHECKPOINTS,
-        type: 'symbol',
-        source: SRC_CHECKPOINTS,
-        layout: {
-          'text-field': ['get', 'name'],
-          'text-size': 11,
-          'text-anchor': 'bottom',
-          'text-offset': [0, -0.5],
+      m.addLayer(
+        {
+          id: LAYER_CHECKPOINTS,
+          type: 'symbol',
+          source: SRC_CHECKPOINTS,
+          layout: {
+            'text-field': ['get', 'name'],
+            'text-size': 11,
+            'text-anchor': 'bottom',
+            'text-offset': [0, -0.5],
+          },
+          paint: { 'text-color': '#fff', 'text-halo-color': '#000', 'text-halo-width': 2 },
         },
-        paint: { 'text-color': '#fff', 'text-halo-color': '#000', 'text-halo-width': 2 },
-      });
+        beforeId
+      );
     }
     if (!m.getLayer(LAYER_TEMP)) {
-      m.addLayer({
-        id: LAYER_TEMP,
-        type: 'line',
-        source: SRC_TEMP,
-        paint: {
-          'line-color': ['get', 'color'],
-          'line-width': 3,
-          'line-dasharray': [4, 3],
-          'line-opacity': 0.9,
+      m.addLayer(
+        {
+          id: LAYER_TEMP,
+          type: 'line',
+          source: SRC_TEMP,
+          paint: {
+            'line-color': ['get', 'color'],
+            'line-width': 3,
+            'line-dasharray': [4, 3],
+            'line-opacity': 0.9,
+          },
         },
-      });
+        beforeId
+      );
     }
     if (!m.getLayer(LAYER_PREVIEW)) {
-      m.addLayer({
-        id: LAYER_PREVIEW,
-        type: 'line',
-        source: SRC_PREVIEW,
-        paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': 0.4 },
-      });
+      m.addLayer(
+        {
+          id: LAYER_PREVIEW,
+          type: 'line',
+          source: SRC_PREVIEW,
+          paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': 0.4 },
+        },
+        beforeId
+      );
     }
   }
 
