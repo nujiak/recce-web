@@ -1,5 +1,6 @@
 import type maplibregl from 'maplibre-gl';
 import type { MapStyle } from '../../types';
+import { getEsriFallbackTileTemplate } from './esriTileFallback';
 
 export const OPEN_FREE_MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
 
@@ -14,12 +15,11 @@ type RasterSourceSpecification = Extract<
 
 const SATELLITE_SOURCE: RasterSourceSpecification = {
   type: 'raster',
-  tiles: [
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-  ],
+  tiles: [getEsriFallbackTileTemplate()],
   tileSize: 256,
   attribution:
     'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
+  minzoom: 0,
   maxzoom: 19,
 };
 
