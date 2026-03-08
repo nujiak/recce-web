@@ -6,10 +6,15 @@ interface MapStyleToggleProps {
 }
 
 const MapStyleToggle: Component<MapStyleToggleProps> = (props) => {
+  const label = () => (props.isSatellite ? 'Satellite map active' : 'Default map active');
+  const icon = () => (props.isSatellite ? 'satellite_alt' : 'map');
+  const text = () => (props.isSatellite ? 'Satellite' : 'Default');
+
   return (
     <button
       type="button"
-      aria-label={props.isSatellite ? 'Satellite map active' : 'Default map active'}
+      aria-label={label()}
+      title={text()}
       onClick={props.onToggle}
       style={{
         position: 'absolute',
@@ -34,9 +39,9 @@ const MapStyleToggle: Component<MapStyleToggleProps> = (props) => {
       }}
     >
       <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
-        {props.isSatellite ? 'satellite_alt' : 'map'}
+        {icon()}
       </span>
-      <span>{props.isSatellite ? 'Satellite' : 'Default'}</span>
+      <span>{text()}</span>
     </button>
   );
 };

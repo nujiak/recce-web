@@ -12,7 +12,29 @@ const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
 
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let locationMarker: maplibregl.Marker | null = null;
-  let accuracyAdded = false;
+
+  function ensureAccuracyLayer() {
+    if (props.map.getSource(ACCURACY_SOURCE_ID) && props.map.getLayer(ACCURACY_LAYER_ID)) return;
+
+    if (!props.map.getSource(ACCURACY_SOURCE_ID)) {
+      props.map.addSource(ACCURACY_SOURCE_ID, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+    }
+
+    if (!props.map.getLayer(ACCURACY_LAYER_ID)) {
+      props.map.addLayer({
+        id: ACCURACY_LAYER_ID,
+        type: 'fill',
+        source: ACCURACY_SOURCE_ID,
+        paint: {
+          'fill-color': '#53b54e',
+          'fill-opacity': 0.15,
+        },
+      });
+    }
+  }
 
   function createLocationElement(): HTMLElement {
     const container = document.createElement('div');
@@ -35,38 +57,15 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
       units: 'meters',
     });
 
-    if (!accuracyAdded) {
-      props.map.addSource(ACCURACY_SOURCE_ID, {
-        type: 'geojson',
-        data: circleGeojson,
-      });
-
-      props.map.addLayer({
-        id: ACCURACY_LAYER_ID,
-        type: 'fill',
-        source: ACCURACY_SOURCE_ID,
-        paint: {
-          'fill-color': '#53b54e',
-          'fill-opacity': 0.15,
-        },
-      });
-
-      accuracyAdded = true;
-    } else {
-      const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource;
-      source?.setData(circleGeojson);
-    }
+    ensureAccuracyLayer();
+    const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+    source?.setData(circleGeojson);
   }
 
   function removeAccuracyCircle() {
-    if (accuracyAdded) {
-      if (props.map.getLayer(ACCURACY_LAYER_ID)) {
-        props.map.removeLayer(ACCURACY_LAYER_ID);
-      }
-      if (props.map.getSource(ACCURACY_SOURCE_ID)) {
-        props.map.removeSource(ACCURACY_SOURCE_ID);
-      }
-      accuracyAdded = false;
+    const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+    if (source) {
+      source.setData({ type: 'FeatureCollection', features: [] });
     }
   }
 

@@ -54,6 +54,19 @@ function remapLayerSource(layer: StyleLayer): StyleLayer {
   return cloned;
 }
 
+function buildHybridStyle(
+  openFreeMapStyle: maplibregl.StyleSpecification
+): maplibregl.StyleSpecification {
+  return {
+    ...openFreeMapStyle,
+    sources: {
+      ...openFreeMapStyle.sources,
+      [SATELLITE_SOURCE_ID]: SATELLITE_SOURCE,
+    },
+    layers: buildHybridLayers(openFreeMapStyle.layers),
+  };
+}
+
 function buildHybridLayers(baseLayers: StyleLayer[]): StyleLayer[] {
   const satelliteLayer: StyleLayer = {
     id: 'esri-satellite',
@@ -88,14 +101,7 @@ export async function getMapStyle(
   if (style === 'default') return OPEN_FREE_MAP_STYLE;
 
   if (!hybridSatelliteStylePromise) {
-    hybridSatelliteStylePromise = fetchOpenFreeMapStyle().then((openFreeMapStyle) => ({
-      ...openFreeMapStyle,
-      sources: {
-        ...openFreeMapStyle.sources,
-        [SATELLITE_SOURCE_ID]: SATELLITE_SOURCE,
-      },
-      layers: buildHybridLayers(openFreeMapStyle.layers),
-    }));
+    hybridSatelliteStylePromise = fetchOpenFreeMapStyle().then(buildHybridStyle);
   }
 
   return hybridSatelliteStylePromise;

@@ -1,11 +1,11 @@
 import {
   Component,
-  createSignal,
   createResource,
-  onMount,
-  onCleanup,
   Show,
   createEffect,
+  createSignal,
+  onCleanup,
+  onMount,
 } from 'solid-js';
 import { createStore } from 'solid-js/store';
 import maplibregl from 'maplibre-gl';
@@ -28,6 +28,21 @@ import { PIN_COLOR_HEX } from '../../utils/colors';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/constants';
 import { getMapStyle } from './mapStyles';
 
+const ATTRIBUTION_SELECTOR = '.maplibregl-ctrl-top-right > .maplibregl-ctrl-attrib';
+
+function createNewTrack(nodes: TrackNode[]) {
+  return {
+    id: 0,
+    name: '',
+    nodes,
+    isCyclical: false,
+    color: 'azure' as const,
+    group: '',
+    description: '',
+    createdAt: Date.now(),
+  };
+}
+
 interface PlotState {
   active: boolean;
   nodes: TrackNode[];
@@ -41,16 +56,12 @@ const MapView: Component = () => {
 
   function collapseAttributionControl() {
     containerRef
-      ?.querySelectorAll<HTMLDetailsElement>(
-        '.maplibregl-ctrl-top-right > .maplibregl-ctrl-attrib[open]'
-      )
+      ?.querySelectorAll<HTMLDetailsElement>(`${ATTRIBUTION_SELECTOR}[open]`)
       .forEach((details) => details.removeAttribute('open'));
   }
 
   function bindAttributionToggle() {
-    const details = containerRef?.querySelector<HTMLDetailsElement>(
-      '.maplibregl-ctrl-top-right > .maplibregl-ctrl-attrib'
-    );
+    const details = containerRef?.querySelector<HTMLDetailsElement>(ATTRIBUTION_SELECTOR);
     const summary = details?.querySelector<HTMLElement>('.maplibregl-ctrl-attrib-button');
     if (!details || !summary || details.dataset.recceBound === 'true') return;
 
@@ -191,16 +202,7 @@ const MapView: Component = () => {
       ...(n.name ? { name: n.name } : {}),
     }));
     setPlotState({ active: false, nodes: [], color: 'red' });
-    setEditingTrack({
-      id: 0,
-      name: '',
-      nodes,
-      isCyclical: false,
-      color: 'azure',
-      group: '',
-      description: '',
-      createdAt: Date.now(),
-    });
+    setEditingTrack(createNewTrack(nodes));
   }
 
   function handleCancel() {
@@ -227,7 +229,7 @@ const MapView: Component = () => {
     const nextStyle = prefs.mapStyle;
     const style = await getMapStyle(nextStyle);
     if (requestId !== styleRequestId) return;
-    activeMapStyle = prefs.mapStyle;
+    activeMapStyle = nextStyle;
     map.setStyle(style);
   });
 

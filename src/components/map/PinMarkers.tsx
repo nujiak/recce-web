@@ -1,9 +1,9 @@
 import { Component, createEffect, onCleanup } from 'solid-js';
 import maplibregl from 'maplibre-gl';
 import { useUI } from '../../context/UIContext';
-import type { Pin } from '../../types';
+import type { Pin, PinColor } from '../../types';
 
-const COLOR_SVG: Record<string, string> = {
+const COLOR_SVG: Record<PinColor, string> = {
   red: '/icons/pin-red.svg',
   orange: '/icons/pin-orange.svg',
   green: '/icons/pin-green.svg',
@@ -19,6 +19,10 @@ interface PinMarkersProps {
 const PinMarkers: Component<PinMarkersProps> = (props) => {
   const { setViewingPin } = useUI();
   const markerMap = new Map<number, maplibregl.Marker>();
+
+  function getMarkerIcon(color: PinColor): string {
+    return COLOR_SVG[color] ?? COLOR_SVG.red;
+  }
 
   function syncMarkers() {
     const currentPins = props.pins;
@@ -47,7 +51,7 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
   function createMarkerEl(pin: Pin): HTMLDivElement {
     const el = document.createElement('div');
     const img = document.createElement('img');
-    img.src = COLOR_SVG[pin.color] ?? COLOR_SVG.red;
+    img.src = getMarkerIcon(pin.color);
     img.width = 48;
     img.height = 48;
     img.alt = pin.name;
