@@ -27,6 +27,49 @@
 - Explain context/motivation; describe solution approach
 - Use section names: Summary, Changes, Motivation, Testing
 
+## Current Branch Status
+
+Branch: `fix/map-overlay-rendering`
+PR: `https://github.com/nujiak/recce-web/pull/30`
+
+### Implemented On This Branch
+
+- `src/components/map/MapView.tsx`: style switching now guards against missing the style readiness event by listening for `styledata` as well as `style.load`
+- `src/components/map/MapView.tsx`: map container is positioned absolutely so it can share a wrapper with DOM overlays
+- `src/components/map/PinMarkers.tsx`: saved pin rendering was moved from DOM `maplibregl.Marker` instances to GeoJSON + MapLibre symbol layers
+- `src/components/map/PinMarkers.tsx`: pin icons are rasterized from inline SVG that matches the current pin artwork, so the visual intent is preserved while using style-safe map images
+- `src/components/map/TrackLayers.tsx`: track overlays remain GeoJSON-backed and keep the earlier line-layer visibility fix
+- `src/components/map/TrackLayers.tsx`: glyph-dependent checkpoint text layers were removed because they break on the current hybrid/satellite style path
+- `src/components/map/MapView.tsx`: DOM overlays were conceptually split into a dedicated absolute layer above the map, including the crosshair and overlay buttons
+
+### Current Blocker
+
+- The DOM overlay subtree in `src/components/map/MapView.tsx` still does not mount visibly at runtime
+- Chrome MCP confirms strings like `Copy coordinates`, `Add pin at crosshair`, and the temporary debug overlay text never appear in `root.innerHTML`
+- Because that subtree does not mount, final validation of the GeoJSON pin layer in the intended UI state is still blocked
+
+### Verified So Far
+
+- `npm run typecheck` passes
+- Chrome MCP confirmed the satellite basemap renders again
+- Chrome MCP confirmed the saved sidebar still renders
+- Chrome MCP confirmed the earlier glyph-layer errors are gone after removing text symbol layers
+
+### Still To Do
+
+- Restore visible mounting of DOM overlays in `src/components/map/MapView.tsx`
+- Re-verify GeoJSON pins on both standard and satellite styles
+- Re-verify desktop and mobile layouts with Chrome MCP
+
+### Possible Next Solutions To Explore
+
+- Simplify `src/components/map/MapView.tsx` further by removing the `Show` wrapper entirely for DOM overlays and rendering them unconditionally once `mapInstance()` exists, using simple guards only inside map-backed components
+- Split map-backed overlays and DOM overlays into separate components/files, for example a `MapObjectOverlays.tsx` and `MapDomOverlays.tsx`, so the render path is easier to inspect and isolate
+- Temporarily replace the `Show` block in `src/components/map/MapView.tsx` with a plain ternary or a precomputed local JSX variable to rule out Solid control-flow edge cases
+- Render a single hard-coded absolute `<div>` sibling next to the map container in `src/components/map/MapView.tsx` with no map dependencies at all; if that still fails, the issue is layout/render placement rather than map state
+- Check whether `AppShell` / desktop-mobile layout CSS is clipping or replacing the `MapView` children unexpectedly, even though current evidence points more strongly to the `MapView` render branch itself
+- If DOM overlays remain blocked, consider mounting the DOM overlay layer outside `MapView` entirely (for example from `App.tsx` or the shell) while keeping map-backed layers inside `MapView`
+
 ---
 
 ## Architecture
