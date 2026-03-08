@@ -1,4 +1,12 @@
-import { Component, createSignal, createResource, onMount, onCleanup, Show } from 'solid-js';
+import {
+  Component,
+  createSignal,
+  createResource,
+  onMount,
+  onCleanup,
+  Show,
+  createEffect,
+} from 'solid-js';
 import { createStore } from 'solid-js/store';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -13,9 +21,12 @@ import PlotControls from './PlotControls';
 import CompassButton from './CompassButton';
 import LocationButton from './LocationButton';
 import UserLocationMarker from './UserLocationMarker';
-import type { TrackNode, PinColor } from '../../types';
+import MapStyleToggle from './MapStyleToggle';
+import { usePrefs } from '../../context/PrefsContext';
+import type { TrackNode, PinColor, MapStyle } from '../../types';
 import { PIN_COLOR_HEX } from '../../utils/colors';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/constants';
+import { getMapStyle } from './mapStyles';
 
 interface PlotState {
   active: boolean;
@@ -25,8 +36,10 @@ interface PlotState {
 
 const MapView: Component = () => {
   let containerRef!: HTMLDivElement;
+  let activeMapStyle: MapStyle = 'default';
 
   const { savedVersion, setEditingTrack } = useUI();
+  const [prefs, setPrefs] = usePrefs();
   const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | null>(null);
   const [center, setCenter] = createSignal<[number, number]>(DEFAULT_MAP_CENTER);
   const [bearing, setBearing] = createSignal(0);
@@ -42,10 +55,12 @@ const MapView: Component = () => {
   onMount(() => {
     const map = new maplibregl.Map({
       container: containerRef,
-      style: 'https://tiles.openfreemap.org/styles/liberty',
+      style: getMapStyle(prefs.mapStyle),
       center: DEFAULT_MAP_CENTER,
       zoom: DEFAULT_MAP_ZOOM,
     });
+
+    map.addControl(new maplibregl.AttributionControl({ compact: true }));
 
     map.on('move', () => {
       const c = map.getCenter();
@@ -59,6 +74,7 @@ const MapView: Component = () => {
     });
 
     map.on('load', () => {
+      activeMapStyle = prefs.mapStyle;
       setMapInstance(map);
     });
 
@@ -163,6 +179,18 @@ const MapView: Component = () => {
     mapInstance()?.flyTo({ center: [pos.longitude, pos.latitude], zoom: 15 });
   }
 
+  function handleToggleMapStyle() {
+    const nextStyle = prefs.mapStyle === 'satellite' ? 'default' : 'satellite';
+    setPrefs('mapStyle', nextStyle);
+  }
+
+  createEffect(() => {
+    const map = mapInstance();
+    if (!map || activeMapStyle === prefs.mapStyle) return;
+    activeMapStyle = prefs.mapStyle;
+    map.setStyle(getMapStyle(prefs.mapStyle));
+  });
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
@@ -179,6 +207,10 @@ const MapView: Component = () => {
               plotColor={plotState.color}
             />
             <Crosshair center={center()} />
+            <MapStyleToggle
+              isSatellite={prefs.mapStyle === 'satellite'}
+              onToggle={handleToggleMapStyle}
+            />
             <PlotControls
               center={center()}
               plotNodes={plotState.nodes}

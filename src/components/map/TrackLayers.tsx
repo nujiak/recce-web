@@ -79,62 +79,98 @@ function nodesToLineGeoJSON(nodes: TrackNode[], color: string): GeoJSON.FeatureC
 const TrackLayers: Component<TrackLayersProps> = (props) => {
   const { setViewingTrack } = useUI();
 
+  function ensureLayers() {
+    const m = props.map;
+
+    if (!m.getSource(SRC_TRACKS)) {
+      m.addSource(SRC_TRACKS, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+    }
+    if (!m.getSource(SRC_CHECKPOINTS)) {
+      m.addSource(SRC_CHECKPOINTS, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+    }
+    if (!m.getSource(SRC_TEMP)) {
+      m.addSource(SRC_TEMP, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+    }
+    if (!m.getSource(SRC_PREVIEW)) {
+      m.addSource(SRC_PREVIEW, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      });
+    }
+
+    if (!m.getLayer(LAYER_FILL)) {
+      m.addLayer({
+        id: LAYER_FILL,
+        type: 'fill',
+        source: SRC_TRACKS,
+        filter: ['==', '$type', 'Polygon'],
+        paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.25 },
+      });
+    }
+    if (!m.getLayer(LAYER_LINE)) {
+      m.addLayer({
+        id: LAYER_LINE,
+        type: 'line',
+        source: SRC_TRACKS,
+        paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-opacity': 0.9 },
+      });
+    }
+    if (!m.getLayer(LAYER_CHECKPOINTS)) {
+      m.addLayer({
+        id: LAYER_CHECKPOINTS,
+        type: 'symbol',
+        source: SRC_CHECKPOINTS,
+        layout: {
+          'text-field': ['get', 'name'],
+          'text-size': 11,
+          'text-anchor': 'bottom',
+          'text-offset': [0, -0.5],
+        },
+        paint: { 'text-color': '#fff', 'text-halo-color': '#000', 'text-halo-width': 2 },
+      });
+    }
+    if (!m.getLayer(LAYER_TEMP)) {
+      m.addLayer({
+        id: LAYER_TEMP,
+        type: 'line',
+        source: SRC_TEMP,
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-width': 3,
+          'line-dasharray': [4, 3],
+          'line-opacity': 0.9,
+        },
+      });
+    }
+    if (!m.getLayer(LAYER_PREVIEW)) {
+      m.addLayer({
+        id: LAYER_PREVIEW,
+        type: 'line',
+        source: SRC_PREVIEW,
+        paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': 0.4 },
+      });
+    }
+
+    (m.getSource(SRC_TRACKS) as maplibregl.GeoJSONSource).setData(tracksToGeoJSON(props.tracks));
+    (m.getSource(SRC_CHECKPOINTS) as maplibregl.GeoJSONSource).setData(
+      checkpointsToGeoJSON(props.tracks)
+    );
+    const color = PIN_COLOR_HEX[props.plotColor] ?? PIN_COLOR_HEX.red;
+    (m.getSource(SRC_TEMP) as maplibregl.GeoJSONSource).setData(
+      nodesToLineGeoJSON(props.plotNodes, color)
+    );
+  }
+
   onMount(() => {
     const m = props.map;
 
-    m.addSource(SRC_TRACKS, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-    m.addSource(SRC_CHECKPOINTS, {
-      type: 'geojson',
-      data: { type: 'FeatureCollection', features: [] },
-    });
-    m.addSource(SRC_TEMP, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-    m.addSource(SRC_PREVIEW, {
-      type: 'geojson',
-      data: { type: 'FeatureCollection', features: [] },
-    });
-
-    m.addLayer({
-      id: LAYER_FILL,
-      type: 'fill',
-      source: SRC_TRACKS,
-      filter: ['==', '$type', 'Polygon'],
-      paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.25 },
-    });
-    m.addLayer({
-      id: LAYER_LINE,
-      type: 'line',
-      source: SRC_TRACKS,
-      paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-opacity': 0.9 },
-    });
-    m.addLayer({
-      id: LAYER_CHECKPOINTS,
-      type: 'symbol',
-      source: SRC_CHECKPOINTS,
-      layout: {
-        'text-field': ['get', 'name'],
-        'text-size': 11,
-        'text-anchor': 'bottom',
-        'text-offset': [0, -0.5],
-      },
-      paint: { 'text-color': '#fff', 'text-halo-color': '#000', 'text-halo-width': 2 },
-    });
-    m.addLayer({
-      id: LAYER_TEMP,
-      type: 'line',
-      source: SRC_TEMP,
-      paint: {
-        'line-color': ['get', 'color'],
-        'line-width': 3,
-        'line-dasharray': [4, 3],
-        'line-opacity': 0.9,
-      },
-    });
-    m.addLayer({
-      id: LAYER_PREVIEW,
-      type: 'line',
-      source: SRC_PREVIEW,
-      paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': 0.4 },
-    });
+    ensureLayers();
 
     m.on('click', LAYER_LINE, (e) => {
       const id = e.features?.[0]?.properties?.id;
@@ -158,6 +194,8 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
     m.on('mouseleave', LAYER_FILL, () => {
       m.getCanvas().style.cursor = '';
     });
+
+    m.on('styledata', ensureLayers);
   });
 
   // Update track GeoJSON when tracks change
@@ -182,6 +220,7 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
 
   onCleanup(() => {
     const m = props.map;
+    m.off('styledata', ensureLayers);
     for (const layer of [LAYER_FILL, LAYER_LINE, LAYER_CHECKPOINTS, LAYER_TEMP, LAYER_PREVIEW]) {
       if (m.getLayer(layer)) m.removeLayer(layer);
     }

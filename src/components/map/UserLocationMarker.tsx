@@ -70,7 +70,7 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     }
   }
 
-  createEffect(() => {
+  function syncLocationState() {
     const pos = gpsPosition();
 
     if (!pos) {
@@ -96,9 +96,17 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     } else {
       locationMarker.setLngLat([pos.longitude, pos.latitude]);
     }
+  }
+
+  createEffect(() => {
+    gpsPosition();
+    syncLocationState();
   });
 
+  props.map.on('styledata', syncLocationState);
+
   onCleanup(() => {
+    props.map.off('styledata', syncLocationState);
     locationMarker?.remove();
     locationMarker = null;
     removeAccuracyCircle();
