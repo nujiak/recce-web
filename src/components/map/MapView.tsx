@@ -39,6 +39,29 @@ const MapView: Component = () => {
   let activeMapStyle: MapStyle = 'default';
   let styleRequestId = 0;
 
+  function collapseAttributionControl() {
+    containerRef
+      ?.querySelectorAll<HTMLDetailsElement>(
+        '.maplibregl-ctrl-top-right > .maplibregl-ctrl-attrib[open]'
+      )
+      .forEach((details) => details.removeAttribute('open'));
+  }
+
+  function bindAttributionToggle() {
+    const details = containerRef?.querySelector<HTMLDetailsElement>(
+      '.maplibregl-ctrl-top-right > .maplibregl-ctrl-attrib'
+    );
+    const summary = details?.querySelector<HTMLElement>('.maplibregl-ctrl-attrib-button');
+    if (!details || !summary || details.dataset.recceBound === 'true') return;
+
+    details.dataset.recceBound = 'true';
+    summary.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      const nextOpen = !details.open;
+      details.open = nextOpen;
+    });
+  }
+
   const { savedVersion, setEditingTrack } = useUI();
   const [prefs, setPrefs] = usePrefs();
   const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | null>(null);
@@ -64,6 +87,12 @@ const MapView: Component = () => {
     });
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'top-right');
+    map.on('styledata', collapseAttributionControl);
+    map.on('styledata', bindAttributionToggle);
+    requestAnimationFrame(() => {
+      collapseAttributionControl();
+      bindAttributionToggle();
+    });
 
     map.on('move', () => {
       const c = map.getCenter();
@@ -78,6 +107,8 @@ const MapView: Component = () => {
 
     map.on('load', () => {
       activeMapStyle = prefs.mapStyle;
+      collapseAttributionControl();
+      bindAttributionToggle();
       setMapInstance(map);
     });
 
@@ -95,6 +126,8 @@ const MapView: Component = () => {
     window.addEventListener('mapFitBounds', handleFitBounds);
 
     onCleanup(() => {
+      map.off('styledata', collapseAttributionControl);
+      map.off('styledata', bindAttributionToggle);
       window.removeEventListener('mapFlyTo', handleFlyTo);
       window.removeEventListener('mapFitBounds', handleFitBounds);
       map.remove();
@@ -205,7 +238,7 @@ const MapView: Component = () => {
           top: 64px;
           left: 16px;
           right: auto;
-          max-width: calc(100% - 32px);
+          max-width: calc(100% - 16px);
         }
 
         .maplibregl-ctrl-top-right .maplibregl-ctrl {
@@ -214,20 +247,22 @@ const MapView: Component = () => {
         }
 
         .maplibregl-ctrl-attrib {
-          max-width: min(280px, calc(100vw - 32px));
+          max-width: min(360px, calc(100vw - 16px));
+          margin: 0;
         }
 
         .maplibregl-ctrl-attrib.maplibregl-compact {
           display: inline-flex;
           flex-direction: row;
           align-items: flex-start;
+          padding: 0;
         }
 
         .maplibregl-ctrl-attrib-button {
           order: -1;
           flex: 0 0 auto;
           margin-left: 0;
-          margin-right: 8px;
+          margin-right: 0;
           position: static;
         }
 
@@ -235,7 +270,12 @@ const MapView: Component = () => {
           order: 1;
           margin-left: 0;
           display: block;
-          padding-right: 0;
+          padding-left: 8px;
+          padding-right: 8px;
+        }
+
+        .maplibregl-ctrl.maplibregl-ctrl-attrib {
+          padding: 0;
         }
 
         .maplibregl-ctrl-attrib-inner {
