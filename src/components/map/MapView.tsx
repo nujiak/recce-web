@@ -37,6 +37,7 @@ interface PlotState {
 const MapView: Component = () => {
   let containerRef!: HTMLDivElement;
   let activeMapStyle: MapStyle = 'default';
+  let styleRequestId = 0;
 
   const { savedVersion, setEditingTrack } = useUI();
   const [prefs, setPrefs] = usePrefs();
@@ -52,10 +53,11 @@ const MapView: Component = () => {
   const [pins] = createResource(savedVersion, getAllPins);
   const [tracks] = createResource(savedVersion, getAllTracks);
 
-  onMount(() => {
+  onMount(async () => {
+    const initialStyle = await getMapStyle(prefs.mapStyle);
     const map = new maplibregl.Map({
       container: containerRef,
-      style: getMapStyle(prefs.mapStyle),
+      style: initialStyle,
       center: DEFAULT_MAP_CENTER,
       zoom: DEFAULT_MAP_ZOOM,
     });
@@ -184,11 +186,15 @@ const MapView: Component = () => {
     setPrefs('mapStyle', nextStyle);
   }
 
-  createEffect(() => {
+  createEffect(async () => {
     const map = mapInstance();
     if (!map || activeMapStyle === prefs.mapStyle) return;
+    const requestId = ++styleRequestId;
+    const nextStyle = prefs.mapStyle;
+    const style = await getMapStyle(nextStyle);
+    if (requestId !== styleRequestId) return;
     activeMapStyle = prefs.mapStyle;
-    map.setStyle(getMapStyle(prefs.mapStyle));
+    map.setStyle(style);
   });
 
   return (

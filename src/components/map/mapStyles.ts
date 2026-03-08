@@ -3,76 +3,100 @@ import type { MapStyle } from '../../types';
 
 export const OPEN_FREE_MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
 
-export const HYBRID_SATELLITE_STYLE: maplibregl.StyleSpecification = {
-  version: 8,
-  sources: {
-    esriSatellite: {
-      type: 'raster',
-      tiles: [
-        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      ],
-      tileSize: 256,
-      attribution:
-        'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
-      maxzoom: 19,
-    },
-    openfreemap: {
-      type: 'vector',
-      url: 'https://tiles.openfreemap.org/planet',
-      attribution: 'Data &copy; OpenFreeMap contributors',
-    },
-  },
-  glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
-  sprite: 'https://tiles.openfreemap.org/sprites/liberty',
-  layers: [
-    {
-      id: 'esri-satellite',
-      type: 'raster',
-      source: 'esriSatellite',
-    },
-    {
-      id: 'osm-boundaries',
-      type: 'line',
-      source: 'openfreemap',
-      'source-layer': 'boundary',
-      paint: {
-        'line-color': 'rgba(255,255,255,0.7)',
-        'line-width': ['interpolate', ['linear'], ['zoom'], 3, 0.3, 10, 1.2],
-        'line-dasharray': [4, 2],
-      },
-    },
-    {
-      id: 'osm-roads',
-      type: 'line',
-      source: 'openfreemap',
-      'source-layer': 'transportation',
-      minzoom: 9,
-      paint: {
-        'line-color': 'rgba(255,255,255,0.85)',
-        'line-width': ['interpolate', ['linear'], ['zoom'], 9, 0.4, 16, 3],
-        'line-opacity': 0.75,
-      },
-    },
-    {
-      id: 'osm-labels',
-      type: 'symbol',
-      source: 'openfreemap',
-      'source-layer': 'place',
-      filter: ['all', ['has', 'name'], ['<=', ['get', 'rank'], 6]],
-      layout: {
-        'text-field': ['coalesce', ['get', 'name:en'], ['get', 'name']],
-        'text-font': ['Noto Sans Regular'],
-        'text-size': ['interpolate', ['linear'], ['zoom'], 3, 10, 8, 14, 13, 18],
-      },
-      paint: {
-        'text-color': '#ffffff',
-        'text-halo-color': 'rgba(15, 23, 42, 0.9)',
-        'text-halo-width': 1.5,
-      },
-    },
+const OPEN_FREE_MAP_SOURCE_ID = 'openmaptiles';
+const SATELLITE_SOURCE_ID = 'esriSatellite';
+
+type StyleLayer = maplibregl.StyleSpecification['layers'][number];
+type RasterSourceSpecification = Extract<
+  maplibregl.StyleSpecification['sources'][string],
+  { type: 'raster' }
+>;
+
+const SATELLITE_SOURCE: RasterSourceSpecification = {
+  type: 'raster',
+  tiles: [
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
   ],
+  tileSize: 256,
+  attribution:
+    'Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
+  maxzoom: 19,
 };
 
-export function getMapStyle(style: MapStyle): string | maplibregl.StyleSpecification {
-  return style === 'satellite' ? HYBRID_SATELLITE_STYLE : OPEN_FREE_MAP_STYLE;
+const SOURCE_REMAP: Record<string, string> = {
+  [OPEN_FREE_MAP_SOURCE_ID]: OPEN_FREE_MAP_SOURCE_ID,
+  ne2_shaded: SATELLITE_SOURCE_ID,
+};
+
+function cloneLayer(layer: StyleLayer): StyleLayer {
+  return JSON.parse(JSON.stringify(layer)) as StyleLayer;
+}
+
+function isBackgroundLayer(layer: StyleLayer): boolean {
+  return layer.type === 'background';
+}
+
+function isBaseRasterLayer(layer: StyleLayer): boolean {
+  return layer.type === 'raster';
+}
+
+function isLandOrBuildingOverlay(layer: StyleLayer): boolean {
+  if (!('source-layer' in layer) || typeof layer['source-layer'] !== 'string') return false;
+
+  return ['aeroway', 'building', 'landcover', 'landuse', 'park'].includes(layer['source-layer']);
+}
+
+function remapLayerSource(layer: StyleLayer): StyleLayer {
+  const cloned = cloneLayer(layer);
+  if ('source' in cloned && typeof cloned.source === 'string' && SOURCE_REMAP[cloned.source]) {
+    cloned.source = SOURCE_REMAP[cloned.source];
+  }
+  return cloned;
+}
+
+function buildHybridLayers(baseLayers: StyleLayer[]): StyleLayer[] {
+  const satelliteLayer: StyleLayer = {
+    id: 'esri-satellite',
+    type: 'raster',
+    source: SATELLITE_SOURCE_ID,
+  };
+
+  return [
+    satelliteLayer,
+    ...baseLayers
+      .filter(
+        (layer) =>
+          !isBackgroundLayer(layer) && !isBaseRasterLayer(layer) && !isLandOrBuildingOverlay(layer)
+      )
+      .map(remapLayerSource),
+  ];
+}
+
+let hybridSatelliteStylePromise: Promise<maplibregl.StyleSpecification> | null = null;
+
+async function fetchOpenFreeMapStyle(): Promise<maplibregl.StyleSpecification> {
+  const response = await fetch(OPEN_FREE_MAP_STYLE);
+  if (!response.ok) {
+    throw new Error(`Failed to load OpenFreeMap style: ${response.status}`);
+  }
+  return (await response.json()) as maplibregl.StyleSpecification;
+}
+
+export async function getMapStyle(
+  style: MapStyle
+): Promise<string | maplibregl.StyleSpecification> {
+  if (style === 'default') return OPEN_FREE_MAP_STYLE;
+
+  if (!hybridSatelliteStylePromise) {
+    hybridSatelliteStylePromise = fetchOpenFreeMapStyle().then((openFreeMapStyle) => ({
+      ...openFreeMapStyle,
+      sources: {
+        ...openFreeMapStyle.sources,
+        [SATELLITE_SOURCE_ID]: SATELLITE_SOURCE,
+      },
+      layers: buildHybridLayers(openFreeMapStyle.layers),
+    }));
+  }
+
+  return hybridSatelliteStylePromise;
 }
