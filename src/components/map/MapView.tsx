@@ -1,4 +1,12 @@
-import { Component, createSignal, createResource, onMount, onCleanup, Show } from 'solid-js';
+import {
+  Component,
+  createResource,
+  Show,
+  createEffect,
+  createSignal,
+  onCleanup,
+  onMount,
+} from 'solid-js';
 import { createStore } from 'solid-js/store';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -13,9 +21,27 @@ import PlotControls from './PlotControls';
 import CompassButton from './CompassButton';
 import LocationButton from './LocationButton';
 import UserLocationMarker from './UserLocationMarker';
-import type { TrackNode, PinColor } from '../../types';
+import MapStyleToggle from './MapStyleToggle';
+import { usePrefs } from '../../context/PrefsContext';
+import type { TrackNode, PinColor, MapStyle } from '../../types';
 import { PIN_COLOR_HEX } from '../../utils/colors';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/constants';
+import { getMapStyle } from './mapStyles';
+
+const ATTRIBUTION_SELECTOR = '.maplibregl-ctrl-top-right > .maplibregl-ctrl-attrib';
+
+function createNewTrack(nodes: TrackNode[]) {
+  return {
+    id: 0,
+    name: '',
+    nodes,
+    isCyclical: false,
+    color: 'azure' as const,
+    group: '',
+    description: '',
+    createdAt: Date.now(),
+  };
+}
 
 interface PlotState {
   active: boolean;
@@ -25,8 +51,30 @@ interface PlotState {
 
 const MapView: Component = () => {
   let containerRef!: HTMLDivElement;
+  let activeMapStyle: MapStyle = 'default';
+  let styleRequestId = 0;
+
+  function collapseAttributionControl() {
+    containerRef
+      ?.querySelectorAll<HTMLDetailsElement>(`${ATTRIBUTION_SELECTOR}[open]`)
+      .forEach((details) => details.removeAttribute('open'));
+  }
+
+  function bindAttributionToggle() {
+    const details = containerRef?.querySelector<HTMLDetailsElement>(ATTRIBUTION_SELECTOR);
+    const summary = details?.querySelector<HTMLElement>('.maplibregl-ctrl-attrib-button');
+    if (!details || !summary || details.dataset.recceBound === 'true') return;
+
+    details.dataset.recceBound = 'true';
+    summary.addEventListener('pointerdown', (event) => {
+      event.preventDefault();
+      const nextOpen = !details.open;
+      details.open = nextOpen;
+    });
+  }
 
   const { savedVersion, setEditingTrack } = useUI();
+  const [prefs, setPrefs] = usePrefs();
   const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | null>(null);
   const [center, setCenter] = createSignal<[number, number]>(DEFAULT_MAP_CENTER);
   const [bearing, setBearing] = createSignal(0);
@@ -39,12 +87,22 @@ const MapView: Component = () => {
   const [pins] = createResource(savedVersion, getAllPins);
   const [tracks] = createResource(savedVersion, getAllTracks);
 
-  onMount(() => {
+  onMount(async () => {
+    const initialStyle = await getMapStyle(prefs.mapStyle);
     const map = new maplibregl.Map({
       container: containerRef,
-      style: 'https://tiles.openfreemap.org/styles/liberty',
+      style: initialStyle,
       center: DEFAULT_MAP_CENTER,
       zoom: DEFAULT_MAP_ZOOM,
+      attributionControl: false,
+    });
+
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'top-right');
+    map.on('styledata', collapseAttributionControl);
+    map.on('styledata', bindAttributionToggle);
+    requestAnimationFrame(() => {
+      collapseAttributionControl();
+      bindAttributionToggle();
     });
 
     map.on('move', () => {
@@ -59,6 +117,9 @@ const MapView: Component = () => {
     });
 
     map.on('load', () => {
+      activeMapStyle = prefs.mapStyle;
+      collapseAttributionControl();
+      bindAttributionToggle();
       setMapInstance(map);
     });
 
@@ -76,6 +137,8 @@ const MapView: Component = () => {
     window.addEventListener('mapFitBounds', handleFitBounds);
 
     onCleanup(() => {
+      map.off('styledata', collapseAttributionControl);
+      map.off('styledata', bindAttributionToggle);
       window.removeEventListener('mapFlyTo', handleFlyTo);
       window.removeEventListener('mapFitBounds', handleFitBounds);
       map.remove();
@@ -139,16 +202,7 @@ const MapView: Component = () => {
       ...(n.name ? { name: n.name } : {}),
     }));
     setPlotState({ active: false, nodes: [], color: 'red' });
-    setEditingTrack({
-      id: 0,
-      name: '',
-      nodes,
-      isCyclical: false,
-      color: 'azure',
-      group: '',
-      description: '',
-      createdAt: Date.now(),
-    });
+    setEditingTrack(createNewTrack(nodes));
   }
 
   function handleCancel() {
@@ -163,8 +217,74 @@ const MapView: Component = () => {
     mapInstance()?.flyTo({ center: [pos.longitude, pos.latitude], zoom: 15 });
   }
 
+  function handleToggleMapStyle() {
+    const nextStyle = prefs.mapStyle === 'satellite' ? 'default' : 'satellite';
+    setPrefs('mapStyle', nextStyle);
+  }
+
+  createEffect(async () => {
+    const map = mapInstance();
+    if (!map || activeMapStyle === prefs.mapStyle) return;
+    const requestId = ++styleRequestId;
+    const nextStyle = prefs.mapStyle;
+    const style = await getMapStyle(nextStyle);
+    if (requestId !== styleRequestId) return;
+    activeMapStyle = nextStyle;
+    map.setStyle(style);
+  });
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <style>{`
+        .maplibregl-ctrl-top-right {
+          top: 64px;
+          left: 16px;
+          right: auto;
+          max-width: calc(100% - 16px);
+        }
+
+        .maplibregl-ctrl-top-right .maplibregl-ctrl {
+          margin: 0;
+          float: left;
+        }
+
+        .maplibregl-ctrl-attrib {
+          max-width: min(360px, calc(100vw - 16px));
+          margin: 0;
+        }
+
+        .maplibregl-ctrl-attrib.maplibregl-compact {
+          display: inline-flex;
+          flex-direction: row;
+          align-items: flex-start;
+          padding: 0;
+        }
+
+        .maplibregl-ctrl-attrib-button {
+          order: -1;
+          flex: 0 0 auto;
+          margin-left: 0;
+          margin-right: 0;
+          position: static;
+        }
+
+        .maplibregl-ctrl-attrib-inner {
+          order: 1;
+          margin-left: 0;
+          display: block;
+          padding-left: 8px;
+          padding-right: 8px;
+        }
+
+        .maplibregl-ctrl.maplibregl-ctrl-attrib {
+          padding: 0;
+        }
+
+        .maplibregl-ctrl-attrib-inner {
+          max-width: 100%;
+          white-space: normal;
+        }
+      `}</style>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
 
       <Show when={mapInstance()}>
@@ -179,6 +299,10 @@ const MapView: Component = () => {
               plotColor={plotState.color}
             />
             <Crosshair center={center()} />
+            <MapStyleToggle
+              isSatellite={prefs.mapStyle === 'satellite'}
+              onToggle={handleToggleMapStyle}
+            />
             <PlotControls
               center={center()}
               plotNodes={plotState.nodes}
