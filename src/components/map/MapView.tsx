@@ -3,6 +3,7 @@ import {
   createSignal,
   createResource,
   createEffect,
+  createMemo,
   onMount,
   onCleanup,
   Show,
@@ -50,8 +51,9 @@ const MapView: Component = () => {
     color: 'red',
   });
 
-  const [pins] = createResource(savedVersion, getAllPins);
-  const [tracks] = createResource(savedVersion, getAllTracks);
+  const [pins] = createResource(savedVersion, getAllPins, { initialValue: [] });
+  const [tracks] = createResource(savedVersion, getAllTracks, { initialValue: [] });
+  const overlayReady = createMemo(() => isStyleLoaded() && !!mapInstance());
 
   let styleRequestId = 0;
   let styleAbortController: AbortController | null = null;
@@ -72,6 +74,8 @@ const MapView: Component = () => {
         }
       : null;
 
+    let handleStyleData: ((event: maplibregl.MapStyleDataEvent) => void) | null = null;
+
     try {
       const styleDefinition = await getMapStyleDefinition(mapStyle, controller.signal);
 
@@ -84,14 +88,24 @@ const MapView: Component = () => {
         setIsStyleLoaded(true);
       };
 
+      handleStyleData = () => {
+        if (requestId !== styleRequestId) return;
+        if (!map.isStyleLoaded()) return;
+        map.off('styledata', handleStyleData!);
+        handleStyleLoad();
+      };
+
       map.on('style.load', handleStyleLoad);
+      map.on('styledata', handleStyleData);
 
       map.setStyle(styleDefinition);
 
       if (map.isStyleLoaded()) {
+        map.off('styledata', handleStyleData);
         handleStyleLoad();
       }
     } catch (error) {
+      if (handleStyleData) map.off('styledata', handleStyleData);
       if (controller.signal.aborted) return;
       console.error('Failed to apply map style', error);
       setIsStyleLoaded(true);
@@ -237,36 +251,49 @@ const MapView: Component = () => {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
+      <div
+        ref={containerRef}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+      />
 
-      <Show when={mapInstance()} keyed>
+      <Show when={overlayReady() && mapInstance()} keyed>
         {(map) => (
-          <MapContext.Provider value={map}>
-            <Show when={isStyleLoaded()}>
+          <>
+            <MapContext.Provider value={map}>
               <UserLocationMarker map={map} />
-              <PinMarkers map={map} pins={pins() ?? []} />
+              <PinMarkers map={map} pins={pins()} />
               <TrackLayers
                 map={map}
-                tracks={tracks() ?? []}
+                tracks={tracks()}
                 plotNodes={plotState.nodes}
                 plotColor={plotState.color}
               />
-            </Show>
-            <Crosshair center={center()} />
-            <PlotControls
-              center={center()}
-              plotNodes={plotState.nodes}
-              isPlotting={plotState.active}
-              onStartPlot={handleStartPlot}
-              onAddNode={handleAddNode}
-              onUndo={handleUndo}
-              onSave={handleSave}
-              onCancel={handleCancel}
-            />
-            <CompassButton bearing={bearing()} onReset={() => map.resetNorth()} />
-            <LocationButton onLocate={handleLocate} />
-            <LayerButton mapStyle={prefs.mapStyle} onToggle={handleToggleMapStyle} />
-          </MapContext.Provider>
+            </MapContext.Provider>
+
+            <div
+              style={{
+                position: 'absolute',
+                inset: 0,
+                'pointer-events': 'none',
+                'z-index': '10',
+              }}
+            >
+              <Crosshair center={center()} />
+              <PlotControls
+                center={center()}
+                plotNodes={plotState.nodes}
+                isPlotting={plotState.active}
+                onStartPlot={handleStartPlot}
+                onAddNode={handleAddNode}
+                onUndo={handleUndo}
+                onSave={handleSave}
+                onCancel={handleCancel}
+              />
+              <CompassButton bearing={bearing()} onReset={() => map.resetNorth()} />
+              <LocationButton onLocate={handleLocate} />
+              <LayerButton mapStyle={prefs.mapStyle} onToggle={handleToggleMapStyle} />
+            </div>
+          </>
         )}
       </Show>
     </div>

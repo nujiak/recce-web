@@ -5,12 +5,10 @@ import type { Track, TrackNode, PinColor } from '../../types';
 import { PIN_COLOR_HEX } from '../../utils/colors';
 
 const SRC_TRACKS = 'ts-tracks';
-const SRC_CHECKPOINTS = 'ts-checkpoints';
 const SRC_TEMP = 'ts-temp';
 const SRC_PREVIEW = 'ts-preview';
 const LAYER_FILL = 'tl-fill';
 const LAYER_LINE = 'tl-line';
-const LAYER_CHECKPOINTS = 'tl-checkpoints';
 const LAYER_TEMP = 'tl-temp';
 const LAYER_PREVIEW = 'tl-preview';
 const TRACK_LAYER_SLOT = 'airport';
@@ -47,19 +45,6 @@ function tracksToGeoJSON(tracks: Track[]) {
     ] as GeoFeature[];
   });
   return { type: 'FeatureCollection' as const, features } as GeoJSON.FeatureCollection;
-}
-
-function checkpointsToGeoJSON(tracks: Track[]) {
-  const features = tracks.flatMap((t) =>
-    t.nodes
-      .filter((n) => n.name)
-      .map((n) => ({
-        type: 'Feature' as const,
-        properties: { name: n.name },
-        geometry: { type: 'Point' as const, coordinates: [n.lng, n.lat] },
-      }))
-  );
-  return { type: 'FeatureCollection' as const, features };
 }
 
 function nodesToLineGeoJSON(nodes: TrackNode[], color: string): GeoJSON.FeatureCollection {
@@ -109,12 +94,6 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
         data: { type: 'FeatureCollection', features: [] },
       });
     }
-    if (!m.getSource(SRC_CHECKPOINTS)) {
-      m.addSource(SRC_CHECKPOINTS, {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
-      });
-    }
     if (!m.getSource(SRC_TEMP)) {
       m.addSource(SRC_TEMP, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
     }
@@ -145,23 +124,6 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
           source: SRC_TRACKS,
           filter: ['==', '$type', 'LineString'],
           paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-opacity': 0.9 },
-        },
-        beforeId
-      );
-    }
-    if (!m.getLayer(LAYER_CHECKPOINTS)) {
-      m.addLayer(
-        {
-          id: LAYER_CHECKPOINTS,
-          type: 'symbol',
-          source: SRC_CHECKPOINTS,
-          layout: {
-            'text-field': ['get', 'name'],
-            'text-size': 11,
-            'text-anchor': 'bottom',
-            'text-offset': [0, -0.5],
-          },
-          paint: { 'text-color': '#fff', 'text-halo-color': '#000', 'text-halo-width': 2 },
         },
         beforeId
       );
@@ -231,9 +193,6 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
     const m = props.map;
     if (!m.getSource(SRC_TRACKS)) return;
     (m.getSource(SRC_TRACKS) as maplibregl.GeoJSONSource).setData(tracksToGeoJSON(props.tracks));
-    (m.getSource(SRC_CHECKPOINTS) as maplibregl.GeoJSONSource).setData(
-      checkpointsToGeoJSON(props.tracks)
-    );
   });
 
   // Update temp + preview when plot nodes change
@@ -248,10 +207,10 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
 
   onCleanup(() => {
     const m = props.map;
-    for (const layer of [LAYER_FILL, LAYER_LINE, LAYER_CHECKPOINTS, LAYER_TEMP, LAYER_PREVIEW]) {
+    for (const layer of [LAYER_FILL, LAYER_LINE, LAYER_TEMP, LAYER_PREVIEW]) {
       if (m.getLayer(layer)) m.removeLayer(layer);
     }
-    for (const src of [SRC_TRACKS, SRC_CHECKPOINTS, SRC_TEMP, SRC_PREVIEW]) {
+    for (const src of [SRC_TRACKS, SRC_TEMP, SRC_PREVIEW]) {
       if (m.getSource(src)) m.removeSource(src);
     }
   });
