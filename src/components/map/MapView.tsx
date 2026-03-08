@@ -77,13 +77,20 @@ const MapView: Component = () => {
 
       if (controller.signal.aborted || requestId !== styleRequestId) return;
 
-      map.setStyle(styleDefinition);
-
-      map.once('style.load', () => {
+      const handleStyleLoad = () => {
+        map.off('style.load', handleStyleLoad);
         if (requestId !== styleRequestId) return;
         if (viewState) map.jumpTo(viewState);
         setIsStyleLoaded(true);
-      });
+      };
+
+      map.on('style.load', handleStyleLoad);
+
+      map.setStyle(styleDefinition);
+
+      if (map.isStyleLoaded()) {
+        handleStyleLoad();
+      }
     } catch (error) {
       if (controller.signal.aborted) return;
       console.error('Failed to apply map style', error);
