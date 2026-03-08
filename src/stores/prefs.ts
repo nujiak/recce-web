@@ -8,7 +8,6 @@ const defaultPrefs: Prefs = {
   angleUnit: 'degrees',
   lengthUnit: 'metric',
   theme: 'dark',
-  mapStyle: 'satellite',
   onboardingDone: false,
 };
 

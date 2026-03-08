@@ -3,7 +3,6 @@ export type CoordinateSystem = 'WGS84' | 'UTM' | 'MGRS' | 'BNG' | 'QTH' | 'KERTA
 export type AngleUnit = 'degrees' | 'mils';
 export type LengthUnit = 'metric' | 'imperial' | 'nautical';
 export type Theme = 'light' | 'dark' | 'system';
-export type MapStyle = 'standard' | 'satellite';
 
 export interface TrackNode {
   lat: number;
@@ -38,7 +37,6 @@ export interface Prefs {
   angleUnit: AngleUnit;
   lengthUnit: LengthUnit;
   theme: Theme;
-  mapStyle: MapStyle;
   onboardingDone: boolean;
 }
 

@@ -1,6 +1,7 @@
 import { Component, createEffect, onMount, onCleanup } from 'solid-js';
 import maplibregl from 'maplibre-gl';
 import { useUI } from '../../context/UIContext';
+import { getTrackBounds } from '../../utils/geo';
 import type { Track, TrackNode, PinColor } from '../../types';
 import { PIN_COLOR_HEX } from '../../utils/colors';
 
@@ -78,133 +79,84 @@ function nodesToLineGeoJSON(nodes: TrackNode[], color: string): GeoJSON.FeatureC
 const TrackLayers: Component<TrackLayersProps> = (props) => {
   const { setViewingTrack } = useUI();
 
-  const handleLineClick = (e: maplibregl.MapLayerMouseEvent) => {
-    const id = e.features?.[0]?.properties?.id;
-    const track = props.tracks.find((t) => t.id === id);
-    if (track) setViewingTrack(track);
-  };
-
-  const handleFillClick = (e: maplibregl.MapLayerMouseEvent) => {
-    const id = e.features?.[0]?.properties?.id;
-    const track = props.tracks.find((t) => t.id === id);
-    if (track) setViewingTrack(track);
-  };
-
-  const handleLineEnter = () => {
-    props.map.getCanvas().style.cursor = 'pointer';
-  };
-
-  const handleLineLeave = () => {
-    props.map.getCanvas().style.cursor = '';
-  };
-
-  function ensureTrackLayers() {
-    const m = props.map;
-
-    if (!m.getSource(SRC_TRACKS)) {
-      m.addSource(SRC_TRACKS, {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
-      });
-    }
-    if (!m.getSource(SRC_CHECKPOINTS)) {
-      m.addSource(SRC_CHECKPOINTS, {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
-      });
-    }
-    if (!m.getSource(SRC_TEMP)) {
-      m.addSource(SRC_TEMP, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
-    }
-    if (!m.getSource(SRC_PREVIEW)) {
-      m.addSource(SRC_PREVIEW, {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
-      });
-    }
-
-    if (!m.getLayer(LAYER_FILL)) {
-      m.addLayer({
-        id: LAYER_FILL,
-        type: 'fill',
-        source: SRC_TRACKS,
-        filter: ['==', '$type', 'Polygon'],
-        paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.25 },
-      });
-    }
-    if (!m.getLayer(LAYER_LINE)) {
-      m.addLayer({
-        id: LAYER_LINE,
-        type: 'line',
-        source: SRC_TRACKS,
-        paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-opacity': 0.9 },
-      });
-    }
-    if (!m.getLayer(LAYER_CHECKPOINTS)) {
-      m.addLayer({
-        id: LAYER_CHECKPOINTS,
-        type: 'symbol',
-        source: SRC_CHECKPOINTS,
-        layout: {
-          'text-field': ['get', 'name'],
-          'text-size': 11,
-          'text-anchor': 'bottom',
-          'text-offset': [0, -0.5],
-        },
-        paint: { 'text-color': '#fff', 'text-halo-color': '#000', 'text-halo-width': 2 },
-      });
-    }
-    if (!m.getLayer(LAYER_TEMP)) {
-      m.addLayer({
-        id: LAYER_TEMP,
-        type: 'line',
-        source: SRC_TEMP,
-        paint: {
-          'line-color': ['get', 'color'],
-          'line-width': 3,
-          'line-dasharray': [4, 3],
-          'line-opacity': 0.9,
-        },
-      });
-    }
-    if (!m.getLayer(LAYER_PREVIEW)) {
-      m.addLayer({
-        id: LAYER_PREVIEW,
-        type: 'line',
-        source: SRC_PREVIEW,
-        paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': 0.4 },
-      });
-    }
-  }
-
   onMount(() => {
     const m = props.map;
 
-    const bindLayerEvents = () => {
-      m.on('click', LAYER_LINE, handleLineClick);
-      m.on('click', LAYER_FILL, handleFillClick);
-      m.on('mouseenter', LAYER_LINE, handleLineEnter);
-      m.on('mouseleave', LAYER_LINE, handleLineLeave);
-      m.on('mouseenter', LAYER_FILL, handleLineEnter);
-      m.on('mouseleave', LAYER_FILL, handleLineLeave);
-    };
+    m.addSource(SRC_TRACKS, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+    m.addSource(SRC_CHECKPOINTS, {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
+    });
+    m.addSource(SRC_TEMP, { type: 'geojson', data: { type: 'FeatureCollection', features: [] } });
+    m.addSource(SRC_PREVIEW, {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
+    });
 
-    const handleStyleLoad = () => {
-      ensureTrackLayers();
-      bindLayerEvents();
-    };
+    m.addLayer({
+      id: LAYER_FILL,
+      type: 'fill',
+      source: SRC_TRACKS,
+      filter: ['==', '$type', 'Polygon'],
+      paint: { 'fill-color': ['get', 'color'], 'fill-opacity': 0.25 },
+    });
+    m.addLayer({
+      id: LAYER_LINE,
+      type: 'line',
+      source: SRC_TRACKS,
+      paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-opacity': 0.9 },
+    });
+    m.addLayer({
+      id: LAYER_CHECKPOINTS,
+      type: 'symbol',
+      source: SRC_CHECKPOINTS,
+      layout: {
+        'text-field': ['get', 'name'],
+        'text-size': 11,
+        'text-anchor': 'bottom',
+        'text-offset': [0, -0.5],
+      },
+      paint: { 'text-color': '#fff', 'text-halo-color': '#000', 'text-halo-width': 2 },
+    });
+    m.addLayer({
+      id: LAYER_TEMP,
+      type: 'line',
+      source: SRC_TEMP,
+      paint: {
+        'line-color': ['get', 'color'],
+        'line-width': 3,
+        'line-dasharray': [4, 3],
+        'line-opacity': 0.9,
+      },
+    });
+    m.addLayer({
+      id: LAYER_PREVIEW,
+      type: 'line',
+      source: SRC_PREVIEW,
+      paint: { 'line-color': ['get', 'color'], 'line-width': 2, 'line-opacity': 0.4 },
+    });
 
-    handleStyleLoad();
-    m.on('style.load', handleStyleLoad);
-
-    onCleanup(() => {
-      m.off('style.load', handleStyleLoad);
-      m.off('click', LAYER_LINE, handleLineClick);
-      m.off('click', LAYER_FILL, handleFillClick);
-      m.off('mouseenter', LAYER_LINE, handleLineEnter);
-      m.off('mouseleave', LAYER_LINE, handleLineLeave);
-      m.off('mouseenter', LAYER_FILL, handleLineEnter);
-      m.off('mouseleave', LAYER_FILL, handleLineLeave);
+    m.on('click', LAYER_LINE, (e) => {
+      const id = e.features?.[0]?.properties?.id;
+      const track = props.tracks.find((t) => t.id === id);
+      if (track) setViewingTrack(track);
+    });
+    m.on('click', LAYER_FILL, (e) => {
+      const id = e.features?.[0]?.properties?.id;
+      const track = props.tracks.find((t) => t.id === id);
+      if (track) setViewingTrack(track);
+    });
+    m.on('mouseenter', LAYER_LINE, () => {
+      m.getCanvas().style.cursor = 'pointer';
+    });
+    m.on('mouseleave', LAYER_LINE, () => {
+      m.getCanvas().style.cursor = '';
+    });
+    m.on('mouseenter', LAYER_FILL, () => {
+      m.getCanvas().style.cursor = 'pointer';
+    });
+    m.on('mouseleave', LAYER_FILL, () => {
+      m.getCanvas().style.cursor = '';
     });
   });
 
