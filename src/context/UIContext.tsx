@@ -10,7 +10,7 @@ import type { Pin, Track } from '../types';
 import { DESKTOP_BREAKPOINT } from '../utils/constants';
 
 type NavTab = 'map' | 'saved' | 'tools';
-export type DesktopSection = 'saved' | 'gps' | 'ruler' | 'settings' | null;
+export type DesktopSection = 'saved' | 'gps' | 'ruler' | 'coa' | 'settings' | null;
 
 interface UIContextValue {
   activeNav: () => NavTab;
@@ -58,7 +58,9 @@ export const UIProvider: ParentComponent = (props) => {
         setActiveNav('map');
       } else if (tab === 'tools') {
         const tool = activeTool();
-        setDesktopSection(tool === 'gps' || tool === 'ruler' || tool === 'settings' ? tool : null);
+        setDesktopSection(
+          tool === 'gps' || tool === 'ruler' || tool === 'coa' || tool === 'settings' ? tool : null
+        );
         setActiveNav('map');
       }
     }

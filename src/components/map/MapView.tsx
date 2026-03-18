@@ -23,6 +23,7 @@ import LocationButton from './LocationButton';
 import UserLocationMarker from './UserLocationMarker';
 import MapStyleToggle from './MapStyleToggle';
 import { usePrefs } from '../../context/PrefsContext';
+import { mapCenter, setMapCenter } from '../../stores/mapCenter';
 import type { TrackNode, PinColor, MapStyle } from '../../types';
 import { PIN_COLOR_HEX } from '../../utils/colors';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/constants';
@@ -76,7 +77,7 @@ const MapView: Component = () => {
   const { savedVersion, setEditingTrack } = useUI();
   const [prefs, setPrefs] = usePrefs();
   const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | null>(null);
-  const [center, setCenter] = createSignal<[number, number]>(DEFAULT_MAP_CENTER);
+  const center = mapCenter;
   const [bearing, setBearing] = createSignal(0);
   const [plotState, setPlotState] = createStore<PlotState>({
     active: false,
@@ -107,7 +108,7 @@ const MapView: Component = () => {
 
     map.on('move', () => {
       const c = map.getCenter();
-      setCenter([c.lng, c.lat]);
+      setMapCenter({ lat: c.lat, lng: c.lng });
       setBearing(map.getBearing());
 
       // Update preview ghost line during plot mode

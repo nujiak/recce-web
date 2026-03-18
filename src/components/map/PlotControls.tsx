@@ -6,7 +6,7 @@ import { showToast } from '../Toast';
 import type { TrackNode, Pin } from '../../types';
 
 interface PlotControlsProps {
-  center: [number, number]; // [lng, lat]
+  center: { lat: number; lng: number };
   plotNodes: TrackNode[];
   onStartPlot: () => void;
   onAddNode: () => void;
@@ -33,7 +33,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
   }
 
   function handleAddPin() {
-    const [lng, lat] = props.center;
+    const { lat, lng } = props.center;
     setEditingPin({
       id: 0,
       name: '',
@@ -91,7 +91,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
           <button
             aria-label="Go to coordinate"
             onClick={() => {
-              const [lng, lat] = props.center;
+              const { lat, lng } = props.center;
               const coordStr =
                 CoordinateTransformer.toDisplay(lat, lng, prefs.coordinateSystem) ?? '';
               setGotoInput(coordStr);

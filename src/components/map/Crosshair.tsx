@@ -12,21 +12,21 @@ import {
 } from '../../utils/geo';
 
 interface CrosshairProps {
-  center: [number, number]; // [lng, lat]
+  center: { lat: number; lng: number };
 }
 
 const Crosshair: Component<CrosshairProps> = (props) => {
   const [prefs] = usePrefs();
 
   const coordDisplay = () => {
-    const [lng, lat] = props.center;
+    const { lat, lng } = props.center;
     return CoordinateTransformer.toDisplay(lat, lng, prefs.coordinateSystem) ?? '';
   };
 
   const gpsOverlay = () => {
     const pos = gpsPosition();
     if (!pos) return null;
-    const [lng, lat] = props.center;
+    const { lat, lng } = props.center;
     const dist = haversineDistance(pos.latitude, pos.longitude, lat, lng);
     const bearing = calculateBearing(pos.latitude, pos.longitude, lat, lng);
     return {

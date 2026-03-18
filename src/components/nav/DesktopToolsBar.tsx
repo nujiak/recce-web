@@ -3,12 +3,14 @@ import { useUI } from '../../context/UIContext';
 import SettingsPanel from '../settings/SettingsPanel';
 import GpsPanel from '../tools/GpsPanel';
 import RulerPanel from '../tools/RulerPanel';
+import CoaPanel from '../tools/CoaPanel';
 import SavedScreen from '../saved/SavedScreen';
 
-type ToolId = 'saved' | 'gps' | 'ruler' | 'settings';
+type ToolId = 'saved' | 'gps' | 'ruler' | 'coa' | 'settings';
 
 const TOOLS: { id: ToolId; label: string; icon: string }[] = [
   { id: 'saved', label: 'Saved', icon: 'bookmarks' },
+  { id: 'coa', label: 'COA', icon: 'near_me' },
   { id: 'gps', label: 'GPS/Compass', icon: 'satellite_alt' },
   { id: 'ruler', label: 'Ruler', icon: 'straighten' },
   { id: 'settings', label: 'Settings', icon: 'settings' },
@@ -18,6 +20,8 @@ function panelFor(id: ToolId) {
   switch (id) {
     case 'saved':
       return <SavedScreen />;
+    case 'coa':
+      return <CoaPanel />;
     case 'gps':
       return <GpsPanel />;
     case 'ruler':
@@ -34,7 +38,7 @@ const DesktopToolsBar: Component = () => {
   // open that section in the accordion.
   createEffect(() => {
     const tool = activeTool();
-    if (tool === 'gps' || tool === 'ruler' || tool === 'settings') {
+    if (tool === 'gps' || tool === 'ruler' || tool === 'coa' || tool === 'settings') {
       setDesktopSection(tool);
     }
   });

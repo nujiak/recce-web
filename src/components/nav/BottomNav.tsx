@@ -69,7 +69,7 @@ const BottomNav: Component = () => {
 
       <button
         class="bottom-nav__tab"
-        aria-label="Tools"
+        aria-label="Toolbox"
         aria-pressed={activeNav() === 'tools'}
         onClick={() => {
           setActiveNav('tools');
@@ -93,7 +93,7 @@ const BottomNav: Component = () => {
         <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
           construction
         </span>
-        Tools
+        Toolbox
       </button>
     </nav>
   );
