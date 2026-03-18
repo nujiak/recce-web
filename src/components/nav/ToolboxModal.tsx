@@ -3,6 +3,7 @@ import { useUI } from '../../context/UIContext';
 import SettingsPanel from '../settings/SettingsPanel';
 import GpsPanel from '../tools/GpsPanel';
 import RulerPanel from '../tools/RulerPanel';
+import CoaPanel from '../tools/CoaPanel';
 
 interface ToolCard {
   id: string;
@@ -11,6 +12,7 @@ interface ToolCard {
 }
 
 const TOOL_CARDS: ToolCard[] = [
+  { id: 'coa', label: 'COA', icon: 'near_me' },
   { id: 'gps', label: 'GPS/Compass', icon: 'satellite_alt' },
   { id: 'ruler', label: 'Ruler', icon: 'straighten' },
   { id: 'settings', label: 'Settings', icon: 'settings' },
@@ -23,7 +25,7 @@ const ToolboxModal: Component = () => {
     <Show when={activeNav() === 'tools'}>
       <div
         role="dialog"
-        aria-label="Tools"
+        aria-label="Toolbox"
         style={{
           position: 'absolute',
           inset: 0,
@@ -69,6 +71,9 @@ const ToolboxModal: Component = () => {
               </span>
             </div>
             <div style={{ flex: 1, overflow: 'auto' }}>
+              <Show when={activeTool() === 'coa'}>
+                <CoaPanel />
+              </Show>
               <Show when={activeTool() === 'settings'}>
                 <SettingsPanel />
               </Show>

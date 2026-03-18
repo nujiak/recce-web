@@ -69,7 +69,7 @@ const BottomNav: Component = () => {
 
       <button
         class="bottom-nav__tab"
-        aria-label="Tools"
+        aria-label="Toolbox"
         aria-pressed={activeNav() === 'tools'}
         onClick={() => {
           setActiveNav('tools');
