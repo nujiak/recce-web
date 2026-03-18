@@ -86,7 +86,7 @@ const ToolboxModal: Component = () => {
           {/* Grid view */}
           <div style={{ padding: '16px' }}>
             <h2 style={{ 'font-size': '0.875rem', 'font-weight': '600', 'margin-bottom': '12px' }}>
-              Tools
+              Toolbox
             </h2>
             <div
               style={{ display: 'grid', 'grid-template-columns': 'repeat(3, 1fr)', gap: '12px' }}
@@ -101,7 +101,7 @@ const ToolboxModal: Component = () => {
                       'flex-direction': 'column',
                       'align-items': 'center',
                       gap: '8px',
-                      padding: '16px 8px',
+                      padding: '24px 8px',
                       background: 'var(--color-bg-secondary)',
                       border: '1px solid var(--color-border)',
                       'border-radius': 'var(--radius-md)',

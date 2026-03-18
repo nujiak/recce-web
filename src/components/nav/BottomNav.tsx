@@ -93,7 +93,7 @@ const BottomNav: Component = () => {
         <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
           construction
         </span>
-        Tools
+        Toolbox
       </button>
     </nav>
   );
