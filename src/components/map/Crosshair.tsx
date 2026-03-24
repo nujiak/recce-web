@@ -32,6 +32,7 @@ const Crosshair: Component<CrosshairProps> = (props) => {
     return {
       distance: formatDistance(dist, prefs.lengthUnit),
       bearing: formatBearing(bearing, prefs.angleUnit),
+      rawDistance: dist,
     };
   };
 
@@ -97,6 +98,8 @@ const Crosshair: Component<CrosshairProps> = (props) => {
               padding: '2px 8px',
               'font-size': '0.7rem',
               'white-space': 'nowrap',
+              opacity: overlay().rawDistance >= 0.1 ? 1 : 0,
+              transition: 'opacity 0.2s ease',
             }}
           >
             {overlay().distance} · {overlay().bearing}
