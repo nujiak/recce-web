@@ -94,7 +94,7 @@ export function formatDistance(metres: number, lengthUnit: LengthUnit): string {
     case 'imperial': {
       const feet = metres * 3.28084;
       if (feet < 5280) {
-        return `${Math.round(feet)} ft`;
+        return `${feet.toFixed(1)} ft`;
       }
       const miles = feet / 5280;
       return `${miles.toFixed(2)} mi`;
@@ -106,7 +106,7 @@ export function formatDistance(metres: number, lengthUnit: LengthUnit): string {
     case 'metric':
     default: {
       if (metres < 1000) {
-        return `${Math.round(metres)} m`;
+        return `${metres.toFixed(1)} m`;
       }
       const km = metres / 1000;
       return `${km.toFixed(2)} km`;
@@ -119,22 +119,22 @@ export function formatArea(sqMetres: number, lengthUnit: LengthUnit): string {
     case 'imperial': {
       const sqFeet = sqMetres * 10.7639;
       if (sqFeet < 27878400) {
-        return `${sqFeet.toFixed(0)} sq ft`;
+        return `${sqFeet.toFixed(1)} sq ft`;
       }
       const sqMiles = sqFeet / 27878400;
-      return `${sqMiles.toFixed(3)} sq mi`;
+      return `${sqMiles.toFixed(2)} sq mi`;
     }
     case 'nautical': {
       const sqNm = sqMetres / 3429904;
-      return `${sqNm.toFixed(3)} sq NM`;
+      return `${sqNm.toFixed(2)} sq NM`;
     }
     case 'metric':
     default: {
       if (sqMetres < 1000000) {
-        return `${sqMetres.toFixed(0)} m²`;
+        return `${sqMetres.toFixed(1)} m²`;
       }
       const sqKm = sqMetres / 1000000;
-      return `${sqKm.toFixed(3)} km²`;
+      return `${sqKm.toFixed(2)} km²`;
     }
   }
 }
