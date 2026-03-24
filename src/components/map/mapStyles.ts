@@ -40,10 +40,27 @@ function isBaseRasterLayer(layer: StyleLayer): boolean {
   return layer.type === 'raster';
 }
 
-function isLandOrBuildingOverlay(layer: StyleLayer): boolean {
+/**
+ * Determines which vector layers to exclude from the hybrid satellite style.
+ * Excludes: backgrounds, base rasters, and polygons that should show satellite imagery
+ * (land use, buildings, parks, water bodies, waterways) while keeping labels.
+ */
+function shouldExcludeFromHybrid(layer: StyleLayer): boolean {
+  if (isBackgroundLayer(layer) || isBaseRasterLayer(layer)) return true;
+
   if (!('source-layer' in layer) || typeof layer['source-layer'] !== 'string') return false;
 
-  return ['aeroway', 'building', 'landcover', 'landuse', 'park'].includes(layer['source-layer']);
+  const excludedSourceLayers = [
+    'aeroway',
+    'building',
+    'landcover',
+    'landuse',
+    'park',
+    'water',
+    'waterway',
+  ];
+
+  return excludedSourceLayers.includes(layer['source-layer']);
 }
 
 function remapLayerSource(layer: StyleLayer): StyleLayer {
@@ -76,12 +93,7 @@ function buildHybridLayers(baseLayers: StyleLayer[]): StyleLayer[] {
 
   return [
     satelliteLayer,
-    ...baseLayers
-      .filter(
-        (layer) =>
-          !isBackgroundLayer(layer) && !isBaseRasterLayer(layer) && !isLandOrBuildingOverlay(layer)
-      )
-      .map(remapLayerSource),
+    ...baseLayers.filter((layer) => !shouldExcludeFromHybrid(layer)).map(remapLayerSource),
   ];
 }
 
