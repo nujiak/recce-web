@@ -54,24 +54,49 @@ const DesktopToolsBar: Component = () => {
           flex-direction: column;
           flex: 1;
           min-height: 0;
+          overflow: hidden;
+        }
+        /* Kobalte accordion root renders as a plain div — make it a flex column too */
+        .dtb-accordion > div {
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          min-height: 0;
+          overflow: hidden;
         }
         .dtb-accordion .ui-accordion-item {
           display: flex;
           flex-direction: column;
+          flex-shrink: 0;
           min-height: 0;
         }
         .dtb-accordion .ui-accordion-item[data-expanded] {
           flex: 1;
+          min-height: 0;
           overflow: hidden;
         }
+        /* Expanded content must fill the flex item — clear max-height cap from base styles */
+        .dtb-accordion .ui-accordion-content {
+          max-height: 0;
+        }
         .dtb-accordion .ui-accordion-content[data-expanded] {
+          display: flex;
+          flex-direction: column;
           flex: 1;
+          max-height: none;
           min-height: 0;
         }
         .dtb-accordion .ui-accordion-content[data-expanded] > div {
           display: flex;
           flex-direction: column;
+          flex: 1;
           min-height: 0;
+          overflow: hidden;
+        }
+        .dtb-accordion .ui-accordion-content-inner {
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
         }
       `}</style>
       <div class="dtb-accordion">

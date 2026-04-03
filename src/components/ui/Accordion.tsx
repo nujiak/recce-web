@@ -77,20 +77,18 @@ const Accordion_: Component<AccordionProps> = (props) => {
           transform: rotate(180deg);
         }
         .ui-accordion-content {
-          display: grid;
-          grid-template-rows: 0fr;
-          transition: grid-template-rows 0.2s ease;
+          overflow: hidden;
+          max-height: 0;
+          transition: max-height 0.25s ease;
         }
         .ui-accordion-content[data-expanded] {
-          grid-template-rows: 1fr;
+          max-height: var(--kb-accordion-content-height, 9999px);
         }
         .ui-accordion-content > div {
           overflow: hidden;
         }
         .ui-accordion-content-inner {
           overflow-y: auto;
-          min-height: 0;
-          flex: 1;
         }
       `}</style>
 
