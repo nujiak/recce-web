@@ -316,7 +316,7 @@ const MapView: Component = () => {
             <CompassButton
               bearing={bearing()}
               onReset={() => map().resetNorth()}
-              onRotateTo={(deg) => map().setBearing(deg)}
+              onRotateTo={(deg) => map().easeTo({ bearing: deg, duration: 1000 })}
             />
             <LocationButton onLocate={handleLocate} />
           </MapContext.Provider>
