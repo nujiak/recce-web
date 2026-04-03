@@ -80,6 +80,7 @@ const RulerPanel: Component = () => {
           style={{
             flex: 1,
             'overflow-y': 'auto',
+            'scrollbar-gutter': 'stable',
             display: 'flex',
             'flex-direction': 'column',
             gap: '4px',

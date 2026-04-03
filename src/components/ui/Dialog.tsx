@@ -94,6 +94,7 @@ const Dialog_: Component<DialogProps> = (props) => {
               padding: 1.25rem 1rem;
               max-height: 85dvh;
               overflow-y: auto;
+              scrollbar-gutter: stable;
             }
             .ui-dialog-drag-handle {
               display: block;

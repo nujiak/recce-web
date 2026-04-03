@@ -319,6 +319,7 @@ const SavedScreen: Component = () => {
         style={{
           flex: 1,
           'overflow-y': 'auto',
+          'scrollbar-gutter': 'stable',
           padding: '12px 16px',
           display: 'flex',
           'flex-direction': 'column',
