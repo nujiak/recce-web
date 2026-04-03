@@ -313,7 +313,11 @@ const MapView: Component = () => {
               onSave={handleSave}
               onCancel={handleCancel}
             />
-            <CompassButton bearing={bearing()} onReset={() => map().resetNorth()} />
+            <CompassButton
+              bearing={bearing()}
+              onReset={() => map().resetNorth()}
+              onRotateTo={(deg) => map().easeTo({ bearing: deg, duration: 1000 })}
+            />
             <LocationButton onLocate={handleLocate} />
           </MapContext.Provider>
         )}

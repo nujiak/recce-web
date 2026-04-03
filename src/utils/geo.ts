@@ -139,6 +139,19 @@ export function formatArea(sqMetres: number, lengthUnit: LengthUnit): string {
   }
 }
 
+export function parseBearing(value: string, angleUnit: AngleUnit): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const num = parseFloat(trimmed);
+  if (isNaN(num)) return null;
+  if (angleUnit === 'mils') {
+    if (num < 0 || num >= 6400) return null;
+    return (num / 6400) * 360;
+  }
+  if (num < 0 || num >= 360) return null;
+  return num;
+}
+
 export function formatBearing(degrees: number, angleUnit: AngleUnit): string {
   if (angleUnit === 'mils') {
     const mils = Math.round((degrees * 6400) / 360);
