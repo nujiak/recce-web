@@ -47,16 +47,28 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
 
   return (
     <>
-      <div
+      <button
+        aria-label="Reset map north"
+        onClick={handleClick}
         style={{
           position: 'absolute',
           top: '16px',
           right: '16px',
+          height: '40px',
+          'min-width': '40px',
+          background: 'var(--color-bg-secondary)',
+          border: '1px solid var(--color-border)',
+          'border-radius': props.bearing !== 0 ? '20px' : '50%',
+          cursor: 'pointer',
           display: 'flex',
           'align-items': 'center',
-          gap: '6px',
+          'justify-content': 'flex-end',
+          gap: '5px',
+          padding: props.bearing !== 0 ? '0 8px 0 10px' : '0',
+          'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
           'z-index': '10',
-          'pointer-events': 'none',
+          transition: 'border-radius 0.3s ease, min-width 0.3s ease, padding 0.3s ease',
+          overflow: 'hidden',
         }}
       >
         <span
@@ -64,43 +76,35 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
             'font-size': '0.7rem',
             'font-weight': '600',
             color: 'var(--color-text)',
-            'pointer-events': 'none',
             'white-space': 'nowrap',
             opacity: props.bearing !== 0 ? 1 : 0,
-            transform: props.bearing !== 0 ? 'translateX(0)' : 'translateX(4px)',
-            transition: 'opacity 0.2s ease, transform 0.2s ease',
+            transition: 'opacity 0.2s ease',
           }}
         >
           {inverseBearing()}
         </span>
-        <button
-          aria-label="Reset map north"
-          onClick={handleClick}
+        <div
           style={{
-            width: '40px',
-            height: '40px',
-            background: 'var(--color-bg-secondary)',
-            border: '1px solid var(--color-border)',
-            'border-radius': '50%',
-            cursor: 'pointer',
+            position: 'relative',
+            width: '24px',
+            height: '24px',
+            'flex-shrink': '0',
             display: 'flex',
             'align-items': 'center',
             'justify-content': 'center',
-            'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
-            'pointer-events': 'auto',
           }}
         >
           <Needle
             showLabel={false}
             style={{
               position: 'absolute',
-              height: '26px',
+              height: '22px',
               'aspect-ratio': '1 / 1',
               transform: `rotate(${-props.bearing}deg)`,
             }}
           />
-        </button>
-      </div>
+        </div>
+      </button>
 
       <Show when={showDialog()}>
         <div
