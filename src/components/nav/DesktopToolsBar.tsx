@@ -1,5 +1,6 @@
-import { Component, For, createEffect } from 'solid-js';
+import { For, createEffect, createSignal, onCleanup, type Component } from 'solid-js';
 import { useUI } from '../../context/UIContext';
+import type { DesktopSection } from '../../context/UIContext';
 import SettingsPanel from '../settings/SettingsPanel';
 import GpsPanel from '../tools/GpsPanel';
 import RulerPanel from '../tools/RulerPanel';
@@ -9,122 +10,212 @@ type ToolId = 'saved' | 'gps' | 'ruler' | 'settings';
 
 const TOOLS: { id: ToolId; label: string; icon: string }[] = [
   { id: 'saved', label: 'Saved', icon: 'bookmarks' },
-  { id: 'gps', label: 'GPS/Compass', icon: 'satellite_alt' },
+  { id: 'gps', label: 'GPS', icon: 'satellite_alt' },
   { id: 'ruler', label: 'Ruler', icon: 'straighten' },
   { id: 'settings', label: 'Settings', icon: 'settings' },
 ];
 
-function panelFor(id: ToolId) {
-  switch (id) {
-    case 'saved':
-      return <SavedScreen />;
-    case 'gps':
-      return <GpsPanel />;
-    case 'ruler':
-      return <RulerPanel />;
-    case 'settings':
-      return <SettingsPanel />;
-  }
+const MIN_WIDTH = 200;
+const MAX_WIDTH = 600;
+const DEFAULT_WIDTH = 300;
+const STORAGE_KEY = 'recce_dtb_width';
+
+function loadWidth(): number {
+  const v = parseInt(localStorage.getItem(STORAGE_KEY) ?? '', 10);
+  return isNaN(v) ? DEFAULT_WIDTH : Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, v));
 }
 
 const DesktopToolsBar: Component = () => {
   const { activeTool, desktopSection, setDesktopSection } = useUI();
+  const [panelWidth, setPanelWidth] = createSignal(loadWidth());
 
-  // When UIContext activeTool is set programmatically (e.g. addSelectedToRuler),
-  // open that section in the accordion.
+  // Sync activeTool → desktopSection
   createEffect(() => {
-    const tool = activeTool();
+    const tool = activeTool() as ToolId | null;
     if (tool === 'gps' || tool === 'ruler' || tool === 'settings') {
       setDesktopSection(tool);
     }
   });
 
-  const section = desktopSection;
-  const toggle = (id: ToolId) => setDesktopSection(section() === id ? null : id);
+  const active = (): ToolId | null => desktopSection() as ToolId | null;
+  const isOpen = () => active() !== null;
+
+  // Drag-to-resize: dragging the left edge of the panel
+  function startResize(e: PointerEvent) {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startW = panelWidth();
+
+    function onMove(ev: PointerEvent) {
+      // Panel is on the right; dragging left increases width
+      const delta = startX - ev.clientX;
+      const next = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, startW + delta));
+      setPanelWidth(next);
+    }
+
+    function onUp() {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      localStorage.setItem(STORAGE_KEY, String(panelWidth()));
+    }
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }
+
+  // Keep all panels mounted so switching is instant; hide inactive ones with display:none
+  const panels: Record<ToolId, () => ReturnType<typeof SavedScreen>> = {
+    saved: () => <SavedScreen />,
+    gps: () => <GpsPanel />,
+    ruler: () => <RulerPanel />,
+    settings: () => <SettingsPanel />,
+  };
 
   return (
-    <div
-      class="desktop-tools-bar"
-      style={{ display: 'none', 'flex-direction': 'column', flex: '1', overflow: 'hidden' }}
-    >
-      <For each={TOOLS}>
-        {(tool) => (
-          <div
-            style={{
-              display: 'flex',
-              'flex-direction': 'column',
-              ...(section() === tool.id ? { flex: '1', overflow: 'hidden' } : {}),
-            }}
-          >
-            {/* Accordion heading */}
-            <button
-              aria-expanded={section() === tool.id}
-              onClick={() => toggle(tool.id)}
-              style={{
-                display: 'flex',
-                'align-items': 'center',
-                'justify-content': 'space-between',
-                padding: '11px 16px',
-                background:
-                  section() === tool.id ? 'var(--color-accent-bg)' : 'var(--color-bg-secondary)',
-                border: 'none',
-                'border-bottom': '1px solid var(--color-border)',
-                cursor: 'pointer',
-                color: section() === tool.id ? 'var(--color-accent)' : 'var(--color-text)',
-                'font-size': '0.8125rem',
-                'font-weight': '600',
-                'font-family': 'inherit',
-                width: '100%',
-                'text-align': 'left',
-                'flex-shrink': '0',
-              }}
-            >
-              <span style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
-                <span class="material-symbols-outlined" style={{ 'font-size': '0.875rem' }}>
-                  {tool.icon}
-                </span>
-                {tool.label}
-              </span>
-              <span
-                class="material-symbols-outlined"
-                style={{
-                  'font-size': '14px',
-                  transform: section() === tool.id ? 'rotate(180deg)' : 'none',
-                  transition: 'transform 0.15s ease',
-                  'flex-shrink': '0',
-                }}
-              >
-                expand_more
-              </span>
-            </button>
+    <div class="desktop-tools-bar" style={{ display: 'contents' }}>
+      <style>{`
+        .dtb-panel-wrap {
+          display: flex;
+          flex-direction: row;
+          overflow: hidden;
+          transition: width 0.22s ease;
+          border-left: 1px solid var(--color-border);
+          flex-shrink: 0;
+        }
+        .dtb-resize-handle {
+          width: 4px;
+          flex-shrink: 0;
+          cursor: col-resize;
+          background: transparent;
+          transition: background 0.15s ease;
+          z-index: 1;
+        }
+        .dtb-resize-handle:hover,
+        .dtb-resize-handle:active {
+          background: var(--color-accent);
+        }
+        .dtb-panel {
+          flex: 1;
+          min-width: 0;
+          min-height: 0;
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+          background: var(--color-bg);
+        }
+        .dtb-panel-inner {
+          /* Each tool panel fills the wrapper; only active is visible */
+          position: relative;
+          flex: 1;
+          min-height: 0;
+          overflow: hidden;
+        }
+        .dtb-tool-pane {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.15s ease;
+        }
+        .dtb-tool-pane.is-active {
+          opacity: 1;
+          pointer-events: auto;
+        }
+        .dtb-tabs {
+          display: flex;
+          flex-direction: column;
+          align-items: stretch;
+          flex-shrink: 0;
+          background: var(--color-bg-secondary);
+          padding: 8px 4px;
+          width: 64px;
+          gap: 2px;
+        }
+        .dtb-tabs-border {
+          width: 1px;
+          flex-shrink: 0;
+          background: var(--color-border);
+        }
+        .dtb-tab {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          width: 100%;
+          height: 52px;
+          border-radius: 8px;
+          border: none;
+          background: transparent;
+          color: var(--color-text-secondary);
+          cursor: pointer;
+          transition: background 0.12s ease, color 0.12s ease;
+          padding: 0;
+          font-family: inherit;
+        }
+        .dtb-tab:hover {
+          background: var(--color-bg);
+          color: var(--color-text);
+        }
+        .dtb-tab.is-active {
+          background: var(--color-accent-bg);
+          color: var(--color-accent);
+        }
+        .dtb-tab-icon {
+          font-family: 'Material Symbols Outlined', sans-serif;
+          font-size: 20px;
+          line-height: 1;
+        }
+        .dtb-tab-label {
+          font-size: 0.5625rem;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          line-height: 1;
+        }
+      `}</style>
 
-            {/* Accordion content — grid trick animates both open and close */}
-            <div
-              style={{
-                display: 'grid',
-                'grid-template-rows': section() === tool.id ? '1fr' : '0fr',
-                transition: 'grid-template-rows 0.2s ease',
-                flex: section() === tool.id ? '1' : '0',
-                'min-height': '0',
-                width: '100%',
-              }}
-            >
-              <div
-                style={{
-                  overflow: 'hidden',
-                  display: 'flex',
-                  'flex-direction': 'column',
-                  'min-height': '0',
-                }}
-              >
-                <div style={{ 'overflow-y': 'auto', 'min-height': '0', flex: '1' }}>
-                  {panelFor(tool.id)}
+      {/* Panel wrapper — width transitions between 0 and panelWidth() */}
+      <div class="dtb-panel-wrap" style={{ width: isOpen() ? `${panelWidth()}px` : '0px' }}>
+        <div class="dtb-resize-handle" onPointerDown={startResize} />
+        <div class="dtb-panel">
+          <div class="dtb-panel-inner">
+            <For each={TOOLS}>
+              {(tool) => (
+                <div class={`dtb-tool-pane${active() === tool.id ? ' is-active' : ''}`}>
+                  {panels[tool.id]()}
                 </div>
-              </div>
-            </div>
+              )}
+            </For>
           </div>
-        )}
-      </For>
+        </div>
+      </div>
+
+      {/* Divider between panel and tabs */}
+      <div class="dtb-tabs-border" aria-hidden="true" />
+
+      {/* Vertical icon tab strip */}
+      <div class="dtb-tabs" role="tablist" aria-label="Tools">
+        <For each={TOOLS}>
+          {(tool) => (
+            <button
+              role="tab"
+              class={`dtb-tab${active() === tool.id ? ' is-active' : ''}`}
+              aria-selected={active() === tool.id}
+              aria-label={tool.label}
+              title={tool.label}
+              onClick={() =>
+                setDesktopSection((active() === tool.id ? null : tool.id) as DesktopSection)
+              }
+            >
+              <span class="dtb-tab-icon material-symbols-outlined">{tool.icon}</span>
+              <span class="dtb-tab-label">{tool.label}</span>
+            </button>
+          )}
+        </For>
+      </div>
     </div>
   );
 };

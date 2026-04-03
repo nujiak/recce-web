@@ -1,14 +1,33 @@
 import { Component, createResource, createSignal, createMemo, For, Show } from 'solid-js';
 import { getAllPins, getAllTracks, deletePin, deleteTrack, addPin, addTrack } from '../../db/db';
 import { encode, decode } from '../../share/share';
-import { showToast } from '../Toast';
+import { showToast } from '../ui/Toast';
 import { useUI } from '../../context/UIContext';
 import { addToRuler } from '../../stores/ruler';
 import PinCard from './PinCard';
 import TrackCard from './TrackCard';
 import type { Pin, Track } from '../../types';
+import { DropdownMenu } from '@kobalte/core/dropdown-menu';
+import TextField from '../ui/TextField';
+import Button from '../ui/Button';
 
 type SortMode = 'name-asc' | 'name-desc' | 'date-new' | 'date-old' | 'color';
+
+const sortOptions = [
+  { value: 'date-new', label: 'Newest' },
+  { value: 'date-old', label: 'Oldest' },
+  { value: 'name-asc', label: 'A→Z' },
+  { value: 'name-desc', label: 'Z→A' },
+  { value: 'color', label: 'Color' },
+] as const;
+
+const sortIcons: Record<SortMode, string> = {
+  'date-new': 'schedule',
+  'date-old': 'history',
+  'name-asc': 'sort_by_alpha',
+  'name-desc': 'sort_by_alpha',
+  color: 'palette',
+};
 
 const SavedScreen: Component = () => {
   const {
@@ -180,7 +199,6 @@ const SavedScreen: Component = () => {
         overflow: 'hidden',
       }}
     >
-      {/* Header */}
       <div
         style={{
           padding: '12px 16px',
@@ -191,144 +209,164 @@ const SavedScreen: Component = () => {
           gap: '8px',
         }}
       >
-        <div style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
-          <input
-            type="search"
-            name="saved-search"
-            placeholder="Search…"
-            value={search()}
-            onInput={(e) => setSearch(e.currentTarget.value)}
-            style={{
-              flex: 1,
-              'min-width': '0',
-              background: 'var(--color-bg-tertiary)',
-              border: '1px solid var(--color-border)',
-              'border-radius': 'var(--radius-sm)',
-              padding: '6px 10px',
-              color: 'var(--color-text)',
-              'font-family': 'inherit',
-              'font-size': '0.875rem',
-            }}
-          />
-          <button
-            aria-label="New pin"
-            onClick={() =>
-              setEditingPin({
-                id: 0,
-                name: '',
-                lat: 0,
-                lng: 0,
-                color: 'red',
-                group: '',
-                description: '',
-                createdAt: Date.now(),
-              })
-            }
-            style={{
-              background: 'var(--color-accent)',
-              border: 'none',
-              'border-radius': 'var(--radius-sm)',
-              padding: '6px 10px',
-              cursor: 'pointer',
-              color: 'oklch(0.1 0 0)',
-              'font-size': '0.75rem',
-              'font-family': 'inherit',
-              'font-weight': '600',
-            }}
-          >
-            +
-          </button>
-          <button
+        <div style={{ display: 'flex', 'align-items': 'center', gap: '4px' }}>
+          <TextField type="search" placeholder="Search…" value={search()} onChange={setSearch} />
+          <Button
+            variant="ghost"
+            size="sm"
             aria-label="Import share code"
             onClick={() => setShowImport((v) => !v)}
-            style={{
-              background: 'none',
-              border: '1px solid var(--color-border)',
-              'border-radius': 'var(--radius-sm)',
-              padding: '6px 10px',
-              cursor: 'pointer',
-              color: 'var(--color-text)',
-              'font-size': '0.75rem',
-              'font-family': 'inherit',
-            }}
           >
-            Import
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', gap: '6px', 'align-items': 'center' }}>
-          <span style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>Sort:</span>
-          <For each={['date-new', 'date-old', 'name-asc', 'name-desc', 'color'] as SortMode[]}>
-            {(mode) => (
-              <button
-                onClick={() => setSortMode(mode)}
-                style={{
-                  padding: '2px 6px',
-                  'border-radius': 'var(--radius-sm)',
-                  border: '1px solid var(--color-border)',
-                  background:
-                    sortMode() === mode ? 'var(--color-accent-bg)' : 'var(--color-bg-tertiary)',
-                  color:
-                    sortMode() === mode ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                  'font-size': '0.625rem',
-                  cursor: 'pointer',
-                  'font-family': 'inherit',
-                }}
-              >
-                {mode === 'date-new'
-                  ? 'Newest'
-                  : mode === 'date-old'
-                    ? 'Oldest'
-                    : mode === 'name-asc'
-                      ? 'A→Z'
-                      : mode === 'name-desc'
-                        ? 'Z→A'
-                        : 'Color'}
-              </button>
-            )}
-          </For>
-        </div>
-
-        {/* Import input */}
-        <Show when={showImport()}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <input
-              name="import-code"
-              placeholder="Paste share code…"
-              value={importCode()}
-              onInput={(e) => setImportCode(e.currentTarget.value)}
+            <span
               style={{
-                flex: 1,
-                background: 'var(--color-bg-tertiary)',
-                border: '1px solid var(--color-border)',
-                'border-radius': 'var(--radius-sm)',
-                padding: '6px 10px',
-                color: 'var(--color-text)',
-                'font-family': 'inherit',
-                'font-size': '0.875rem',
-              }}
-            />
-            <button
-              onClick={importItems}
-              style={{
-                background: 'var(--color-accent)',
-                border: 'none',
-                'border-radius': 'var(--radius-sm)',
-                padding: '6px 12px',
-                cursor: 'pointer',
-                color: 'oklch(0.1 0 0)',
-                'font-family': 'inherit',
-                'font-size': '0.75rem',
-                'font-weight': '600',
+                'font-family': "'Material Symbols Outlined', sans-serif",
+                'font-size': '20px',
+                'line-height': '1',
               }}
             >
+              download
+            </span>
+          </Button>
+          <div style={{ display: 'flex', 'align-items': 'center' }}>
+            <style>{`
+            .sort-menu-trigger {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 32px;
+              height: 32px;
+              background: transparent;
+              border: none;
+              border-radius: var(--radius-md);
+              color: var(--color-text-secondary);
+              cursor: pointer;
+              outline: none;
+            }
+            .sort-menu-trigger:hover {
+              background: var(--color-bg-secondary);
+              color: var(--color-text);
+            }
+            .sort-menu-trigger:focus-visible {
+              box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 40%, transparent);
+            }
+            .sort-menu-trigger[data-expanded] {
+              background: var(--color-bg-secondary);
+              color: var(--color-accent);
+            }
+            .sort-menu-trigger-icon {
+              font-family: 'Material Symbols Outlined', sans-serif;
+              font-size: 20px;
+              line-height: 1;
+              user-select: none;
+            }
+            .sort-menu-content {
+              background: var(--color-bg);
+              border: 1px solid var(--color-border);
+              border-radius: var(--radius-md);
+              box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+              z-index: 200;
+              padding: 0.25rem;
+              outline: none;
+              min-width: 130px;
+              animation: sort-menu-in 0.12s ease-out;
+            }
+            .sort-menu-content[data-closed] {
+              animation: sort-menu-out 0.1s ease-in;
+            }
+            .sort-menu-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              padding: 0.4rem 0.625rem;
+              border-radius: var(--radius-sm);
+              font-size: 0.8125rem;
+              color: var(--color-text);
+              cursor: pointer;
+              outline: none;
+            }
+            .sort-menu-item:hover,
+            .sort-menu-item[data-highlighted] {
+              background: var(--color-bg-secondary);
+            }
+            .sort-menu-item[data-checked] {
+              color: var(--color-accent);
+            }
+            .sort-menu-item-icon {
+              font-family: 'Material Symbols Outlined', sans-serif;
+              font-size: 16px;
+              line-height: 1;
+              color: var(--color-text-secondary);
+              flex-shrink: 0;
+            }
+            .sort-menu-item[data-checked] .sort-menu-item-icon {
+              color: var(--color-accent);
+            }
+            .sort-menu-item-indicator {
+              font-family: 'Material Symbols Outlined', sans-serif;
+              font-size: 14px;
+              color: var(--color-accent);
+              visibility: hidden;
+              margin-left: auto;
+            }
+            .sort-menu-item[data-checked] .sort-menu-item-indicator {
+              visibility: visible;
+            }
+            @keyframes sort-menu-in {
+              from { opacity: 0; transform: translateY(-4px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes sort-menu-out {
+              from { opacity: 1; transform: translateY(0); }
+              to { opacity: 0; transform: translateY(-4px); }
+            }
+          `}</style>
+            <DropdownMenu>
+              <DropdownMenu.Trigger
+                class="sort-menu-trigger"
+                aria-label={`Sort: ${sortOptions.find((o) => o.value === sortMode())?.label}`}
+              >
+                <span class="sort-menu-trigger-icon">{sortIcons[sortMode()]}</span>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content class="sort-menu-content">
+                  <DropdownMenu.RadioGroup
+                    value={sortMode()}
+                    onChange={(v) => setSortMode(v as SortMode)}
+                  >
+                    <For each={sortOptions}>
+                      {(option) => (
+                        <DropdownMenu.RadioItem class="sort-menu-item" value={option.value}>
+                          <span class="sort-menu-item-icon">
+                            {sortIcons[option.value as SortMode]}
+                          </span>
+                          {option.label}
+                          <DropdownMenu.ItemIndicator class="sort-menu-item-indicator" forceMount>
+                            check
+                          </DropdownMenu.ItemIndicator>
+                        </DropdownMenu.RadioItem>
+                      )}
+                    </For>
+                  </DropdownMenu.RadioGroup>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu>
+          </div>
+        </div>
+
+        <Show when={showImport()}>
+          <div style={{ display: 'flex', gap: '8px', 'align-items': 'center' }}>
+            <TextField
+              placeholder="Paste share code…"
+              value={importCode()}
+              onChange={setImportCode}
+            />
+            <Button variant="primary" size="sm" onClick={importItems}>
               Import
-            </button>
+            </Button>
           </div>
         </Show>
       </div>
 
-      {/* Multi-select actions — grid trick for slide-in/out animation */}
       <div
         style={{
           display: 'grid',
@@ -351,90 +389,49 @@ const SavedScreen: Component = () => {
             <span style={{ 'font-size': '0.75rem', color: 'var(--color-accent)', flex: 1 }}>
               {selected().size} selected
             </span>
-            {/* Share */}
-            <button
-              aria-label="Share selected"
-              onClick={shareSelected}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-accent)',
-                padding: '4px',
-                display: 'flex',
-                'align-items': 'center',
-              }}
-            >
+            <Button variant="icon" size="sm" aria-label="Share selected" onClick={shareSelected}>
               <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
                 share
               </span>
-            </button>
-            {/* Add to Ruler */}
-            <button
-              aria-label="Add to ruler"
-              onClick={addSelectedToRuler}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-accent)',
-                padding: '4px',
-                display: 'flex',
-                'align-items': 'center',
-              }}
-            >
+            </Button>
+            <Button variant="icon" size="sm" aria-label="Add to ruler" onClick={addSelectedToRuler}>
               <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
                 straighten
               </span>
-            </button>
-            {/* Delete */}
-            <button
-              aria-label="Delete selected"
-              onClick={bulkDelete}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-danger)',
-                padding: '4px',
-                display: 'flex',
-                'align-items': 'center',
-              }}
-            >
-              <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+            </Button>
+            <Button variant="icon" size="sm" aria-label="Delete selected" onClick={bulkDelete}>
+              <span
+                class="material-symbols-outlined"
+                style={{ 'font-size': '18px', color: 'var(--color-danger)' }}
+              >
                 delete
               </span>
-            </button>
-            {/* Cancel */}
-            <button
+            </Button>
+            <Button
+              variant="icon"
+              size="sm"
               aria-label="Cancel selection"
               onClick={() => {
                 setSelected(new Set<string>());
                 setMultiSelect(false);
               }}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-text-secondary)',
-                padding: '4px',
-                display: 'flex',
-                'align-items': 'center',
-              }}
             >
-              <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+              <span
+                class="material-symbols-outlined"
+                style={{ 'font-size': '18px', color: 'var(--color-text-secondary)' }}
+              >
                 close
               </span>
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* List */}
       <div
         style={{
           flex: 1,
           'overflow-y': 'auto',
+          'scrollbar-gutter': 'stable',
           padding: '12px 16px',
           display: 'flex',
           'flex-direction': 'column',

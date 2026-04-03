@@ -3,6 +3,7 @@ import { usePrefs } from '../../context/PrefsContext';
 import { CoordinateTransformer } from '../../coords/index';
 import type { Pin } from '../../types';
 import { PIN_COLOR_CSS } from '../../utils/colors';
+import Button from '../ui/Button';
 
 interface PinCardProps {
   pin: Pin;
@@ -87,25 +88,20 @@ const PinCard: Component<PinCardProps> = (props) => {
         )}
       </div>
 
-      <button
+      <Button
+        variant="icon"
+        size="sm"
         aria-label={`Edit ${props.pin.name}`}
         onClick={(e) => {
           e.stopPropagation();
           props.onEdit();
         }}
-        style={{
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: 'var(--color-text-secondary)',
-          padding: '4px',
-          'flex-shrink': '0',
-        }}
+        style={{ color: 'var(--color-text-secondary)', 'flex-shrink': '0' }}
       >
         <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
           edit
         </span>
-      </button>
+      </Button>
     </div>
   );
 };
