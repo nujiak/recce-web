@@ -209,39 +209,26 @@ const SavedScreen: Component = () => {
           gap: '8px',
         }}
       >
-        <div style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', 'align-items': 'center', gap: '4px' }}>
           <TextField type="search" placeholder="Search…" value={search()} onChange={setSearch} />
-          <Button
-            variant="primary"
-            size="sm"
-            aria-label="New pin"
-            onClick={() =>
-              setEditingPin({
-                id: 0,
-                name: '',
-                lat: 0,
-                lng: 0,
-                color: 'red',
-                group: '',
-                description: '',
-                createdAt: Date.now(),
-              })
-            }
-          >
-            +
-          </Button>
           <Button
             variant="ghost"
             size="sm"
             aria-label="Import share code"
             onClick={() => setShowImport((v) => !v)}
           >
-            Import
+            <span
+              style={{
+                'font-family': "'Material Symbols Outlined', sans-serif",
+                'font-size': '20px',
+                'line-height': '1',
+              }}
+            >
+              download
+            </span>
           </Button>
-        </div>
-
-        <div style={{ display: 'flex', 'align-items': 'center' }}>
-          <style>{`
+          <div style={{ display: 'flex', 'align-items': 'center' }}>
+            <style>{`
             .sort-menu-trigger {
               display: flex;
               align-items: center;
@@ -333,36 +320,37 @@ const SavedScreen: Component = () => {
               to { opacity: 0; transform: translateY(-4px); }
             }
           `}</style>
-          <DropdownMenu>
-            <DropdownMenu.Trigger
-              class="sort-menu-trigger"
-              aria-label={`Sort: ${sortOptions.find((o) => o.value === sortMode())?.label}`}
-            >
-              <span class="sort-menu-trigger-icon">{sortIcons[sortMode()]}</span>
-            </DropdownMenu.Trigger>
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content class="sort-menu-content">
-                <DropdownMenu.RadioGroup
-                  value={sortMode()}
-                  onChange={(v) => setSortMode(v as SortMode)}
-                >
-                  <For each={sortOptions}>
-                    {(option) => (
-                      <DropdownMenu.RadioItem class="sort-menu-item" value={option.value}>
-                        <span class="sort-menu-item-icon">
-                          {sortIcons[option.value as SortMode]}
-                        </span>
-                        {option.label}
-                        <DropdownMenu.ItemIndicator class="sort-menu-item-indicator" forceMount>
-                          check
-                        </DropdownMenu.ItemIndicator>
-                      </DropdownMenu.RadioItem>
-                    )}
-                  </For>
-                </DropdownMenu.RadioGroup>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenu.Trigger
+                class="sort-menu-trigger"
+                aria-label={`Sort: ${sortOptions.find((o) => o.value === sortMode())?.label}`}
+              >
+                <span class="sort-menu-trigger-icon">{sortIcons[sortMode()]}</span>
+              </DropdownMenu.Trigger>
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content class="sort-menu-content">
+                  <DropdownMenu.RadioGroup
+                    value={sortMode()}
+                    onChange={(v) => setSortMode(v as SortMode)}
+                  >
+                    <For each={sortOptions}>
+                      {(option) => (
+                        <DropdownMenu.RadioItem class="sort-menu-item" value={option.value}>
+                          <span class="sort-menu-item-icon">
+                            {sortIcons[option.value as SortMode]}
+                          </span>
+                          {option.label}
+                          <DropdownMenu.ItemIndicator class="sort-menu-item-indicator" forceMount>
+                            check
+                          </DropdownMenu.ItemIndicator>
+                        </DropdownMenu.RadioItem>
+                      )}
+                    </For>
+                  </DropdownMenu.RadioGroup>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu>
+          </div>
         </div>
 
         <Show when={showImport()}>
