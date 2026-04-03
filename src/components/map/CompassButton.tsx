@@ -88,12 +88,15 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
             <span
               style={{
                 position: 'relative',
-                'font-size': '0.65rem',
+                'font-size': '0.6rem',
                 'font-weight': '700',
                 color: '#fff',
-                'text-shadow': '0 0 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)',
                 'z-index': '2',
                 'pointer-events': 'none',
+                background: 'rgba(0,0,0,0.6)',
+                padding: '1px 4px',
+                'border-radius': '4px',
+                'line-height': '1.2',
               }}
             >
               {inverseBearing()}
