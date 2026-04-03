@@ -59,12 +59,13 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
           border: '1px solid var(--color-border)',
           'border-radius': '20px',
           cursor: 'pointer',
-          display: 'flex',
+          display: 'grid',
+          'grid-template-columns': props.bearing !== 0 ? '1fr 24px' : '0fr 24px',
           'align-items': 'center',
           padding: '0 8px',
           'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
           'z-index': '10',
-          transition: 'width 0.3s ease',
+          transition: 'grid-template-columns 0.3s ease',
           overflow: 'hidden',
         }}
       >
@@ -74,9 +75,7 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
             'font-weight': '600',
             color: 'var(--color-text)',
             'white-space': 'nowrap',
-            'max-width': props.bearing !== 0 ? '80px' : '0px',
-            opacity: props.bearing !== 0 ? 1 : 0,
-            transition: 'opacity 0.2s ease, max-width 0.3s ease',
+            'min-width': '0',
             overflow: 'hidden',
           }}
         >
