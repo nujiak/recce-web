@@ -22,22 +22,19 @@ const AppShell: ParentComponent<AppShellProps> = (props) => {
       <style>{`
         @media (min-width: 768px) {
           .app-shell {
-            grid-template-columns: 1fr 320px !important;
+            grid-template-columns: 1fr auto !important;
             grid-template-rows: 1fr !important;
           }
-          .app-shell .desktop-tools-bar { display: flex !important; }
           .app-shell .bottom-nav { display: none !important; }
           .app-shell .main-pane { grid-column: 1; }
           .app-shell .side-pane {
             grid-column: 2;
             display: flex !important;
-            flex-direction: column;
+            flex-direction: row;
             overflow: hidden;
-            border-left: 1px solid var(--color-border);
           }
         }
         @media (max-width: 767px) {
-          .app-shell .desktop-tools-bar { display: none !important; }
           .app-shell .bottom-nav { display: flex !important; }
           .app-shell .side-pane { display: none !important; }
         }
@@ -51,11 +48,8 @@ const AppShell: ParentComponent<AppShellProps> = (props) => {
         {props.children}
       </div>
 
-      {/* Desktop: right sidebar — accordion (Saved / GPS / Ruler / Settings) */}
-      <div
-        class="side-pane"
-        style={{ display: 'none', background: 'var(--color-bg)', 'flex-direction': 'column' }}
-      >
+      {/* Desktop: right sidebar — panel + vertical icon tabs */}
+      <div class="side-pane" style={{ display: 'none', background: 'var(--color-bg)' }}>
         <DesktopToolsBar />
       </div>
 

@@ -78,11 +78,11 @@ const Accordion_: Component<AccordionProps> = (props) => {
         }
         .ui-accordion-content {
           overflow: hidden;
-          max-height: 0;
+          max-height: var(--kb-accordion-content-height, 9999px);
           transition: max-height 0.25s ease;
         }
-        .ui-accordion-content[data-expanded] {
-          max-height: var(--kb-accordion-content-height, 9999px);
+        .ui-accordion-content[data-closed] {
+          max-height: 0;
         }
         .ui-accordion-content > div {
           overflow: hidden;
@@ -94,7 +94,7 @@ const Accordion_: Component<AccordionProps> = (props) => {
 
       <For each={props.items}>
         {(item) => (
-          <Accordion.Item value={item.value} class="ui-accordion-item">
+          <Accordion.Item value={item.value} class="ui-accordion-item" forceMount={true as any}>
             <Accordion.Header>
               <Accordion.Trigger class="ui-accordion-trigger">
                 <span style={{ flex: '1', 'text-align': 'left' }}>{item.trigger}</span>
