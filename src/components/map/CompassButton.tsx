@@ -47,32 +47,47 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
 
   return (
     <>
-      <button
-        aria-label="Reset map north"
-        onClick={handleClick}
+      <div
         style={{
           position: 'absolute',
           top: '16px',
           right: '16px',
-          width: '40px',
-          height: '40px',
-          background: 'var(--color-bg-secondary)',
-          border: '1px solid var(--color-border)',
-          'border-radius': '50%',
-          cursor: 'pointer',
           display: 'flex',
           'align-items': 'center',
-          'justify-content': 'center',
-          'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
+          gap: '6px',
           'z-index': '10',
+          'pointer-events': 'none',
         }}
       >
-        <div
+        <span
           style={{
-            position: 'relative',
+            'font-size': '0.7rem',
+            'font-weight': '600',
+            color: 'var(--color-text)',
+            'pointer-events': 'none',
+            'white-space': 'nowrap',
+            opacity: props.bearing !== 0 ? 1 : 0,
+            transform: props.bearing !== 0 ? 'translateX(0)' : 'translateX(4px)',
+            transition: 'opacity 0.2s ease, transform 0.2s ease',
+          }}
+        >
+          {inverseBearing()}
+        </span>
+        <button
+          aria-label="Reset map north"
+          onClick={handleClick}
+          style={{
+            width: '40px',
+            height: '40px',
+            background: 'var(--color-bg-secondary)',
+            border: '1px solid var(--color-border)',
+            'border-radius': '50%',
+            cursor: 'pointer',
             display: 'flex',
             'align-items': 'center',
             'justify-content': 'center',
+            'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
+            'pointer-events': 'auto',
           }}
         >
           <Needle
@@ -84,26 +99,8 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
               transform: `rotate(${-props.bearing}deg)`,
             }}
           />
-          <Show when={props.bearing !== 0}>
-            <span
-              style={{
-                position: 'relative',
-                'font-size': '0.6rem',
-                'font-weight': '700',
-                color: '#fff',
-                'z-index': '2',
-                'pointer-events': 'none',
-                background: 'rgba(0,0,0,0.6)',
-                padding: '1px 4px',
-                'border-radius': '4px',
-                'line-height': '1.2',
-              }}
-            >
-              {inverseBearing()}
-            </span>
-          </Show>
-        </div>
-      </button>
+        </button>
+      </div>
 
       <Show when={showDialog()}>
         <div
