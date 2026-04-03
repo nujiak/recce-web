@@ -7,7 +7,7 @@ import { addToRuler } from '../../stores/ruler';
 import PinCard from './PinCard';
 import TrackCard from './TrackCard';
 import type { Pin, Track } from '../../types';
-import ToggleGroup from '../ui/ToggleGroup';
+import { DropdownMenu } from '@kobalte/core/dropdown-menu';
 import TextField from '../ui/TextField';
 import Button from '../ui/Button';
 
@@ -20,6 +20,14 @@ const sortOptions = [
   { value: 'name-desc', label: 'Z→A' },
   { value: 'color', label: 'Color' },
 ] as const;
+
+const sortIcons: Record<SortMode, string> = {
+  'date-new': 'schedule',
+  'date-old': 'history',
+  'name-asc': 'sort_by_alpha',
+  'name-desc': 'sort_by_alpha',
+  color: 'palette',
+};
 
 const SavedScreen: Component = () => {
   const {
@@ -232,13 +240,129 @@ const SavedScreen: Component = () => {
           </Button>
         </div>
 
-        <div style={{ display: 'flex', gap: '6px', 'align-items': 'center' }}>
-          <span style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>Sort:</span>
-          <ToggleGroup
-            value={sortMode()}
-            onChange={(v) => setSortMode(v as SortMode)}
-            options={sortOptions.map((o) => ({ value: o.value, label: o.label }))}
-          />
+        <div style={{ display: 'flex', 'align-items': 'center' }}>
+          <style>{`
+            .sort-menu-trigger {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 32px;
+              height: 32px;
+              background: transparent;
+              border: none;
+              border-radius: var(--radius-md);
+              color: var(--color-text-secondary);
+              cursor: pointer;
+              outline: none;
+            }
+            .sort-menu-trigger:hover {
+              background: var(--color-bg-secondary);
+              color: var(--color-text);
+            }
+            .sort-menu-trigger:focus-visible {
+              box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 40%, transparent);
+            }
+            .sort-menu-trigger[data-expanded] {
+              background: var(--color-bg-secondary);
+              color: var(--color-accent);
+            }
+            .sort-menu-trigger-icon {
+              font-family: 'Material Symbols Outlined', sans-serif;
+              font-size: 20px;
+              line-height: 1;
+              user-select: none;
+            }
+            .sort-menu-content {
+              background: var(--color-bg);
+              border: 1px solid var(--color-border);
+              border-radius: var(--radius-md);
+              box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+              z-index: 200;
+              padding: 0.25rem;
+              outline: none;
+              min-width: 130px;
+              animation: sort-menu-in 0.12s ease-out;
+            }
+            .sort-menu-content[data-closed] {
+              animation: sort-menu-out 0.1s ease-in;
+            }
+            .sort-menu-item {
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              padding: 0.4rem 0.625rem;
+              border-radius: var(--radius-sm);
+              font-size: 0.8125rem;
+              color: var(--color-text);
+              cursor: pointer;
+              outline: none;
+            }
+            .sort-menu-item:hover,
+            .sort-menu-item[data-highlighted] {
+              background: var(--color-bg-secondary);
+            }
+            .sort-menu-item[data-checked] {
+              color: var(--color-accent);
+            }
+            .sort-menu-item-icon {
+              font-family: 'Material Symbols Outlined', sans-serif;
+              font-size: 16px;
+              line-height: 1;
+              color: var(--color-text-secondary);
+              flex-shrink: 0;
+            }
+            .sort-menu-item[data-checked] .sort-menu-item-icon {
+              color: var(--color-accent);
+            }
+            .sort-menu-item-indicator {
+              font-family: 'Material Symbols Outlined', sans-serif;
+              font-size: 14px;
+              color: var(--color-accent);
+              visibility: hidden;
+              margin-left: auto;
+            }
+            .sort-menu-item[data-checked] .sort-menu-item-indicator {
+              visibility: visible;
+            }
+            @keyframes sort-menu-in {
+              from { opacity: 0; transform: translateY(-4px); }
+              to { opacity: 1; transform: translateY(0); }
+            }
+            @keyframes sort-menu-out {
+              from { opacity: 1; transform: translateY(0); }
+              to { opacity: 0; transform: translateY(-4px); }
+            }
+          `}</style>
+          <DropdownMenu>
+            <DropdownMenu.Trigger
+              class="sort-menu-trigger"
+              aria-label={`Sort: ${sortOptions.find((o) => o.value === sortMode())?.label}`}
+            >
+              <span class="sort-menu-trigger-icon">{sortIcons[sortMode()]}</span>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Portal>
+              <DropdownMenu.Content class="sort-menu-content">
+                <DropdownMenu.RadioGroup
+                  value={sortMode()}
+                  onChange={(v) => setSortMode(v as SortMode)}
+                >
+                  <For each={sortOptions}>
+                    {(option) => (
+                      <DropdownMenu.RadioItem class="sort-menu-item" value={option.value}>
+                        <span class="sort-menu-item-icon">
+                          {sortIcons[option.value as SortMode]}
+                        </span>
+                        {option.label}
+                        <DropdownMenu.ItemIndicator class="sort-menu-item-indicator" forceMount>
+                          check
+                        </DropdownMenu.ItemIndicator>
+                      </DropdownMenu.RadioItem>
+                    )}
+                  </For>
+                </DropdownMenu.RadioGroup>
+              </DropdownMenu.Content>
+            </DropdownMenu.Portal>
+          </DropdownMenu>
         </div>
 
         <Show when={showImport()}>
