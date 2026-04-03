@@ -33,7 +33,6 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
           'font-size': '22px',
           color: '#e53935',
           transform: `rotate(${-props.bearing}deg)`,
-          transition: 'transform 0.2s',
           display: 'block',
         }}
       >
