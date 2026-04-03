@@ -1,48 +1,10 @@
-import { Component, Show } from 'solid-js';
-import { usePrefs } from '../../context/PrefsContext';
-import { CoordinateTransformer } from '../../coords/index';
-import { showToast } from '../ui/Toast';
-import { gpsPosition } from '../../stores/gps';
-import { copyToClipboard } from '../../utils/clipboard';
-import {
-  haversineDistance,
-  calculateBearing,
-  formatDistance,
-  formatBearing,
-} from '../../utils/geo';
+import { Component } from 'solid-js';
 
 interface CrosshairProps {
   center: [number, number]; // [lng, lat]
 }
 
-const Crosshair: Component<CrosshairProps> = (props) => {
-  const [prefs] = usePrefs();
-
-  const coordDisplay = () => {
-    const [lng, lat] = props.center;
-    return CoordinateTransformer.toDisplay(lat, lng, prefs.coordinateSystem) ?? '';
-  };
-
-  const gpsOverlay = () => {
-    const pos = gpsPosition();
-    if (!pos) return null;
-    const [lng, lat] = props.center;
-    const dist = haversineDistance(pos.latitude, pos.longitude, lat, lng);
-    const bearing = calculateBearing(pos.latitude, pos.longitude, lat, lng);
-    return {
-      distance: formatDistance(dist, prefs.lengthUnit),
-      bearing: formatBearing(bearing, prefs.angleUnit),
-      rawDistance: dist,
-    };
-  };
-
-  function copyCoord() {
-    const text = coordDisplay();
-    if (!text) return;
-    copyToClipboard(text);
-    showToast('Coordinates copied', 'success');
-  }
-
+const Crosshair: Component<CrosshairProps> = (_props) => {
   return (
     <div
       style={{
@@ -54,7 +16,6 @@ const Crosshair: Component<CrosshairProps> = (props) => {
         'justify-content': 'center',
       }}
     >
-      {/* Crosshair SVG */}
       <img
         src="/icons/crosshair.svg"
         width="24"
@@ -62,50 +23,6 @@ const Crosshair: Component<CrosshairProps> = (props) => {
         alt=""
         style={{ position: 'absolute' }}
       />
-
-      {/* Coord display — below crosshair */}
-      <button
-        aria-label="Copy coordinates"
-        onClick={copyCoord}
-        style={{
-          position: 'absolute',
-          top: 'calc(50% + 28px)',
-          'pointer-events': 'auto',
-          background: 'rgba(0,0,0,0.65)',
-          color: '#fff',
-          border: 'none',
-          'border-radius': '4px',
-          padding: '3px 8px',
-          'font-size': '0.75rem',
-          cursor: 'pointer',
-          'font-family': 'inherit',
-          'white-space': 'nowrap',
-        }}
-      >
-        {coordDisplay()}
-      </button>
-
-      {/* GPS overlay */}
-      <Show when={gpsOverlay()}>
-        {(overlay) => (
-          <div
-            style={{
-              position: 'absolute',
-              top: 'calc(50% + 56px)',
-              background: 'rgba(0,0,0,0.55)',
-              color: 'var(--color-accent)',
-              'border-radius': '4px',
-              padding: '2px 8px',
-              'font-size': '0.7rem',
-              'white-space': 'nowrap',
-              opacity: overlay().rawDistance >= 0.1 ? 1 : 0,
-              transition: 'opacity 0.2s ease',
-            }}
-          >
-            {overlay().distance} · {overlay().bearing}
-          </div>
-        )}
-      </Show>
     </div>
   );
 };
