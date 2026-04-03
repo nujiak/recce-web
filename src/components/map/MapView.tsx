@@ -289,13 +289,13 @@ const MapView: Component = () => {
       smoothedBearing = (smoothedBearing + ALPHA * diff + 360) % 360;
     }
 
-    const EASE_DURATION = 800;
+    const EASE_DURATION = 100;
     programmaticMove = true;
     if (programmaticMoveTimer !== null) clearTimeout(programmaticMoveTimer);
     programmaticMoveTimer = setTimeout(() => {
       programmaticMove = false;
       programmaticMoveTimer = null;
-    }, EASE_DURATION + 50);
+    }, EASE_DURATION + 20);
 
     map.easeTo({ bearing: smoothedBearing, duration: EASE_DURATION, easing: (t) => t });
   });
