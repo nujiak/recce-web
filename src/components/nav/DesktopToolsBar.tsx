@@ -128,13 +128,16 @@ const DesktopToolsBar: Component = () => {
           display: flex;
           flex-direction: column;
           align-items: stretch;
-          width: 49px;
           flex-shrink: 0;
-          border-left: 1px solid var(--color-border);
           background: var(--color-bg-secondary);
-          /* padding-left compensates for the 1px border so visual margin is equal on both sides */
-          padding: 8px 4px 8px 3px;
+          padding: 8px 4px;
+          width: 64px;
           gap: 2px;
+        }
+        .dtb-tabs-border {
+          width: 1px;
+          flex-shrink: 0;
+          background: var(--color-border);
         }
         .dtb-tab {
           display: flex;
@@ -189,6 +192,9 @@ const DesktopToolsBar: Component = () => {
           </div>
         </div>
       </div>
+
+      {/* Divider between panel and tabs */}
+      <div class="dtb-tabs-border" aria-hidden="true" />
 
       {/* Vertical icon tab strip */}
       <div class="dtb-tabs" role="tablist" aria-label="Tools">
