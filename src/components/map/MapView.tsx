@@ -12,14 +12,14 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { getAllPins, getAllTracks } from '../../db/db';
 import { useUI } from '../../context/UIContext';
-import { gpsPosition } from '../../stores/gps';
+import { gpsPosition, gpsHeading } from '../../stores/gps';
 import { MapContext } from './MapContext';
 import Crosshair from './Crosshair';
 import PinMarkers from './PinMarkers';
 import TrackLayers from './TrackLayers';
 import PlotControls from './PlotControls';
 import CompassButton from './CompassButton';
-import LocationButton from './LocationButton';
+import LocationButton, { type LocationMode } from './LocationButton';
 import UserLocationMarker from './UserLocationMarker';
 import MapStyleToggle from './MapStyleToggle';
 import { usePrefs } from '../../context/PrefsContext';
@@ -78,6 +78,10 @@ const MapView: Component = () => {
   const [mapInstance, setMapInstance] = createSignal<maplibregl.Map | null>(null);
   const [center, setCenter] = createSignal<[number, number]>(DEFAULT_MAP_CENTER);
   const [bearing, setBearing] = createSignal(0);
+  const [locationMode, setLocationMode] = createSignal<LocationMode>('unavailable');
+  // Flag set to true while we are programmatically moving the map so that the
+  // movestart/dragstart handlers don't incorrectly drop the follow mode.
+  let programmaticMove = false;
   const [plotState, setPlotState] = createStore<PlotState>({
     active: false,
     nodes: [],
@@ -116,6 +120,22 @@ const MapView: Component = () => {
       }
     });
 
+    // Drop follow modes when the user manually moves the map.
+    // 'dragstart' covers touch/mouse panning; 'touchstart' on the map canvas
+    // covers pinch-zoom and other gestures that don't always fire dragstart.
+    function onUserMoveStart() {
+      if (programmaticMove) return;
+      const mode = locationMode();
+      if (mode === 'following' || mode === 'following-bearing') {
+        setLocationMode('available');
+      }
+    }
+    map.on('dragstart', onUserMoveStart);
+    // Also catch wheel zoom and two-finger gestures – these move the map
+    // without a drag. We listen on the canvas element directly.
+    map.getCanvas().addEventListener('wheel', onUserMoveStart, { passive: true });
+    map.on('touchstart', onUserMoveStart);
+
     map.on('load', () => {
       activeMapStyle = prefs.mapStyle;
       collapseAttributionControl();
@@ -126,11 +146,15 @@ const MapView: Component = () => {
     // Listen for flyTo events from PlotControls / PinInfo / TrackInfo
     function handleFlyTo(e: Event) {
       const { lat, lng } = (e as CustomEvent).detail;
+      // External flyTo breaks follow mode
+      setLocationMode((m) => (m === 'following' || m === 'following-bearing' ? 'available' : m));
       map.flyTo({ center: [lng, lat], zoom: 15 });
     }
     function handleFitBounds(e: Event) {
       const { bounds } = (e as CustomEvent<{ bounds: [[number, number], [number, number]] }>)
         .detail;
+      // External fitBounds breaks follow mode
+      setLocationMode((m) => (m === 'following' || m === 'following-bearing' ? 'available' : m));
       map.fitBounds(bounds, { padding: 48, maxZoom: 17 });
     }
     window.addEventListener('mapFlyTo', handleFlyTo);
@@ -139,6 +163,9 @@ const MapView: Component = () => {
     onCleanup(() => {
       map.off('styledata', collapseAttributionControl);
       map.off('styledata', bindAttributionToggle);
+      map.off('dragstart', onUserMoveStart);
+      map.off('touchstart', onUserMoveStart);
+      map.getCanvas().removeEventListener('wheel', onUserMoveStart);
       window.removeEventListener('mapFlyTo', handleFlyTo);
       window.removeEventListener('mapFitBounds', handleFitBounds);
       map.remove();
@@ -211,10 +238,80 @@ const MapView: Component = () => {
     setPlotState({ active: false, nodes: [], color: 'red' });
   }
 
+  // Keep locationMode in sync when GPS becomes unavailable
+  createEffect(() => {
+    const pos = gpsPosition();
+    if (pos === null) {
+      setLocationMode('unavailable');
+    } else if (locationMode() === 'unavailable') {
+      setLocationMode('available');
+    }
+  });
+
+  // Follow GPS position
+  createEffect(() => {
+    const map = mapInstance();
+    const pos = gpsPosition();
+    const mode = locationMode();
+    if (!map || !pos || mode !== 'following') return;
+    programmaticMove = true;
+    map.easeTo({ center: [pos.longitude, pos.latitude], duration: 500 });
+    // Reset flag after animation frame so dragstart handler doesn't fire
+    requestAnimationFrame(() => {
+      programmaticMove = false;
+    });
+  });
+
+  // Follow device bearing (rotate map counter to device azimuth)
+  createEffect(() => {
+    const map = mapInstance();
+    const heading = gpsHeading();
+    const mode = locationMode();
+    if (!map || heading === null || mode !== 'following-bearing') return;
+    programmaticMove = true;
+    map.easeTo({ bearing: heading, duration: 300 });
+    requestAnimationFrame(() => {
+      programmaticMove = false;
+    });
+  });
+
   function handleLocate() {
     const pos = gpsPosition();
     if (!pos) return;
-    mapInstance()?.flyTo({ center: [pos.longitude, pos.latitude], zoom: 15 });
+    const map = mapInstance();
+    const mode = locationMode();
+    if (mode === 'available') {
+      // Enter follow-location mode: snap to position immediately, then keep following
+      setLocationMode('following');
+      if (map) {
+        programmaticMove = true;
+        map.flyTo({ center: [pos.longitude, pos.latitude], zoom: 15 });
+        requestAnimationFrame(() => {
+          programmaticMove = false;
+        });
+      }
+    } else if (mode === 'following') {
+      // Escalate to follow-bearing mode; also snap bearing immediately
+      setLocationMode('following-bearing');
+      const heading = gpsHeading();
+      if (map && heading !== null) {
+        programmaticMove = true;
+        map.easeTo({ bearing: heading, duration: 300 });
+        requestAnimationFrame(() => {
+          programmaticMove = false;
+        });
+      }
+    } else if (mode === 'following-bearing') {
+      // Third press: exit follow modes entirely, reset map bearing to north
+      setLocationMode('available');
+      if (map) {
+        programmaticMove = true;
+        map.easeTo({ bearing: 0, duration: 500 });
+        requestAnimationFrame(() => {
+          programmaticMove = false;
+        });
+      }
+    }
   }
 
   function handleToggleMapStyle() {
@@ -318,7 +415,7 @@ const MapView: Component = () => {
               onReset={() => map().resetNorth()}
               onRotateTo={(deg) => map().easeTo({ bearing: deg, duration: 1000 })}
             />
-            <LocationButton onLocate={handleLocate} />
+            <LocationButton mode={locationMode()} onLocate={handleLocate} />
           </MapContext.Provider>
         )}
       </Show>
