@@ -7,6 +7,7 @@ import {
   formatDistance,
   formatBearing,
 } from '../../utils/geo';
+import Button from '../ui/Button';
 
 const RulerPanel: Component = () => {
   const [prefs] = usePrefs();
@@ -36,21 +37,17 @@ const RulerPanel: Component = () => {
       {/* Clear All button — header-level, only when there are points */}
       <Show when={points().length > 0}>
         <div style={{ display: 'flex', 'justify-content': 'flex-end' }}>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={clearRuler}
             style={{
-              background: 'none',
               border: '1px solid var(--color-danger)',
-              'border-radius': 'var(--radius-sm)',
-              padding: '4px 10px',
-              cursor: 'pointer',
               color: 'var(--color-danger)',
-              'font-size': '0.75rem',
-              'font-family': 'inherit',
             }}
           >
             Clear All
-          </button>
+          </Button>
         </div>
       </Show>
 

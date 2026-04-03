@@ -1,11 +1,13 @@
 import { Component, createSignal, createEffect, Show } from 'solid-js';
-import { useEscapeToClose } from '../../utils/hooks';
 import { useUI } from '../../context/UIContext';
 import { addTrack, updateTrack, deleteTrack } from '../../db/db';
-import { showToast } from '../Toast';
+import { showToast } from '../ui/Toast';
 import type { Track, PinColor, TrackNode } from '../../types';
 import ColorPicker from '../ColorPicker';
-import { DESKTOP_BREAKPOINT } from '../../utils/constants';
+import Dialog from '../ui/Dialog';
+import TextField from '../ui/TextField';
+import Button from '../ui/Button';
+import ToggleGroup from '../ui/ToggleGroup';
 
 interface TrackEditorProps {
   onSaved?: () => void;
@@ -20,8 +22,6 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
   const [group, setGroup] = createSignal('');
   const [description, setDescription] = createSignal('');
   const [nodes, setNodes] = createSignal<TrackNode[]>([]);
-
-  useEscapeToClose(editingTrack, () => setEditingTrack(null));
 
   createEffect(() => {
     const t = editingTrack();
@@ -77,229 +77,54 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
     props.onSaved?.();
   }
 
-  const isDesktop = () => window.innerWidth >= DESKTOP_BREAKPOINT;
+  const isEdit = () => editingTrack() !== null && editingTrack()!.id !== 0;
+  const dialogTitle = () => (isEdit() ? 'Edit Track' : 'New Track');
 
   return (
-    <Show when={editingTrack() !== null}>
-      <div
-        onClick={() => setEditingTrack(null)}
-        style={{ position: 'fixed', inset: 0, background: 'var(--color-overlay)', 'z-index': '40' }}
-      />
+    <Dialog
+      open={editingTrack() !== null}
+      onOpenChange={(open) => {
+        if (!open) setEditingTrack(null);
+      }}
+      title={dialogTitle()}
+    >
+      <div style={{ display: 'flex', 'flex-direction': 'column', gap: '14px' }}>
+        <TextField label="Name" value={name()} onChange={setName} />
 
-      <div
-        role="dialog"
-        aria-label={
-          editingTrack() && editingTrack()!.id !== 0 ? `Edit ${editingTrack()!.name}` : 'New Track'
-        }
-        aria-modal="true"
-        onKeyDown={(e) => {
-          if (e.key !== 'Tab') return;
-          const el = e.currentTarget;
-          const focusable = Array.from(
-            el.querySelectorAll<HTMLElement>(
-              'button, input, textarea, select, [tabindex]:not([tabindex="-1"])'
-            )
-          ).filter((n) => !n.hasAttribute('disabled'));
-          if (focusable.length === 0) return;
-          const first = focusable[0],
-            last = focusable[focusable.length - 1];
-          if (e.shiftKey && document.activeElement === first) {
-            e.preventDefault();
-            last.focus();
-          } else if (!e.shiftKey && document.activeElement === last) {
-            e.preventDefault();
-            first.focus();
-          }
-        }}
-        style={{
-          position: 'fixed',
-          'z-index': '50',
-          background: 'var(--color-bg-secondary)',
-          border: '1px solid var(--color-border)',
-          ...(isDesktop()
-            ? {
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                width: '360px',
-                'border-radius': 'var(--radius-xl)',
-              }
-            : {
-                bottom: 0,
-                left: 0,
-                right: 0,
-                'border-radius': 'var(--radius-xl) var(--radius-xl) 0 0',
-              }),
-        }}
-      >
-        <div style={{ padding: '20px', display: 'flex', 'flex-direction': 'column', gap: '14px' }}>
-          <div
-            style={{ display: 'flex', 'align-items': 'center', 'justify-content': 'space-between' }}
-          >
-            <h2 style={{ 'font-size': '1rem', 'font-weight': '700' }}>
-              {editingTrack() && editingTrack()!.id !== 0 ? 'Edit Track' : 'New Track'}
-            </h2>
-            <button
-              aria-label="Close"
-              onClick={() => setEditingTrack(null)}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-text-secondary)',
-                padding: '4px',
-              }}
+        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
+          <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Type</span>
+          <ToggleGroup
+            value={isCyclical() ? 'area' : 'path'}
+            onChange={(v) => setIsCyclical(v === 'area')}
+            options={[
+              { value: 'path', label: 'Path' },
+              { value: 'area', label: 'Area' },
+            ]}
+          />
+        </div>
+
+        <ColorPicker value={color()} onChange={setColor} />
+
+        <TextField label="Group" value={group()} onChange={setGroup} />
+
+        <TextField label="Description" value={description()} onChange={setDescription} multiline />
+
+        <div style={{ display: 'flex', gap: '8px', 'margin-top': '4px' }}>
+          <Show when={isEdit()}>
+            <Button
+              variant="ghost"
+              onClick={handleDelete}
+              style={{ color: 'var(--color-danger)', 'border-color': 'var(--color-danger)' }}
             >
-              ✕
-            </button>
-          </div>
-
-          <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
-            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
-              Name
-            </span>
-            <input
-              name="track-name"
-              value={name()}
-              onInput={(e) => setName(e.currentTarget.value)}
-              style={{
-                background: 'var(--color-bg-tertiary)',
-                border: '1px solid var(--color-border)',
-                'border-radius': 'var(--radius-sm)',
-                padding: '7px 10px',
-                color: 'var(--color-text)',
-                'font-family': 'inherit',
-                'font-size': '0.875rem',
-              }}
-            />
-          </label>
-
-          {/* Path / Area toggle */}
-          <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
-              Type
-            </span>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                aria-pressed={!isCyclical()}
-                onClick={() => setIsCyclical(false)}
-                style={{
-                  flex: 1,
-                  padding: '7px',
-                  background: !isCyclical() ? 'var(--color-accent-bg)' : 'var(--color-bg-tertiary)',
-                  border: `1px solid ${!isCyclical() ? 'var(--color-accent-border)' : 'var(--color-border)'}`,
-                  'border-radius': 'var(--radius-sm)',
-                  cursor: 'pointer',
-                  color: !isCyclical() ? 'var(--color-accent)' : 'var(--color-text)',
-                  'font-family': 'inherit',
-                  'font-size': '0.875rem',
-                }}
-              >
-                Path
-              </button>
-              <button
-                aria-pressed={isCyclical()}
-                onClick={() => setIsCyclical(true)}
-                style={{
-                  flex: 1,
-                  padding: '7px',
-                  background: isCyclical() ? 'var(--color-accent-bg)' : 'var(--color-bg-tertiary)',
-                  border: `1px solid ${isCyclical() ? 'var(--color-accent-border)' : 'var(--color-border)'}`,
-                  'border-radius': 'var(--radius-sm)',
-                  cursor: 'pointer',
-                  color: isCyclical() ? 'var(--color-accent)' : 'var(--color-text)',
-                  'font-family': 'inherit',
-                  'font-size': '0.875rem',
-                }}
-              >
-                Area
-              </button>
-            </div>
-          </div>
-
-          <ColorPicker value={color()} onChange={setColor} />
-
-          <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
-            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
-              Group
-            </span>
-            <input
-              name="track-group"
-              value={group()}
-              onInput={(e) => setGroup(e.currentTarget.value)}
-              style={{
-                background: 'var(--color-bg-tertiary)',
-                border: '1px solid var(--color-border)',
-                'border-radius': 'var(--radius-sm)',
-                padding: '7px 10px',
-                color: 'var(--color-text)',
-                'font-family': 'inherit',
-                'font-size': '0.875rem',
-              }}
-            />
-          </label>
-
-          <label style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
-            <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
-              Description
-            </span>
-            <textarea
-              name="track-desc"
-              value={description()}
-              onInput={(e) => setDescription(e.currentTarget.value)}
-              rows={2}
-              style={{
-                background: 'var(--color-bg-tertiary)',
-                border: '1px solid var(--color-border)',
-                'border-radius': 'var(--radius-sm)',
-                padding: '7px 10px',
-                color: 'var(--color-text)',
-                'font-family': 'inherit',
-                'font-size': '0.875rem',
-                resize: 'none',
-              }}
-            />
-          </label>
-
-          <div style={{ display: 'flex', gap: '8px', 'margin-top': '4px' }}>
-            <Show when={editingTrack() && editingTrack()!.id !== 0}>
-              <button
-                onClick={handleDelete}
-                style={{
-                  padding: '9px 14px',
-                  background: 'none',
-                  border: '1px solid var(--color-danger)',
-                  'border-radius': 'var(--radius-md)',
-                  cursor: 'pointer',
-                  color: 'var(--color-danger)',
-                  'font-family': 'inherit',
-                  'font-size': '0.875rem',
-                }}
-              >
-                Delete
-              </button>
-            </Show>
-            <button
-              onClick={handleSave}
-              style={{
-                flex: 1,
-                padding: '9px',
-                background: 'var(--color-accent)',
-                border: 'none',
-                'border-radius': 'var(--radius-md)',
-                cursor: 'pointer',
-                color: 'oklch(0.1 0 0)',
-                'font-family': 'inherit',
-                'font-size': '0.875rem',
-                'font-weight': '600',
-              }}
-            >
-              Save
-            </button>
-          </div>
+              Delete
+            </Button>
+          </Show>
+          <Button variant="primary" onClick={handleSave} style={{ flex: 1 }}>
+            Save
+          </Button>
         </div>
       </div>
-    </Show>
+    </Dialog>
   );
 };
 

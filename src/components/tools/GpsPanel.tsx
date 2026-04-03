@@ -6,6 +6,7 @@ import { formatDistance, formatBearing } from '../../utils/geo';
 import { CoordinateTransformer, SYSTEM_NAMES } from '../../coords/index';
 import { copyToClipboard } from '../../utils/clipboard';
 import CompassNeedle from './CompassNeedle';
+import Button from '../ui/Button';
 
 const GpsPanel: Component = () => {
   const [prefs] = usePrefs();
@@ -76,18 +77,22 @@ const GpsPanel: Component = () => {
                   >
                     Coordinates ({SYSTEM_NAMES[prefs.coordinateSystem]})
                   </div>
-                  <div
-                    role="button"
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     aria-label="Copy coordinates"
                     onClick={() => copyToClipboard(coordStr())}
                     style={{
                       'font-size': '0.875rem',
                       'font-variant-numeric': 'tabular-nums',
-                      cursor: 'pointer',
+                      border: 'none',
+                      'border-radius': '0',
+                      padding: '0',
+                      'justify-content': 'flex-start',
                     }}
                   >
                     {coordStr()}
-                  </div>
+                  </Button>
                 </div>
                 {/* Altitude + Accuracy */}
                 <div style={{ display: 'flex', gap: '16px' }}>
@@ -139,22 +144,9 @@ const GpsPanel: Component = () => {
         </div>
 
         <Show when={iosPrompt()}>
-          <button
-            onClick={handleEnableCompass}
-            style={{
-              background: 'var(--color-accent)',
-              border: 'none',
-              'border-radius': 'var(--radius-sm)',
-              padding: '8px 16px',
-              cursor: 'pointer',
-              color: 'oklch(0.1 0 0)',
-              'font-family': 'inherit',
-              'font-size': '0.875rem',
-              'font-weight': '600',
-            }}
-          >
+          <Button variant="primary" onClick={handleEnableCompass}>
             Enable Compass
-          </button>
+          </Button>
         </Show>
 
         <Show when={!iosPrompt()}>

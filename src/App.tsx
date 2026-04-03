@@ -10,7 +10,7 @@ import PinEditor from './components/pin/PinEditor';
 import PinInfo from './components/pin/PinInfo';
 import TrackEditor from './components/track/TrackEditor';
 import TrackInfo from './components/track/TrackInfo';
-import Toast from './components/Toast';
+import { ToastRegion } from './components/ui/Toast';
 import GpsTracker from './components/GpsTracker';
 
 function applyTheme(theme: string) {
@@ -63,7 +63,7 @@ function AppInner() {
       <TrackEditor onSaved={bumpSavedVersion} />
       <TrackInfo />
 
-      <Toast />
+      <ToastRegion />
     </>
   );
 }

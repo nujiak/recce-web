@@ -1,14 +1,25 @@
 import { Component, createResource, createSignal, createMemo, For, Show } from 'solid-js';
 import { getAllPins, getAllTracks, deletePin, deleteTrack, addPin, addTrack } from '../../db/db';
 import { encode, decode } from '../../share/share';
-import { showToast } from '../Toast';
+import { showToast } from '../ui/Toast';
 import { useUI } from '../../context/UIContext';
 import { addToRuler } from '../../stores/ruler';
 import PinCard from './PinCard';
 import TrackCard from './TrackCard';
 import type { Pin, Track } from '../../types';
+import ToggleGroup from '../ui/ToggleGroup';
+import TextField from '../ui/TextField';
+import Button from '../ui/Button';
 
 type SortMode = 'name-asc' | 'name-desc' | 'date-new' | 'date-old' | 'color';
+
+const sortOptions = [
+  { value: 'date-new', label: 'Newest' },
+  { value: 'date-old', label: 'Oldest' },
+  { value: 'name-asc', label: 'A→Z' },
+  { value: 'name-desc', label: 'Z→A' },
+  { value: 'color', label: 'Color' },
+] as const;
 
 const SavedScreen: Component = () => {
   const {
@@ -180,7 +191,6 @@ const SavedScreen: Component = () => {
         overflow: 'hidden',
       }}
     >
-      {/* Header */}
       <div
         style={{
           padding: '12px 16px',
@@ -192,25 +202,10 @@ const SavedScreen: Component = () => {
         }}
       >
         <div style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
-          <input
-            type="search"
-            name="saved-search"
-            placeholder="Search…"
-            value={search()}
-            onInput={(e) => setSearch(e.currentTarget.value)}
-            style={{
-              flex: 1,
-              'min-width': '0',
-              background: 'var(--color-bg-tertiary)',
-              border: '1px solid var(--color-border)',
-              'border-radius': 'var(--radius-sm)',
-              padding: '6px 10px',
-              color: 'var(--color-text)',
-              'font-family': 'inherit',
-              'font-size': '0.875rem',
-            }}
-          />
-          <button
+          <TextField type="search" placeholder="Search…" value={search()} onChange={setSearch} />
+          <Button
+            variant="primary"
+            size="sm"
             aria-label="New pin"
             onClick={() =>
               setEditingPin({
@@ -224,111 +219,42 @@ const SavedScreen: Component = () => {
                 createdAt: Date.now(),
               })
             }
-            style={{
-              background: 'var(--color-accent)',
-              border: 'none',
-              'border-radius': 'var(--radius-sm)',
-              padding: '6px 10px',
-              cursor: 'pointer',
-              color: 'oklch(0.1 0 0)',
-              'font-size': '0.75rem',
-              'font-family': 'inherit',
-              'font-weight': '600',
-            }}
           >
             +
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             aria-label="Import share code"
             onClick={() => setShowImport((v) => !v)}
-            style={{
-              background: 'none',
-              border: '1px solid var(--color-border)',
-              'border-radius': 'var(--radius-sm)',
-              padding: '6px 10px',
-              cursor: 'pointer',
-              color: 'var(--color-text)',
-              'font-size': '0.75rem',
-              'font-family': 'inherit',
-            }}
           >
             Import
-          </button>
+          </Button>
         </div>
 
         <div style={{ display: 'flex', gap: '6px', 'align-items': 'center' }}>
           <span style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>Sort:</span>
-          <For each={['date-new', 'date-old', 'name-asc', 'name-desc', 'color'] as SortMode[]}>
-            {(mode) => (
-              <button
-                onClick={() => setSortMode(mode)}
-                style={{
-                  padding: '2px 6px',
-                  'border-radius': 'var(--radius-sm)',
-                  border: '1px solid var(--color-border)',
-                  background:
-                    sortMode() === mode ? 'var(--color-accent-bg)' : 'var(--color-bg-tertiary)',
-                  color:
-                    sortMode() === mode ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-                  'font-size': '0.625rem',
-                  cursor: 'pointer',
-                  'font-family': 'inherit',
-                }}
-              >
-                {mode === 'date-new'
-                  ? 'Newest'
-                  : mode === 'date-old'
-                    ? 'Oldest'
-                    : mode === 'name-asc'
-                      ? 'A→Z'
-                      : mode === 'name-desc'
-                        ? 'Z→A'
-                        : 'Color'}
-              </button>
-            )}
-          </For>
+          <ToggleGroup
+            value={sortMode()}
+            onChange={(v) => setSortMode(v as SortMode)}
+            options={sortOptions.map((o) => ({ value: o.value, label: o.label }))}
+          />
         </div>
 
-        {/* Import input */}
         <Show when={showImport()}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <input
-              name="import-code"
+          <div style={{ display: 'flex', gap: '8px', 'align-items': 'center' }}>
+            <TextField
               placeholder="Paste share code…"
               value={importCode()}
-              onInput={(e) => setImportCode(e.currentTarget.value)}
-              style={{
-                flex: 1,
-                background: 'var(--color-bg-tertiary)',
-                border: '1px solid var(--color-border)',
-                'border-radius': 'var(--radius-sm)',
-                padding: '6px 10px',
-                color: 'var(--color-text)',
-                'font-family': 'inherit',
-                'font-size': '0.875rem',
-              }}
+              onChange={setImportCode}
             />
-            <button
-              onClick={importItems}
-              style={{
-                background: 'var(--color-accent)',
-                border: 'none',
-                'border-radius': 'var(--radius-sm)',
-                padding: '6px 12px',
-                cursor: 'pointer',
-                color: 'oklch(0.1 0 0)',
-                'font-family': 'inherit',
-                'font-size': '0.75rem',
-                'font-weight': '600',
-              }}
-            >
+            <Button variant="primary" size="sm" onClick={importItems}>
               Import
-            </button>
+            </Button>
           </div>
         </Show>
       </div>
 
-      {/* Multi-select actions — grid trick for slide-in/out animation */}
       <div
         style={{
           display: 'grid',
@@ -351,86 +277,44 @@ const SavedScreen: Component = () => {
             <span style={{ 'font-size': '0.75rem', color: 'var(--color-accent)', flex: 1 }}>
               {selected().size} selected
             </span>
-            {/* Share */}
-            <button
-              aria-label="Share selected"
-              onClick={shareSelected}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-accent)',
-                padding: '4px',
-                display: 'flex',
-                'align-items': 'center',
-              }}
-            >
+            <Button variant="icon" size="sm" aria-label="Share selected" onClick={shareSelected}>
               <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
                 share
               </span>
-            </button>
-            {/* Add to Ruler */}
-            <button
-              aria-label="Add to ruler"
-              onClick={addSelectedToRuler}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-accent)',
-                padding: '4px',
-                display: 'flex',
-                'align-items': 'center',
-              }}
-            >
+            </Button>
+            <Button variant="icon" size="sm" aria-label="Add to ruler" onClick={addSelectedToRuler}>
               <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
                 straighten
               </span>
-            </button>
-            {/* Delete */}
-            <button
-              aria-label="Delete selected"
-              onClick={bulkDelete}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-danger)',
-                padding: '4px',
-                display: 'flex',
-                'align-items': 'center',
-              }}
-            >
-              <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+            </Button>
+            <Button variant="icon" size="sm" aria-label="Delete selected" onClick={bulkDelete}>
+              <span
+                class="material-symbols-outlined"
+                style={{ 'font-size': '18px', color: 'var(--color-danger)' }}
+              >
                 delete
               </span>
-            </button>
-            {/* Cancel */}
-            <button
+            </Button>
+            <Button
+              variant="icon"
+              size="sm"
               aria-label="Cancel selection"
               onClick={() => {
                 setSelected(new Set<string>());
                 setMultiSelect(false);
               }}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--color-text-secondary)',
-                padding: '4px',
-                display: 'flex',
-                'align-items': 'center',
-              }}
             >
-              <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+              <span
+                class="material-symbols-outlined"
+                style={{ 'font-size': '18px', color: 'var(--color-text-secondary)' }}
+              >
                 close
               </span>
-            </button>
+            </Button>
           </div>
         </div>
       </div>
 
-      {/* List */}
       <div
         style={{
           flex: 1,

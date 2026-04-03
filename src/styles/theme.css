@@ -146,4 +146,8 @@
     font-style: italic;
     margin-top: var(--spacing-md);
   }
+
+  .pin-coord-error .ui-tf-input {
+    border-color: var(--color-danger);
+  }
 }

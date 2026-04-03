@@ -1,7 +1,7 @@
 import { Component, Show } from 'solid-js';
 import { usePrefs } from '../../context/PrefsContext';
 import { CoordinateTransformer } from '../../coords/index';
-import { showToast } from '../Toast';
+import { showToast } from '../ui/Toast';
 import { gpsPosition } from '../../stores/gps';
 import { copyToClipboard } from '../../utils/clipboard';
 import {
