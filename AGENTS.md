@@ -266,87 +266,73 @@ Custom SVG icons are located in `public/icons/`. Most general icons have been re
 
 ---
 
-## UI Library Migration: Kobalte + Corvu
+## UI Library Migration: Kobalte
 
 ### Motivation
 
-The app has no shared UI primitives. Every dialog, bottom sheet, select, toast, accordion, and button is hand-rolled inline per feature, producing visual and behavioural inconsistencies. Adopting **Kobalte** (headless SolidJS primitives) and **Corvu** (SolidJS drawer/bottom-sheet) provides robust, accessible, fully unstyled foundations. All existing CSS custom property tokens, fonts, and icons are preserved — only the structural HTML and JS wiring changes.
+The app has no shared UI primitives. Every dialog, bottom sheet, select, toast, accordion, and button is hand-rolled inline per feature, producing visual and behavioural inconsistencies. Adopting **Kobalte** (`@kobalte/core`) provides robust, accessible, fully unstyled foundations for all interactive components. All existing CSS custom property tokens, fonts, and icons are preserved — only the structural HTML and JS wiring changes.
 
 ### Libraries
 
-| Library         | Purpose                                                           | Docs                |
-| --------------- | ----------------------------------------------------------------- | ------------------- |
-| `@kobalte/core` | Dialog, Select, Toast, Accordion, ToggleGroup, Popover, TextField | https://kobalte.dev |
-| `corvu`         | Drawer (bottom sheet)                                             | https://corvu.dev   |
+| Library         | Purpose                                                                              | Docs                |
+| --------------- | ------------------------------------------------------------------------------------ | ------------------- |
+| `@kobalte/core` | Button, Dialog, Popover, Select, TextField, Toast, Accordion, ToggleGroup, Separator | https://kobalte.dev |
 
 Install with:
 
 ```bash
-npm install @kobalte/core corvu
+npm install @kobalte/core
 ```
 
 ### Design Principles for the Migration
 
-- **Never introduce new visual tokens.** Use the existing CSS vars (`--color-bg`, `--color-accent`, `--color-border`, etc.) on every Kobalte/Corvu element.
+- **Never introduce new visual tokens.** Use the existing CSS vars (`--color-bg`, `--color-accent`, `--color-border`, etc.) on every Kobalte element.
 - **Build shared primitives first**, then replace feature components one by one.
 - **Shared primitives live in `src/components/ui/`** — one file per primitive type.
-- **Feature components import only from `src/components/ui/`**, never directly from `@kobalte/core` or `corvu`.
+- **Feature components import only from `src/components/ui/`**, never directly from `@kobalte/core`.
 - All primitives must work in both light and dark themes.
 
 ---
 
 ### Phase 1 — Install & Shared Primitive Layer
 
-**Goal:** Install libraries and create the shared `src/components/ui/` building blocks that all feature components will use. No feature components are changed yet.
+**Goal:** Install the library and create the shared `src/components/ui/` building blocks that all feature components will use. No feature components are changed yet.
 
 #### 1.1 Install packages
 
 ```bash
-npm install @kobalte/core corvu
+npm install @kobalte/core
 ```
 
 Run `npm run build` to confirm no import errors before proceeding.
 
 #### 1.2 Create `src/components/ui/Dialog.tsx`
 
-Wrap `@kobalte/core` `Dialog` into a single reusable component with:
+Wrap `@kobalte/core/dialog` `Dialog` into a single reusable component with:
 
-- Props: `open`, `onOpenChange`, `title`, `children`
-- Renders a `Dialog.Overlay` (fixed, full-screen, semi-transparent using `--color-overlay`) and `Dialog.Content` (centered card using `--color-bg`, `--color-border`, `border-radius: 12px`, `padding: 1.5rem`)
-- `Dialog.Title` uses `--color-text`, `font-weight: 600`
-- Includes a close button (Material Symbol `close` icon) in the top-right corner
-- Applies `position: fixed; inset: 0; z-index: 100` on the portal
+- Props: `open`, `onOpenChange`, `title`, `children`, `preventClose?: boolean`
+- Renders a `Dialog.Portal` containing `Dialog.Overlay` (fixed, full-screen, semi-transparent using `--color-overlay`) and `Dialog.Content`
+- On **mobile** (`@media (max-width: 767px)`): content is a bottom sheet — `position: fixed; bottom: 0; left: 0; right: 0; border-radius: 16px 16px 0 0; padding: 1.25rem 1rem; max-height: 85dvh; overflow-y: auto` — with a drag-handle bar (`4px × 36px`, `--color-border`, `border-radius: 2px`) above the title
+- On **desktop** (`@media (min-width: 768px)`): content is a centered card — `position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 12px; padding: 1.5rem; min-width: 360px; max-width: 480px`
+- Both layouts: `--color-bg` background, `--color-border` border, `z-index: 100`
+- `Dialog.Title` uses `--color-text`, `font-weight: 600`; includes a `Dialog.CloseButton` (Material Symbol `close` icon) top-right, hidden when `preventClose` is true
+- When `preventClose` is true: pass `onPointerDownOutside={e => e.preventDefault()}` and `onEscapeKeyDown={e => e.preventDefault()}` to `Dialog.Content`
+- This single `Dialog` component replaces both the old `Dialog.tsx`, `Drawer.tsx`, and `Sheet.tsx` — feature components use it directly
 
-#### 1.3 Create `src/components/ui/Drawer.tsx`
+#### 1.3 Create `src/components/ui/Select.tsx`
 
-Wrap `corvu` `Drawer` into a shared bottom-sheet component with:
+Wrap `@kobalte/core/select` `Select` with:
 
-- Props: `open`, `onOpenChange`, `title`, `children`
-- Renders a `Drawer.Overlay` (fixed, full-screen, semi-transparent) and `Drawer.Content` sliding up from the bottom
-- Content card: `--color-bg` background, `border-radius: 16px 16px 0 0`, `padding: 1.25rem 1rem`, max-height `85dvh`, scrollable
-- Drag handle bar: centered, `4px × 36px`, `--color-border` colour, `border-radius: 2px`, `margin-bottom: 0.75rem`
-- `Drawer.Title` same style as `Dialog.Title`
+- Props: `value`, `onChange`, `options: Array<{ value: string; label: string }>`, `placeholder?`, `label?`
+- Optional `Select.Label` rendered above the trigger when `label` is provided; style: `--color-text-secondary`, `font-size: 0.75rem`, `margin-bottom: 0.25rem`
+- Trigger button: full-width, `--color-bg-secondary` background, `--color-border` border, `--color-text` text, `border-radius: 8px`, `padding: 0.5rem 0.75rem`; trailing chevron (Material Symbol `expand_more`) that rotates when open via `data-expanded`
+- `Select.Portal` → `Select.Content` → `Select.Listbox`: `--color-bg` background, `--color-border` border, `border-radius: 8px`, `box-shadow: 0 4px 16px rgba(0,0,0,0.2)`, `z-index: 200`
+- `Select.Item`: `--color-text` text, hover uses `--color-bg-secondary`; `Select.ItemIndicator` shows `check` icon in `--color-accent` when selected
+- Replaces all 8 native `<select>` elements in `OnboardingFlow.tsx` and `SettingsPanel.tsx`
 
-#### 1.4 Create `src/components/ui/Sheet.tsx`
+#### 1.4 Create `src/components/ui/Toast.tsx`
 
-A single responsive wrapper that renders `<Drawer>` on mobile (viewport width < 768 px) and `<Dialog>` on desktop. Detect breakpoint via `window.matchMedia('(min-width: 768px)')` in a SolidJS signal updated on `resize`.
-
-- Props: `open`, `onOpenChange`, `title`, `children`
-- This is the component that replaces all four hand-rolled bottom-sheet/dialog pairs.
-
-#### 1.5 Create `src/components/ui/Select.tsx`
-
-Wrap `@kobalte/core` `Select` with:
-
-- Props: `value`, `onChange`, `options: Array<{ value: string; label: string }>`, `placeholder?`
-- Trigger button: full-width, `--color-bg-secondary` background, `--color-border` border, `--color-text` text, `border-radius: 8px`, `padding: 0.5rem 0.75rem`
-- Content listbox: `--color-bg` background, `--color-border` border, `border-radius: 8px`, `box-shadow: 0 4px 16px rgba(0,0,0,0.2)`, `z-index: 200`
-- Each item: `--color-text` text, hover uses `--color-bg-secondary`, selected uses `--color-accent` left border indicator
-- Replace all 8 native `<select>` elements in `OnboardingFlow.tsx` and `SettingsPanel.tsx`.
-
-#### 1.6 Create `src/components/ui/Toast.tsx`
-
-Wrap `@kobalte/core` `Toast` (toaster + region) replacing the hand-rolled `src/components/Toast.tsx`:
+Wrap `@kobalte/core/toast` replacing the hand-rolled `src/components/Toast.tsx`:
 
 - Keep the same API surface: `showToast(message, type)` where `type` is `'success' | 'error' | 'info'`
 - Export a `<ToastRegion />` component to mount once in `App.tsx`
@@ -354,43 +340,55 @@ Wrap `@kobalte/core` `Toast` (toaster + region) replacing the hand-rolled `src/c
 - Per-type left accent: `--color-accent` (info/success), `--color-danger` (error)
 - Auto-dismiss after 3 s; max 3 visible at once; stacks from bottom-center
 
-#### 1.7 Create `src/components/ui/Accordion.tsx`
+#### 1.5 Create `src/components/ui/Accordion.tsx`
 
-Wrap `@kobalte/core` `Accordion` with:
+Wrap `@kobalte/core/accordion` `Accordion` with:
 
-- Props: `items: Array<{ value: string; trigger: JSX.Element; content: JSX.Element }>`, `defaultValue?`
-- Trigger row: full-width, `--color-text`, chevron icon (Material Symbol `expand_more`) rotates 180° on open via CSS transition `0.15s ease`
-- Content: CSS grid `grid-template-rows` trick (`0fr` → `1fr`) for smooth expand/collapse, `0.2s ease` transition — matches the existing pattern in `DesktopToolsBar.tsx`
+- Props: `items: Array<{ value: string; trigger: JSX.Element; content: JSX.Element }>`, `defaultValue?`, `multiple?: boolean`
+- Trigger row: full-width `Accordion.ItemTrigger` button, `--color-text`, chevron icon (Material Symbol `expand_more`) rotates 180° on open via `data-expanded` CSS selector, `0.15s ease` transition
+- Content: `Accordion.ItemContent` with CSS grid `grid-template-rows` trick (`0fr` → `1fr`) for smooth expand/collapse, `0.2s ease` — matches the existing pattern in `DesktopToolsBar.tsx`
+- Replaces the hand-rolled accordion in `DesktopToolsBar.tsx`
 
-#### 1.8 Create `src/components/ui/ToggleGroup.tsx`
+#### 1.6 Create `src/components/ui/ToggleGroup.tsx`
 
-Wrap `@kobalte/core` `ToggleGroup` (single-select) with:
+Wrap `@kobalte/core/toggle-group` `ToggleGroup` (single-select) with:
 
 - Props: `value`, `onChange`, `options: Array<{ value: string; label: string | JSX.Element }>`
-- Renders a pill-shaped segmented control
-- Active item: `--color-accent` background, white text; inactive: `--color-bg-secondary`, `--color-text-secondary`
-- `border-radius: 8px` container, `border-radius: 6px` items, `padding: 0.25rem`
+- Renders a pill-shaped segmented control: `border-radius: 8px` container, `border-radius: 6px` items, `padding: 0.25rem`, `--color-bg-secondary` background
+- Active item (`data-pressed`): `--color-accent` background, white text; inactive: transparent, `--color-text-secondary`
 - Replaces the Path/Area toggle in `TrackEditor.tsx` and the sort chips in `SavedScreen.tsx`
 
-#### 1.9 Create `src/components/ui/TextField.tsx`
+#### 1.7 Create `src/components/ui/TextField.tsx`
 
-A shared wrapper for `<input>` and `<textarea>` (not Kobalte — native elements are sufficient here):
+Wrap `@kobalte/core/text-field` `TextField` with:
 
-- Props: `label?`, `value`, `onInput`, `placeholder?`, `multiline?` (renders textarea if true), `maxLength?`
-- Label: `--color-text-secondary`, `font-size: 0.75rem`, `margin-bottom: 0.25rem`
-- Input/textarea: full-width, `--color-bg-secondary` background, `--color-border` border, `--color-text` text, `border-radius: 8px`, `padding: 0.5rem 0.75rem`, focus ring using `--color-accent` outline
-- Replaces all hand-rolled input/textarea elements in `PinEditor.tsx`, `TrackEditor.tsx`, `PlotControls.tsx`, `CompassButton.tsx`
+- Props: `label?`, `value`, `onChange`, `placeholder?`, `multiline?` (renders `TextField.TextArea` if true), `maxLength?`, `type?`
+- `TextField.Label`: `--color-text-secondary`, `font-size: 0.75rem`, `margin-bottom: 0.25rem`
+- `TextField.Input` / `TextField.TextArea`: full-width, `--color-bg-secondary` background, `--color-border` border, `--color-text` text, `border-radius: 8px`, `padding: 0.5rem 0.75rem`; focus ring via `outline: 2px solid var(--color-accent)` on `[data-focus-visible]`
+- Uses Kobalte's controlled `value` + `onChange` API (string-based)
+- Replaces all hand-rolled `<input>` and `<textarea>` elements in `PinEditor.tsx`, `TrackEditor.tsx`, `SavedScreen.tsx`, `PlotControls.tsx`, `CompassButton.tsx`
 
-#### 1.10 Create `src/components/ui/Button.tsx`
+#### 1.8 Create `src/components/ui/Button.tsx`
 
-A shared button primitive (no library dependency needed):
+Wrap `@kobalte/core/button` `Button` with:
 
-- Props: `variant: 'primary' | 'ghost' | 'danger'`, `size?: 'sm' | 'md'`, `onClick`, `disabled?`, `children`
+- Props: `variant: 'primary' | 'ghost' | 'danger' | 'icon'`, `size?: 'sm' | 'md'`, `onClick`, `disabled?`, `type?`, `aria-label?`, `children`
 - `primary`: `--color-accent` background, white text, `border-radius: 8px`, `padding: 0.5rem 1rem`
 - `ghost`: transparent background, `--color-text` text, `--color-border` border
 - `danger`: `--color-danger` background, white text
+- `icon`: square, no border, `--color-text` icon color; use for single-icon action buttons (close, copy, edit) — replaces the many ad-hoc icon buttons throughout the app
 - `sm`: reduced padding and font-size
-- Replaces all ad-hoc button elements throughout all feature components
+- `data-disabled` provided by Kobalte; style `opacity: 0.4; pointer-events: none` on that attribute
+- Replaces all ad-hoc `<button>` elements throughout all feature components
+
+#### 1.9 Create `src/components/ui/Popover.tsx`
+
+Wrap `@kobalte/core/popover` `Popover` with:
+
+- Props: `open`, `onOpenChange`, `trigger: JSX.Element`, `children`, `placement?: Placement`
+- Renders `Popover.Trigger` (as slot, wrapping the passed `trigger`), then `Popover.Portal` → `Popover.Content`
+- Content card: `--color-bg` background, `--color-border` border, `border-radius: 10px`, `padding: 0.75rem`, `box-shadow: 0 4px 16px rgba(0,0,0,0.2)`, `z-index: 50`
+- Replaces the hand-rolled floating popover in `CompassButton.tsx` (bearing input panel) and `PlotControls.tsx` (Go To coordinate input panel)
 
 ---
 
@@ -400,34 +398,40 @@ Replace feature components one at a time. After each replacement, run `npx tsc -
 
 #### 2.1 `PinEditor.tsx`
 
-- Replace hand-rolled bottom sheet / dialog with `<Sheet>` from `src/components/ui/Sheet.tsx`
+- Replace hand-rolled bottom sheet / dialog with `<Dialog>` from `src/components/ui/Dialog.tsx`
 - Replace name, group, description inputs with `<TextField>`
 - Replace save/delete buttons with `<Button variant="primary">` / `<Button variant="danger">`
+- Replace close button with `<Button variant="icon">`
 - `ColorPicker.tsx` is unchanged (bespoke enough to keep as-is)
-- Remove all inline `position: fixed` overlay and focus-trap logic — Kobalte Dialog handles this
+- Remove all inline `position: fixed` overlay, focus-trap, and `useEscapeToClose` logic — Kobalte handles this
 
 #### 2.2 `PinInfo.tsx`
 
-- Replace hand-rolled bottom sheet with `<Drawer>` from `src/components/ui/Drawer.tsx` (PinInfo is always a bottom sheet on all viewports)
-- Replace action buttons with `<Button>`
-- Coordinate row copy buttons: replace with `<Button variant="ghost" size="sm">`
+- Replace hand-rolled bottom sheet with `<Dialog>` (bottom sheet on mobile, centered on desktop via responsive CSS in the primitive)
+- Replace action buttons (Go To, Edit, Open in Maps) with `<Button variant="ghost">`
+- Coordinate row copy buttons: replace with `<Button variant="icon" size="sm">`
+- Replace close button with `<Button variant="icon">`
+- Remove `useEscapeToClose` hook
 
 #### 2.3 `TrackEditor.tsx`
 
-- Replace hand-rolled bottom sheet / dialog with `<Sheet>`
+- Replace hand-rolled bottom sheet / dialog with `<Dialog>`
 - Replace name, group, description inputs with `<TextField>`
 - Replace Path/Area segmented toggle with `<ToggleGroup>`
 - Replace save/delete/cancel buttons with `<Button>`
-- Remove inline focus-trap logic
+- Replace close button with `<Button variant="icon">`
+- Remove inline focus-trap and `useEscapeToClose` logic
 
 #### 2.4 `TrackInfo.tsx`
 
-- Replace hand-rolled bottom sheet with `<Drawer>`
-- Replace action buttons with `<Button>`
+- Replace hand-rolled bottom sheet with `<Dialog>`
+- Replace action buttons with `<Button variant="ghost">`
+- Replace close button with `<Button variant="icon">`
+- Remove `useEscapeToClose` hook
 
 #### 2.5 `OnboardingFlow.tsx`
 
-- Replace the full-screen modal wrapper with `<Dialog>` (force `open={!prefs.onboardingDone}`, no `onOpenChange` — cannot be dismissed)
+- Replace the full-screen modal wrapper with `<Dialog preventClose>` (blocks map until `onboardingDone`; `preventClose` suppresses Escape and outside-click dismissal)
 - Replace all 4 native `<select>` elements with `<Select>`
 - Replace Back/Next buttons with `<Button>`
 - Keep step-dot progress indicator as-is (bespoke)
@@ -447,18 +451,21 @@ Replace feature components one at a time. After each replacement, run `npx tsc -
 - Replace sort chip row with `<ToggleGroup>`
 - Replace search `<input>` with `<TextField>`
 - Bulk action buttons: replace with `<Button>`
+- Share code import `<input>` and submit button: replace with `<TextField>` + `<Button>`
 - Long-press / multi-select logic is unchanged
 
 #### 2.9 `PlotControls.tsx`
 
-- Replace "Go To" coordinate input with `<TextField>`
-- Replace confirm/cancel/undo buttons with `<Button>`
-- The floating toolbar positioning and morphing logic is unchanged
+- Replace "Go To" floating coordinate panel with `<Popover>` from `src/components/ui/Popover.tsx`; anchor to the Go To toggle button
+- Replace coordinate input with `<TextField>` inside the popover content
+- Replace confirm/cancel/undo/discard buttons with `<Button>`
+- The floating toolbar positioning logic is unchanged
 
 #### 2.10 `CompassButton.tsx`
 
-- Replace bearing `<input>` with `<TextField>`
-- Replace confirm button with `<Button>`
+- Replace hand-rolled floating bearing-input panel with `<Popover>` anchored to the compass button
+- Replace bearing `<input>` with `<TextField>` inside the popover content
+- Replace confirm/close buttons with `<Button>`
 
 #### 2.11 `App.tsx` — swap Toast
 
@@ -468,14 +475,20 @@ Replace feature components one at a time. After each replacement, run `npx tsc -
 
 #### 2.12 `ToolboxModal.tsx` and `nav/BottomNav.tsx`
 
-- Replace any ad-hoc buttons with `<Button variant="ghost">`
+- Replace ad-hoc tool card and nav buttons with `<Button variant="ghost">`
 - The full-screen overlay and grid layout are structural/nav concerns — keep as-is
+
+#### 2.13 `GpsPanel.tsx` and `RulerPanel.tsx`
+
+- Replace the `role="button"` div in `GpsPanel.tsx` with `<Button variant="ghost">` for proper accessibility
+- Replace the "Enable Compass" button in `GpsPanel.tsx` and the "Clear All" button in `RulerPanel.tsx` with `<Button>`
 
 ---
 
 ### Phase 3 — Cleanup
 
 - Delete the old `src/components/Toast.tsx` once `App.tsx` is migrated
+- Delete `src/components/ui/Drawer.tsx` and `src/components/ui/Sheet.tsx` if they exist (superseded by the responsive `Dialog`)
 - Run `npx tsc --noEmit` — must pass with zero errors
 - Run `npm run build` — must succeed
 - Search for any remaining raw `<button>`, `<input>`, `<textarea>`, `<select>` outside of `src/components/ui/` and the headless map components; replace stragglers
@@ -488,10 +501,13 @@ Replace feature components one at a time. After each replacement, run `npx tsc -
 - [ ] `npm run build` passes with no errors or warnings
 - [ ] `npx tsc --noEmit` passes with zero type errors
 - [ ] All 8 `<select>` elements replaced with `<Select>` primitive
-- [ ] All 4 bottom-sheet/dialog pairs use `<Sheet>` or `<Drawer>`
-- [ ] Toast region mounted once via Kobalte; old Toast.tsx deleted
+- [ ] All 4 bottom-sheet/dialog pairs use `<Dialog>` (responsive via CSS)
+- [ ] Toast region mounted once via Kobalte; old `Toast.tsx` deleted
 - [ ] DesktopToolsBar accordion uses `<Accordion>` primitive
 - [ ] Path/Area toggle and sort chips use `<ToggleGroup>` primitive
+- [ ] CompassButton and PlotControls floating panels use `<Popover>` primitive
+- [ ] `role="button"` div in `GpsPanel.tsx` replaced with `<Button>`
 - [ ] No raw `<button>` / `<input>` / `<textarea>` / `<select>` outside `src/components/ui/` (excluding map/headless components)
 - [ ] Visual parity confirmed via Chrome MCP screenshots in both viewports
 - [ ] No new CSS tokens introduced; all primitives use existing `--color-*` vars
+- [ ] No `corvu` dependency; only `@kobalte/core`
