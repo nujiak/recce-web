@@ -1,4 +1,6 @@
-import { Component } from 'solid-js';
+import { Component, Show } from 'solid-js';
+import { usePrefs } from '../../context/PrefsContext';
+import { formatBearing } from '../../utils/geo';
 import Needle from '../ui/Needle';
 
 interface CompassButtonProps {
@@ -7,6 +9,13 @@ interface CompassButtonProps {
 }
 
 const CompassButton: Component<CompassButtonProps> = (props) => {
+  const [prefs] = usePrefs();
+
+  const inverseBearing = () => {
+    const inverse = (360 - props.bearing) % 360;
+    return formatBearing(inverse, prefs.angleUnit);
+  };
+
   return (
     <button
       aria-label="Reset map north"
@@ -28,14 +37,39 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
         'z-index': '10',
       }}
     >
-      <Needle
-        showLabel={false}
+      <div
         style={{
-          height: '26px',
-          'aspect-ratio': '1 / 1',
-          transform: `rotate(${-props.bearing}deg)`,
+          position: 'relative',
+          display: 'flex',
+          'align-items': 'center',
+          'justify-content': 'center',
         }}
-      />
+      >
+        <Needle
+          showLabel={false}
+          style={{
+            position: 'absolute',
+            height: '26px',
+            'aspect-ratio': '1 / 1',
+            transform: `rotate(${-props.bearing}deg)`,
+          }}
+        />
+        <Show when={props.bearing !== 0}>
+          <span
+            style={{
+              position: 'relative',
+              'font-size': '0.65rem',
+              'font-weight': '700',
+              color: '#fff',
+              'text-shadow': '0 0 4px rgba(0,0,0,0.9), 0 0 8px rgba(0,0,0,0.7)',
+              'z-index': '2',
+              'pointer-events': 'none',
+            }}
+          >
+            {inverseBearing()}
+          </span>
+        </Show>
+      </div>
     </button>
   );
 };
