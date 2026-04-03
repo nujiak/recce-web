@@ -55,19 +55,16 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
           top: '16px',
           right: '16px',
           height: '40px',
-          width: props.bearing !== 0 ? 'auto' : '40px',
           background: 'var(--color-bg-secondary)',
           border: '1px solid var(--color-border)',
-          'border-radius': props.bearing !== 0 ? '20px' : '50%',
+          'border-radius': '20px',
           cursor: 'pointer',
           display: 'flex',
           'align-items': 'center',
-          'justify-content': 'flex-end',
-          gap: '5px',
-          padding: props.bearing !== 0 ? '0 8px 0 10px' : '0',
+          padding: '0 8px',
           'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
           'z-index': '10',
-          transition: 'border-radius 0.3s ease, min-width 0.3s ease, padding 0.3s ease',
+          transition: 'width 0.3s ease',
           overflow: 'hidden',
         }}
       >
@@ -77,8 +74,10 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
             'font-weight': '600',
             color: 'var(--color-text)',
             'white-space': 'nowrap',
+            'max-width': props.bearing !== 0 ? '80px' : '0px',
             opacity: props.bearing !== 0 ? 1 : 0,
-            transition: 'opacity 0.2s ease',
+            transition: 'opacity 0.2s ease, max-width 0.3s ease',
+            overflow: 'hidden',
           }}
         >
           {inverseBearing()}
