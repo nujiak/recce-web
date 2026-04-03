@@ -14,6 +14,29 @@ import {
 
 const GpsTracker: Component = () => {
   let watchId: number | null = null;
+  // Pending orientation data — overwritten on every sensor event, flushed on rAF
+  let pendingHeading: number | null = null;
+  let pendingPitch: number | null = null;
+  let pendingRoll: number | null = null;
+  let pendingAbsolute = false;
+  let rafId: number | null = null;
+
+  function flushOrientation() {
+    rafId = null;
+    if (pendingHeading !== null) {
+      setGpsHeading(pendingHeading);
+      pendingHeading = null;
+    }
+    if (pendingPitch !== null) {
+      setGpsPitch(pendingPitch);
+      pendingPitch = null;
+    }
+    if (pendingRoll !== null) {
+      setGpsRoll(pendingRoll);
+      pendingRoll = null;
+    }
+    setOrientationAbsolute(pendingAbsolute);
+  }
 
   function startWatch() {
     if (!navigator.geolocation) return;
@@ -33,10 +56,10 @@ const GpsTracker: Component = () => {
     let heading: number;
     if (ios.webkitCompassHeading !== undefined) {
       heading = ios.webkitCompassHeading;
-      setOrientationAbsolute(true);
+      pendingAbsolute = true;
     } else if (e.absolute && e.alpha !== null) {
       heading = (360 - e.alpha) % 360;
-      setOrientationAbsolute(true);
+      pendingAbsolute = true;
     } else {
       return;
     }
@@ -44,26 +67,32 @@ const GpsTracker: Component = () => {
     const beta = e.beta ?? 0;
     const gamma = e.gamma ?? 0;
 
+    // Accumulate latest values; the rAF below will commit them at display rate
     switch (screenAngle) {
       case 90:
-        setGpsHeading((heading + 90) % 360);
-        setGpsPitch(-gamma);
-        setGpsRoll(beta);
+        pendingHeading = (heading + 90) % 360;
+        pendingPitch = -gamma;
+        pendingRoll = beta;
         break;
       case 270:
-        setGpsHeading((heading - 90 + 360) % 360);
-        setGpsPitch(gamma);
-        setGpsRoll(-beta);
+        pendingHeading = (heading - 90 + 360) % 360;
+        pendingPitch = gamma;
+        pendingRoll = -beta;
         break;
       case 180:
-        setGpsHeading((heading + 180) % 360);
-        setGpsPitch(-beta);
-        setGpsRoll(-gamma);
+        pendingHeading = (heading + 180) % 360;
+        pendingPitch = -beta;
+        pendingRoll = -gamma;
         break;
       default:
-        setGpsHeading(heading);
-        setGpsPitch(beta);
-        setGpsRoll(gamma);
+        pendingHeading = heading;
+        pendingPitch = beta;
+        pendingRoll = gamma;
+    }
+
+    // Schedule a single flush per animation frame — drops intermediate readings
+    if (rafId === null) {
+      rafId = requestAnimationFrame(flushOrientation);
     }
   }
 
@@ -92,6 +121,7 @@ const GpsTracker: Component = () => {
 
   onCleanup(() => {
     if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    if (rafId !== null) cancelAnimationFrame(rafId);
     window.removeEventListener('deviceorientationabsolute', handleOrientation as any, true);
     window.removeEventListener('deviceorientation', handleOrientation as any, true);
   });

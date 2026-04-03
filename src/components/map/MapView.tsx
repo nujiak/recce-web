@@ -82,6 +82,9 @@ const MapView: Component = () => {
   // Flag set to true while we are programmatically moving the map so that the
   // movestart/dragstart handlers don't incorrectly drop the follow mode.
   let programmaticMove = false;
+  let programmaticMoveTimer: ReturnType<typeof setTimeout> | null = null;
+  // Low-pass filtered bearing for smooth follow-bearing animation
+  let smoothedBearing: number | null = null;
   const [plotState, setPlotState] = createStore<PlotState>({
     active: false,
     nodes: [],
@@ -253,27 +256,58 @@ const MapView: Component = () => {
     const map = mapInstance();
     const pos = gpsPosition();
     const mode = locationMode();
-    if (!map || !pos || mode !== 'following') return;
+    if (!map || !pos || (mode !== 'following' && mode !== 'following-bearing')) return;
     programmaticMove = true;
-    map.easeTo({ center: [pos.longitude, pos.latitude], duration: 500 });
-    // Reset flag after animation frame so dragstart handler doesn't fire
-    requestAnimationFrame(() => {
+    if (programmaticMoveTimer !== null) clearTimeout(programmaticMoveTimer);
+    programmaticMoveTimer = setTimeout(() => {
       programmaticMove = false;
-    });
+      programmaticMoveTimer = null;
+    }, 550);
+    map.easeTo({ center: [pos.longitude, pos.latitude], duration: 500 });
   });
 
-  // Follow device bearing (rotate map counter to device azimuth)
+  // Follow device bearing (rotate map to match device heading)
+  // Low-pass filter removes sensor jitter; easeTo animates across a longer
+  // window so successive calls glide rather than stutter.
   createEffect(() => {
     const map = mapInstance();
     const heading = gpsHeading();
     const mode = locationMode();
-    if (!map || heading === null || mode !== 'following-bearing') return;
+    if (!map || heading === null || mode !== 'following-bearing') {
+      // Reset smoother when leaving the mode so the next entry starts fresh
+      if (mode !== 'following-bearing') smoothedBearing = null;
+      return;
+    }
+
+    // Shortest-path low-pass filter on the circular bearing value (alpha = 0.15)
+    // This kills high-frequency jitter without adding noticeable lag at 60fps.
+    const ALPHA = 0.15;
+    if (smoothedBearing === null) {
+      smoothedBearing = heading;
+    } else {
+      let diff = ((heading - smoothedBearing + 540) % 360) - 180;
+      smoothedBearing = (smoothedBearing + ALPHA * diff + 360) % 360;
+    }
+
+    const EASE_DURATION = 800;
     programmaticMove = true;
-    map.easeTo({ bearing: heading, duration: 300 });
-    requestAnimationFrame(() => {
+    if (programmaticMoveTimer !== null) clearTimeout(programmaticMoveTimer);
+    programmaticMoveTimer = setTimeout(() => {
       programmaticMove = false;
-    });
+      programmaticMoveTimer = null;
+    }, EASE_DURATION + 50);
+
+    map.easeTo({ bearing: smoothedBearing, duration: EASE_DURATION, easing: (t) => t });
   });
+
+  function setProgrammaticMove(duration: number) {
+    programmaticMove = true;
+    if (programmaticMoveTimer !== null) clearTimeout(programmaticMoveTimer);
+    programmaticMoveTimer = setTimeout(() => {
+      programmaticMove = false;
+      programmaticMoveTimer = null;
+    }, duration + 50);
+  }
 
   function handleLocate() {
     const pos = gpsPosition();
@@ -284,32 +318,20 @@ const MapView: Component = () => {
       // Enter follow-location mode: snap to position immediately, then keep following
       setLocationMode('following');
       if (map) {
-        programmaticMove = true;
+        setProgrammaticMove(1500);
         map.flyTo({ center: [pos.longitude, pos.latitude], zoom: 15 });
-        requestAnimationFrame(() => {
-          programmaticMove = false;
-        });
       }
     } else if (mode === 'following') {
-      // Escalate to follow-bearing mode; also snap bearing immediately
+      // Escalate to follow-bearing mode; reset smoother so first frame is snap not lerp
+      smoothedBearing = null;
       setLocationMode('following-bearing');
-      const heading = gpsHeading();
-      if (map && heading !== null) {
-        programmaticMove = true;
-        map.easeTo({ bearing: heading, duration: 300 });
-        requestAnimationFrame(() => {
-          programmaticMove = false;
-        });
-      }
     } else if (mode === 'following-bearing') {
       // Third press: exit follow modes entirely, reset map bearing to north
+      smoothedBearing = null;
       setLocationMode('available');
       if (map) {
-        programmaticMove = true;
+        setProgrammaticMove(500);
         map.easeTo({ bearing: 0, duration: 500 });
-        requestAnimationFrame(() => {
-          programmaticMove = false;
-        });
       }
     }
   }
