@@ -1,6 +1,7 @@
 import { Component } from 'solid-js';
 
 interface NeedleProps {
+  showLabel?: boolean;
   style?: Record<string, string | number>;
 }
 
@@ -26,21 +27,23 @@ const Needle: Component<NeedleProps> = (props) => {
           'clip-path': 'polygon(50% 0%, 100% 100%, 0% 100%)',
         }}
       />
-      <span
-        style={{
-          position: 'absolute',
-          top: '25%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          'font-size': '0.7rem',
-          'font-weight': '700',
-          color: '#fff',
-          'z-index': '1',
-          'pointer-events': 'none',
-        }}
-      >
-        N
-      </span>
+      {props.showLabel !== false && (
+        <span
+          style={{
+            position: 'absolute',
+            top: '25%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            'font-size': '0.7rem',
+            'font-weight': '700',
+            color: '#fff',
+            'z-index': '1',
+            'pointer-events': 'none',
+          }}
+        >
+          N
+        </span>
+      )}
       <div
         style={{
           position: 'absolute',

@@ -29,8 +29,10 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
       }}
     >
       <Needle
+        showLabel={false}
         style={{
-          height: '28px',
+          height: '26px',
+          'aspect-ratio': '1 / 2',
           transform: `rotate(${-props.bearing}deg)`,
         }}
       />
