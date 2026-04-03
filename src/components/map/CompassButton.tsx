@@ -55,7 +55,7 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
           top: '16px',
           right: '16px',
           height: '40px',
-          'min-width': '40px',
+          width: props.bearing !== 0 ? 'auto' : '40px',
           background: 'var(--color-bg-secondary)',
           border: '1px solid var(--color-border)',
           'border-radius': props.bearing !== 0 ? '20px' : '50%',
