@@ -60,7 +60,7 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
           'border-radius': '20px',
           cursor: 'pointer',
           display: 'grid',
-          'grid-template-columns': props.bearing !== 0 ? '1fr 24px' : '0fr 24px',
+          'grid-template-columns': props.bearing !== 0 ? '40px 24px' : '0px 24px',
           'align-items': 'center',
           padding: '0 8px',
           'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
