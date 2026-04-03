@@ -32,7 +32,7 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
         showLabel={false}
         style={{
           height: '26px',
-          'aspect-ratio': '1 / 2',
+          'aspect-ratio': '1 / 1',
           transform: `rotate(${-props.bearing}deg)`,
         }}
       />
