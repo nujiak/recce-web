@@ -78,7 +78,6 @@ const DesktopToolsBar: Component = () => {
           display: flex;
           flex-direction: row;
           overflow: hidden;
-          /* width animates open/closed */
           transition: width 0.22s ease;
           border-left: 1px solid var(--color-border);
           flex-shrink: 0;
@@ -129,11 +128,12 @@ const DesktopToolsBar: Component = () => {
           display: flex;
           flex-direction: column;
           align-items: stretch;
-          width: 52px;
+          width: 49px;
           flex-shrink: 0;
           border-left: 1px solid var(--color-border);
           background: var(--color-bg-secondary);
-          padding: 8px 0;
+          /* padding-left compensates for the 1px border so visual margin is equal on both sides */
+          padding: 8px 4px 8px 3px;
           gap: 2px;
         }
         .dtb-tab {
@@ -142,8 +142,7 @@ const DesktopToolsBar: Component = () => {
           align-items: center;
           justify-content: center;
           gap: 3px;
-          width: calc(100% - 8px);
-          margin: 0 4px;
+          width: 100%;
           height: 52px;
           border-radius: 8px;
           border: none;
