@@ -27,7 +27,15 @@ const GpsPanel: Component = () => {
   }
 
   return (
-    <div style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '16px' }}>
+    <div
+      style={{
+        padding: '16px',
+        display: 'flex',
+        'flex-direction': 'column',
+        gap: '16px',
+        'overflow-y': 'auto',
+      }}
+    >
       {/* Location card */}
       <div
         style={{

@@ -10,7 +10,13 @@ const SettingsPanel: Component = () => {
   return (
     <div
       class="settings-panel"
-      style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '16px' }}
+      style={{
+        padding: '16px',
+        display: 'flex',
+        'flex-direction': 'column',
+        gap: '16px',
+        'overflow-y': 'auto',
+      }}
     >
       <Select
         label="Coordinate System"

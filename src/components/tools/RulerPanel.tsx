@@ -32,6 +32,7 @@ const RulerPanel: Component = () => {
         gap: '12px',
         height: '100%',
         'box-sizing': 'border-box',
+        'overflow-y': 'auto',
       }}
     >
       {/* Clear All button — header-level, only when there are points */}
