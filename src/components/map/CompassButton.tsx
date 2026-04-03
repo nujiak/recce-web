@@ -12,8 +12,8 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
   const [prefs] = usePrefs();
 
   const inverseBearing = () => {
-    const inverse = (360 - props.bearing) % 360;
-    return formatBearing(inverse, prefs.angleUnit);
+    const normalized = ((props.bearing % 360) + 360) % 360;
+    return formatBearing(normalized, prefs.angleUnit);
   };
 
   return (
