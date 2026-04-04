@@ -48,13 +48,6 @@ const Dialog_: Component<DialogProps> = (props) => {
             position: relative;
             outline: none;
           }
-          .ui-dialog-drag-handle {
-            width: 36px;
-            height: 4px;
-            border-radius: 2px;
-            background: var(--color-border);
-            margin: 0 auto 0.75rem;
-          }
           .ui-dialog-title {
             color: var(--color-text);
             font-weight: 600;
@@ -95,15 +88,6 @@ const Dialog_: Component<DialogProps> = (props) => {
               max-height: 85dvh;
               overflow-y: auto;
               scrollbar-gutter: stable;
-            }
-            .ui-dialog-drag-handle {
-              display: block;
-            }
-          }
-          @media (min-width: 768px) {
-            .ui-dialog-drag-handle {
-              display: none;
-            }
           }
           @keyframes ui-dialog-overlay-in {
             from { opacity: 0; }
@@ -135,7 +119,6 @@ const Dialog_: Component<DialogProps> = (props) => {
           onEscapeKeyDown={props.preventClose ? (e) => e.preventDefault() : undefined}
         >
           <div class="ui-dialog-card">
-            <div class="ui-dialog-drag-handle" />
             <Dialog.Title class="ui-dialog-title">{props.title}</Dialog.Title>
             {!props.preventClose && (
               <Dialog.CloseButton class="ui-dialog-close" aria-label="Close">
