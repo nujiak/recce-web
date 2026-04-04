@@ -9,9 +9,21 @@ interface UserLocationMarkerProps {
 
 const ACCURACY_SOURCE_ID = 'user-location-accuracy';
 const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
+const ANIM_DURATION = 100;
+
+interface LocationState {
+  lng: number;
+  lat: number;
+  accuracy: number;
+}
 
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let locationMarker: maplibregl.Marker | null = null;
+  let animFrameId: number | null = null;
+  let animStartTime = 0;
+  let fromState: LocationState | null = null;
+  let toState: LocationState | null = null;
+  let currentState: LocationState | null = null;
 
   function ensureAccuracyLayer() {
     if (props.map.getSource(ACCURACY_SOURCE_ID) && props.map.getLayer(ACCURACY_LAYER_ID)) return;
@@ -51,37 +63,85 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     return container;
   }
 
-  function updateAccuracyCircle(lng: number, lat: number, accuracy: number) {
-    const circleGeojson = circle([lng, lat], accuracy, {
-      steps: 64,
-      units: 'meters',
-    });
-
+  function renderState(s: LocationState) {
     ensureAccuracyLayer();
     const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
-    source?.setData(circleGeojson);
+    source?.setData(circle([s.lng, s.lat], s.accuracy, { steps: 64, units: 'meters' }));
+    locationMarker?.setLngLat([s.lng, s.lat]);
   }
 
-  function removeAccuracyCircle() {
+  function tick(now: number) {
+    if (!fromState || !toState) {
+      animFrameId = null;
+      return;
+    }
+
+    const t = Math.min((now - animStartTime) / ANIM_DURATION, 1);
+    const s: LocationState = {
+      lng: fromState.lng + (toState.lng - fromState.lng) * t,
+      lat: fromState.lat + (toState.lat - fromState.lat) * t,
+      accuracy: fromState.accuracy + (toState.accuracy - fromState.accuracy) * t,
+    };
+    currentState = s;
+    renderState(s);
+
+    if (t < 1) {
+      animFrameId = requestAnimationFrame(tick);
+    } else {
+      animFrameId = null;
+    }
+  }
+
+  function animateTo(target: LocationState) {
+    if (animFrameId !== null) {
+      cancelAnimationFrame(animFrameId);
+      animFrameId = null;
+    }
+
+    if (!currentState) {
+      currentState = target;
+      renderState(target);
+      return;
+    }
+
+    if (
+      currentState.lng === target.lng &&
+      currentState.lat === target.lat &&
+      currentState.accuracy === target.accuracy
+    ) {
+      renderState(currentState);
+      return;
+    }
+
+    fromState = { ...currentState };
+    toState = target;
+    animStartTime = performance.now();
+    animFrameId = requestAnimationFrame(tick);
+  }
+
+  function clearAll() {
+    if (animFrameId !== null) cancelAnimationFrame(animFrameId);
+    animFrameId = null;
+    currentState = null;
+    fromState = null;
+    toState = null;
+    locationMarker?.remove();
+    locationMarker = null;
     const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
     if (source) {
       source.setData({ type: 'FeatureCollection', features: [] });
     }
   }
 
-  function syncLocationState() {
+  function sync() {
     const pos = gpsPosition();
 
     if (!pos) {
-      if (locationMarker) {
-        locationMarker.remove();
-        locationMarker = null;
-      }
-      removeAccuracyCircle();
+      if (locationMarker || currentState) clearAll();
       return;
     }
 
-    updateAccuracyCircle(pos.longitude, pos.latitude, pos.accuracy);
+    const target: LocationState = { lng: pos.longitude, lat: pos.latitude, accuracy: pos.accuracy };
 
     if (!locationMarker) {
       const el = createLocationElement();
@@ -89,26 +149,31 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
         element: el,
         rotationAlignment: 'map',
         pitchAlignment: 'map',
-      })
-        .setLngLat([pos.longitude, pos.latitude])
-        .addTo(props.map);
-    } else {
-      locationMarker.setLngLat([pos.longitude, pos.latitude]);
+      }).addTo(props.map);
+      currentState = target;
+      renderState(target);
+      return;
     }
+
+    animateTo(target);
   }
 
   createEffect(() => {
     gpsPosition();
-    syncLocationState();
+    sync();
   });
 
-  props.map.on('styledata', syncLocationState);
+  props.map.on('styledata', sync);
 
   onCleanup(() => {
-    props.map.off('styledata', syncLocationState);
+    props.map.off('styledata', sync);
+    if (animFrameId !== null) cancelAnimationFrame(animFrameId);
     locationMarker?.remove();
     locationMarker = null;
-    removeAccuracyCircle();
+    const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+    if (source) {
+      source.setData({ type: 'FeatureCollection', features: [] });
+    }
   });
 
   return null;
