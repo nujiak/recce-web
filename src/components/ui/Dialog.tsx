@@ -126,6 +126,11 @@ const Dialog_: Component<DialogProps> = (props) => {
         <Dialog.Overlay class="ui-dialog-overlay" />
         <Dialog.Content
           class="ui-dialog-content"
+          onClick={(e) => {
+            if (!props.preventClose && e.target === e.currentTarget) {
+              props.onOpenChange(false);
+            }
+          }}
           onPointerDownOutside={props.preventClose ? (e) => e.preventDefault() : undefined}
           onEscapeKeyDown={props.preventClose ? (e) => e.preventDefault() : undefined}
         >
