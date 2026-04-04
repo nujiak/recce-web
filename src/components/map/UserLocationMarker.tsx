@@ -93,14 +93,14 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   }
 
   function animateTo(target: LocationState) {
-    if (animFrameId !== null) {
-      cancelAnimationFrame(animFrameId);
-      animFrameId = null;
-    }
-
     if (!currentState) {
       currentState = target;
       renderState(target);
+      return;
+    }
+
+    if (animFrameId !== null) {
+      toState = target;
       return;
     }
 
