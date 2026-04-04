@@ -1,10 +1,11 @@
-import { Component, createSignal, Index, For } from 'solid-js';
+import { Component, createSignal, For, Show } from 'solid-js';
 import { usePrefs } from '../../context/PrefsContext';
 import { SYSTEM_NAMES } from '../../coords/index';
 import type { AngleUnit, CoordinateSystem, LengthUnit, Theme } from '../../types';
 import Dialog from '../ui/Dialog';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
+import { canInstallPWA, isFirefoxAndroid, isRunningAsPWA, promptPWAInstall } from '../../utils/pwa';
 
 const coordOptions = [
   { value: 'WGS84', label: SYSTEM_NAMES.WGS84 },
@@ -32,11 +33,23 @@ const themeOptions = [
   { value: 'system', label: 'System default' },
 ];
 
+// Whether to show the PWA install step: Chromium (prompt API) or Firefox
+// Android (manual instructions), as long as not already running as PWA.
+const showPwaStep = () => !isRunningAsPWA() && (canInstallPWA() || isFirefoxAndroid());
+
 const OnboardingFlow: Component = () => {
   const [prefs, setPrefs] = usePrefs();
   const [step, setStep] = createSignal(0);
+  const [installing, setInstalling] = createSignal(false);
 
-  const steps = [
+  const pwaStep = {
+    title: 'Install Recce',
+    description:
+      'Add Recce to your home screen for the best experience: works offline, launches full-screen, and loads instantly.',
+    isPwaStep: true as const,
+  };
+
+  const configSteps = [
     {
       title: 'Welcome to Recce',
       description: 'A mapping and reconnaissance tool for the field.',
@@ -87,16 +100,28 @@ const OnboardingFlow: Component = () => {
     },
   ];
 
-  const current = () => steps[step()];
-  const isLast = () => step() === steps.length - 1;
+  const steps = () => (showPwaStep() ? [pwaStep, ...configSteps] : configSteps);
+
+  const current = () => steps()[step()];
+  const isLast = () => step() === steps().length - 1;
 
   const finish = () => setPrefs('onboardingDone', true);
+
+  const isPwaStepActive = () => 'isPwaStep' in current();
+
+  const handleInstall = async () => {
+    setInstalling(true);
+    await promptPWAInstall();
+    setInstalling(false);
+    // Advance regardless of outcome so the user can continue onboarding.
+    setStep((s) => s + 1);
+  };
 
   return (
     <Dialog open onOpenChange={() => {}} title={current().title} preventClose>
       <div style={{ display: 'flex', 'flex-direction': 'column', gap: '20px' }}>
         <div style={{ display: 'flex', gap: '6px', 'justify-content': 'center' }}>
-          <For each={steps}>
+          <For each={steps()}>
             {(_, i) => (
               <div
                 style={{
@@ -136,21 +161,61 @@ const OnboardingFlow: Component = () => {
           >
             {current().description}
           </p>
-          {current().content}
+          <Show when={!isPwaStepActive()}>
+            {(() => {
+              const s = current() as (typeof configSteps)[number];
+              return s.content;
+            })()}
+          </Show>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
-          {step() > 0 && (
-            <Button variant="ghost" onClick={() => setStep((s) => s - 1)} style={{ flex: 1 }}>
-              Back
+        <div style={{ display: 'flex', gap: '12px', 'flex-direction': 'column' }}>
+          <Show when={isPwaStepActive() && canInstallPWA()}>
+            <Button onClick={handleInstall} disabled={installing()}>
+              {installing() ? 'Installing…' : 'Install App'}
             </Button>
-          )}
-          <Button
-            onClick={() => (isLast() ? finish() : setStep((s) => s + 1))}
-            style={{ flex: step() > 0 ? 2 : 1 }}
-          >
-            {isLast() ? 'Get Started' : 'Next'}
-          </Button>
+          </Show>
+          <Show when={isPwaStepActive() && isFirefoxAndroid()}>
+            <div
+              style={{
+                background: 'var(--color-bg-secondary)',
+                border: '1px solid var(--color-border)',
+                'border-radius': '8px',
+                padding: '0.75rem',
+                'font-size': '0.8125rem',
+                color: 'var(--color-text-secondary)',
+                display: 'flex',
+                'flex-direction': 'column',
+                gap: '6px',
+              }}
+            >
+              <span>
+                1. Tap the <strong style={{ color: 'var(--color-text)' }}>⋮ menu</strong> in the
+                address bar
+              </span>
+              <span>
+                2. Tap <strong style={{ color: 'var(--color-text)' }}>More</strong>
+              </span>
+              <span>
+                3. Tap{' '}
+                <strong style={{ color: 'var(--color-text)' }}>Add app to Home Screen</strong>
+              </span>
+            </div>
+          </Show>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            {step() > 0 && (
+              <Button variant="ghost" onClick={() => setStep((s) => s - 1)} style={{ flex: 1 }}>
+                Back
+              </Button>
+            )}
+            <Button
+              variant={isPwaStepActive() ? 'ghost' : undefined}
+              onClick={() => (isLast() ? finish() : setStep((s) => s + 1))}
+              style={{ flex: step() > 0 || isPwaStepActive() ? 2 : 1 }}
+            >
+              {isLast() ? 'Get Started' : isPwaStepActive() ? 'Skip' : 'Next'}
+            </Button>
+          </div>
         </div>
       </div>
     </Dialog>
