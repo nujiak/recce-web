@@ -14,6 +14,7 @@ import {
   formatDistance,
   formatBearing,
 } from '../../utils/geo';
+import type { LocationMode } from './LocationButton';
 import type { TrackNode } from '../../types';
 
 interface PlotControlsProps {
@@ -25,6 +26,7 @@ interface PlotControlsProps {
   onSave: () => void;
   onCancel: () => void;
   isPlotting: boolean;
+  locationMode: LocationMode;
 }
 
 const PlotControls: Component<PlotControlsProps> = (props) => {
@@ -43,6 +45,8 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
   const gpsOverlay = () => {
     const pos = gpsPosition();
     if (!pos) return null;
+    if (props.locationMode === 'following' || props.locationMode === 'following-bearing')
+      return null;
     const [lng, lat] = props.center;
     const dist = haversineDistance(pos.latitude, pos.longitude, lat, lng);
     const bearing = calculateBearing(pos.latitude, pos.longitude, lat, lng);

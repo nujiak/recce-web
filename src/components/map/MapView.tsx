@@ -426,6 +426,7 @@ const MapView: Component = () => {
               center={center()}
               plotNodes={plotState.nodes}
               isPlotting={plotState.active}
+              locationMode={locationMode()}
               onStartPlot={handleStartPlot}
               onAddNode={handleAddNode}
               onUndo={handleUndo}
