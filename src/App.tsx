@@ -1,4 +1,4 @@
-import { createEffect, Show } from 'solid-js';
+import { createEffect, createSignal, onMount, Show } from 'solid-js';
 import { PrefsProvider, usePrefs } from './context/PrefsContext';
 import { UIProvider, useUI } from './context/UIContext';
 import AppShell from './components/layout/AppShell';
@@ -10,8 +10,10 @@ import PinEditor from './components/pin/PinEditor';
 import PinInfo from './components/pin/PinInfo';
 import TrackEditor from './components/track/TrackEditor';
 import TrackInfo from './components/track/TrackInfo';
-import { ToastRegion } from './components/ui/Toast';
+import { ToastRegion, showToastWithAction } from './components/ui/Toast';
 import GpsTracker from './components/GpsTracker';
+import PwaInstallDialog from './components/PwaInstallDialog';
+import { canInstallPWA, isFirefoxAndroid, isRunningAsPWA, promptPWAInstall } from './utils/pwa';
 
 function applyTheme(theme: string) {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -22,9 +24,40 @@ function applyTheme(theme: string) {
 function AppInner() {
   const [prefs] = usePrefs();
   const { activeNav, bumpSavedVersion } = useUI();
+  const [firefoxDialogOpen, setFirefoxDialogOpen] = createSignal(false);
 
   createEffect(() => {
     applyTheme(prefs.theme);
+  });
+
+  onMount(() => {
+    if (isRunningAsPWA()) return;
+
+    if (isFirefoxAndroid()) {
+      // Firefox Android can't use beforeinstallprompt — show a dialog with
+      // manual instructions instead.
+      setFirefoxDialogOpen(true);
+      return;
+    }
+
+    // For Chromium-based browsers, wait briefly for beforeinstallprompt to
+    // fire (it may arrive just after mount), then show a toast if available.
+    setTimeout(() => {
+      if (!canInstallPWA()) return;
+      showToastWithAction(
+        'Install Recce for offline use',
+        {
+          label: 'Install',
+          onClick: async (toastId) => {
+            const { Toast } = await import('@kobalte/core');
+            Toast.toaster.dismiss(toastId);
+            await promptPWAInstall();
+          },
+        },
+        'info',
+        10000
+      );
+    }, 1000);
   });
 
   return (
@@ -33,6 +66,7 @@ function AppInner() {
       <Show when={!prefs.onboardingDone}>
         <OnboardingFlow />
       </Show>
+      <PwaInstallDialog open={firefoxDialogOpen()} onClose={() => setFirefoxDialogOpen(false)} />
 
       <AppShell>
         {/* Map — always mounted to avoid reinitialisation on tab switch */}
