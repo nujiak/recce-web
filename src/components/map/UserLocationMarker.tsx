@@ -25,6 +25,11 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let toState: LocationState | null = null;
   let currentState: LocationState | null = null;
 
+  let cachedAccuracy = -1;
+  let baseRing: number[][] | null = null;
+  let renderRing: number[][] | null = null;
+  let featureData: GeoJSON.Feature<GeoJSON.Polygon> | null = null;
+
   function ensureAccuracyLayer() {
     if (props.map.getSource(ACCURACY_SOURCE_ID) && props.map.getLayer(ACCURACY_LAYER_ID)) return;
 
@@ -66,7 +71,25 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   function renderState(s: LocationState) {
     ensureAccuracyLayer();
     const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
-    source?.setData(circle([s.lng, s.lat], s.accuracy, { steps: 64, units: 'meters' }));
+
+    if (!baseRing || s.accuracy !== cachedAccuracy) {
+      const c = circle([0, 0], s.accuracy, { steps: 64, units: 'meters' });
+      baseRing = c.geometry.coordinates[0] as number[][];
+      renderRing = baseRing.map(() => [0, 0]);
+      featureData = {
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'Polygon', coordinates: [renderRing] },
+      };
+      cachedAccuracy = s.accuracy;
+    }
+
+    for (let i = 0; i < baseRing.length; i++) {
+      renderRing![i][0] = baseRing[i][0] + s.lng;
+      renderRing![i][1] = baseRing[i][1] + s.lat;
+    }
+
+    source?.setData(featureData!);
     locationMarker?.setLngLat([s.lng, s.lat]);
     setMarkerPosition({ lng: s.lng, lat: s.lat });
   }
@@ -126,6 +149,10 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     currentState = null;
     fromState = null;
     toState = null;
+    cachedAccuracy = -1;
+    baseRing = null;
+    renderRing = null;
+    featureData = null;
     setMarkerPosition(null);
     locationMarker?.remove();
     locationMarker = null;
