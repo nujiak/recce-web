@@ -1,4 +1,4 @@
-import { createEffect, createSignal, onMount, Show } from 'solid-js';
+import { createEffect, createSignal, Show } from 'solid-js';
 import { PrefsProvider, usePrefs } from './context/PrefsContext';
 import { UIProvider, useUI } from './context/UIContext';
 import AppShell from './components/layout/AppShell';
@@ -30,18 +30,31 @@ function AppInner() {
     applyTheme(prefs.theme);
   });
 
-  onMount(() => {
-    if (isRunningAsPWA()) return;
+  // Show the install prompt once, after onboarding is complete.
+  let pwaPromptShown = false;
+  createEffect(() => {
+    if (!prefs.onboardingDone || pwaPromptShown || isRunningAsPWA()) return;
+    pwaPromptShown = true;
 
     if (isFirefoxAndroid()) {
-      // Firefox Android can't use beforeinstallprompt — show a dialog with
-      // manual instructions instead.
-      setFirefoxDialogOpen(true);
+      // Firefox can't use beforeinstallprompt — show the toast but have the
+      // action open the manual-instructions dialog instead.
+      showToastWithAction(
+        'Install Recce for offline use',
+        {
+          label: 'Install',
+          onClick: (toastId) => {
+            import('@kobalte/core').then(({ Toast }) => Toast.toaster.dismiss(toastId));
+            setFirefoxDialogOpen(true);
+          },
+        },
+        'info',
+        10000
+      );
       return;
     }
 
-    // For Chromium-based browsers, wait briefly for beforeinstallprompt to
-    // fire (it may arrive just after mount), then show a toast if available.
+    // Chromium: wait briefly for beforeinstallprompt to fire after mount.
     setTimeout(() => {
       if (!canInstallPWA()) return;
       showToastWithAction(
@@ -57,7 +70,7 @@ function AppInner() {
         'info',
         10000
       );
-    }, 1000);
+    }, 500);
   });
 
   return (
