@@ -37,11 +37,9 @@ function createToastItem(
         gap: '0.5rem',
         'pointer-events': 'auto',
         animation: 'kb-toast-in 0.2s ease-out',
-        cursor: action ? 'default' : 'pointer',
+        cursor: 'pointer',
       }}
-      onClick={() => {
-        if (!action) Toast.toaster.dismiss(props.toastId);
-      }}
+      onClick={() => Toast.toaster.dismiss(props.toastId)}
     >
       <div
         style={{
@@ -56,13 +54,14 @@ function createToastItem(
         {(a) => (
           <button
             style={{
-              background: 'none',
+              background: 'var(--color-accent)',
               border: 'none',
-              color: 'var(--color-accent)',
+              color: '#fff',
               'font-size': '0.8125rem',
               'font-weight': '600',
+              'border-radius': '999px',
               cursor: 'pointer',
-              padding: '0 0.25rem',
+              padding: '0.2rem 0.65rem',
               'white-space': 'nowrap',
             }}
             onClick={(e) => {
