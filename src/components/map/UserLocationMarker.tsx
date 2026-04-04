@@ -1,7 +1,7 @@
 import { Component, createEffect, onCleanup } from 'solid-js';
 import maplibregl from 'maplibre-gl';
 import circle from '@turf/circle';
-import { gpsPosition } from '../../stores/gps';
+import { gpsPosition, setMarkerPosition } from '../../stores/gps';
 
 interface UserLocationMarkerProps {
   map: maplibregl.Map;
@@ -68,6 +68,7 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
     source?.setData(circle([s.lng, s.lat], s.accuracy, { steps: 64, units: 'meters' }));
     locationMarker?.setLngLat([s.lng, s.lat]);
+    setMarkerPosition({ lng: s.lng, lat: s.lat });
   }
 
   function tick(now: number) {
@@ -125,6 +126,7 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     currentState = null;
     fromState = null;
     toState = null;
+    setMarkerPosition(null);
     locationMarker?.remove();
     locationMarker = null;
     const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;

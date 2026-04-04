@@ -10,3 +10,7 @@ export const [gpsHeading, setGpsHeading] = createSignal<number | null>(null);
 export const [gpsPitch, setGpsPitch] = createSignal<number | null>(null);
 export const [gpsRoll, setGpsRoll] = createSignal<number | null>(null);
 export const [orientationAbsolute, setOrientationAbsolute] = createSignal(false);
+export const [markerPosition, setMarkerPosition] = createSignal<{
+  lng: number;
+  lat: number;
+} | null>(null);

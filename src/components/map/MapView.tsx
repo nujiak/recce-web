@@ -12,7 +12,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { getAllPins, getAllTracks } from '../../db/db';
 import { useUI } from '../../context/UIContext';
-import { gpsPosition, gpsHeading } from '../../stores/gps';
+import { gpsPosition, gpsHeading, markerPosition } from '../../stores/gps';
 import { MapContext } from './MapContext';
 import Crosshair from './Crosshair';
 import PinMarkers from './PinMarkers';
@@ -252,18 +252,20 @@ const MapView: Component = () => {
   });
 
   // Follow GPS position
+  // Uses markerPosition (the animated marker's current position) so the map
+  // tracks the marker frame-by-frame instead of racing ahead with a separate easeTo.
   createEffect(() => {
     const map = mapInstance();
-    const pos = gpsPosition();
+    const marker = markerPosition();
     const mode = locationMode();
-    if (!map || !pos || (mode !== 'following' && mode !== 'following-bearing')) return;
+    if (!map || !marker || (mode !== 'following' && mode !== 'following-bearing')) return;
     programmaticMove = true;
     if (programmaticMoveTimer !== null) clearTimeout(programmaticMoveTimer);
     programmaticMoveTimer = setTimeout(() => {
       programmaticMove = false;
       programmaticMoveTimer = null;
-    }, 550);
-    map.easeTo({ center: [pos.longitude, pos.latitude], duration: 500 });
+    }, 50);
+    map.setCenter([marker.lng, marker.lat]);
   });
 
   // Follow device bearing (rotate map to match device heading)
