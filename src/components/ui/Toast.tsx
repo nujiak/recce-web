@@ -1,4 +1,4 @@
-import { Component } from 'solid-js';
+import { Component, Show } from 'solid-js';
 import { Toast } from '@kobalte/core';
 import type { ToastType } from '../../types';
 
@@ -8,10 +8,16 @@ const ACCENT_COLORS: Record<ToastType, string> = {
   error: 'var(--color-danger)',
 };
 
+interface ToastAction {
+  label: string;
+  onClick: (toastId: number) => void;
+}
+
 function createToastItem(
   message: string,
   type: ToastType,
-  duration: number
+  duration: number,
+  action?: ToastAction
 ): Component<{ toastId: number }> {
   return (props) => (
     <Toast.Root
@@ -43,13 +49,45 @@ function createToastItem(
           'flex-shrink': '0',
         }}
       />
-      <span style={{ display: 'flex', 'align-items': 'center' }}>{message}</span>
+      <span style={{ display: 'flex', 'align-items': 'center', flex: 1 }}>{message}</span>
+      <Show when={action}>
+        {(a) => (
+          <button
+            style={{
+              background: 'var(--color-accent)',
+              border: 'none',
+              color: '#fff',
+              'font-size': '0.8125rem',
+              'font-weight': '600',
+              'border-radius': '999px',
+              cursor: 'pointer',
+              padding: '0.2rem 0.65rem',
+              'white-space': 'nowrap',
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              a().onClick(props.toastId);
+            }}
+          >
+            {a().label}
+          </button>
+        )}
+      </Show>
     </Toast.Root>
   );
 }
 
 export function showToast(text: string, type: ToastType = 'info', duration = 3000) {
   Toast.toaster.show(createToastItem(text, type, duration));
+}
+
+export function showToastWithAction(
+  text: string,
+  action: ToastAction,
+  type: ToastType = 'info',
+  duration = 8000
+) {
+  Toast.toaster.show(createToastItem(text, type, duration, action));
 }
 
 export function ToastRegion() {

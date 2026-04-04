@@ -1,4 +1,4 @@
-import { Component, createSignal, Index, For } from 'solid-js';
+import { Component, createSignal, For } from 'solid-js';
 import { usePrefs } from '../../context/PrefsContext';
 import { SYSTEM_NAMES } from '../../coords/index';
 import type { AngleUnit, CoordinateSystem, LengthUnit, Theme } from '../../types';
@@ -36,7 +36,7 @@ const OnboardingFlow: Component = () => {
   const [prefs, setPrefs] = usePrefs();
   const [step, setStep] = createSignal(0);
 
-  const steps = [
+  const configSteps = [
     {
       title: 'Welcome to Recce',
       description: 'A mapping and reconnaissance tool for the field.',
@@ -87,8 +87,8 @@ const OnboardingFlow: Component = () => {
     },
   ];
 
-  const current = () => steps[step()];
-  const isLast = () => step() === steps.length - 1;
+  const current = () => configSteps[step()];
+  const isLast = () => step() === configSteps.length - 1;
 
   const finish = () => setPrefs('onboardingDone', true);
 
@@ -96,7 +96,7 @@ const OnboardingFlow: Component = () => {
     <Dialog open onOpenChange={() => {}} title={current().title} preventClose>
       <div style={{ display: 'flex', 'flex-direction': 'column', gap: '20px' }}>
         <div style={{ display: 'flex', gap: '6px', 'justify-content': 'center' }}>
-          <For each={steps}>
+          <For each={configSteps}>
             {(_, i) => (
               <div
                 style={{
