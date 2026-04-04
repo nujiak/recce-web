@@ -54,5 +54,5 @@ export const SYSTEM_NAMES: Record<CoordinateSystem, string> = {
   MGRS: 'MGRS',
   BNG: 'BNG (British National Grid)',
   QTH: 'QTH (Maidenhead)',
-  KERTAU: 'Kertau 1948',
+  KERTAU: 'RSO Malaya (m)',
 };
