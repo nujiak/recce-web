@@ -12,7 +12,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { getAllPins, getAllTracks } from '../../db/db';
 import { useUI } from '../../context/UIContext';
-import { gpsPosition, gpsHeading, markerPosition } from '../../stores/gps';
+import { gpsPosition, gpsHeading, gpsPitch, markerPosition } from '../../stores/gps';
 import { MapContext } from './MapContext';
 import Crosshair from './Crosshair';
 import PinMarkers from './PinMarkers';
@@ -268,21 +268,19 @@ const MapView: Component = () => {
     map.setCenter([marker.lng, marker.lat]);
   });
 
-  // Follow device bearing (rotate map to match device heading)
-  // Low-pass filter removes sensor jitter; easeTo animates across a longer
-  // window so successive calls glide rather than stutter.
+  // Follow device bearing (rotate map to match device heading) and pitch the map
+  // according to device tilt. Low-pass filter removes sensor jitter; easeTo
+  // animates across a longer window so successive calls glide rather than stutter.
   createEffect(() => {
     const map = mapInstance();
     const heading = gpsHeading();
+    const pitch = gpsPitch();
     const mode = locationMode();
     if (!map || heading === null || mode !== 'following-bearing') {
-      // Reset smoother when leaving the mode so the next entry starts fresh
       if (mode !== 'following-bearing') smoothedBearing = null;
       return;
     }
 
-    // Shortest-path low-pass filter on the circular bearing value (alpha = 0.15)
-    // This kills high-frequency jitter without adding noticeable lag at 60fps.
     const ALPHA = 0.15;
     if (smoothedBearing === null) {
       smoothedBearing = heading;
@@ -299,7 +297,13 @@ const MapView: Component = () => {
       programmaticMoveTimer = null;
     }, EASE_DURATION + 20);
 
-    map.easeTo({ bearing: smoothedBearing, duration: EASE_DURATION, easing: (t) => t });
+    const mapPitch = pitch !== null ? Math.max(0, Math.min(85, pitch)) : 0;
+    map.easeTo({
+      bearing: smoothedBearing,
+      pitch: mapPitch,
+      duration: EASE_DURATION,
+      easing: (t) => t,
+    });
   });
 
   function setProgrammaticMove(duration: number) {
@@ -333,7 +337,7 @@ const MapView: Component = () => {
       setLocationMode('available');
       if (map) {
         setProgrammaticMove(500);
-        map.easeTo({ bearing: 0, duration: 500 });
+        map.easeTo({ bearing: 0, pitch: 0, duration: 500 });
       }
     }
   }
