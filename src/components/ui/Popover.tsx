@@ -1,4 +1,4 @@
-import { type Component, type JSX } from 'solid-js';
+import { type Component, type JSX, createEffect, onCleanup, onMount } from 'solid-js';
 import { Popover } from '@kobalte/core/popover';
 
 interface PopoverProps {
@@ -10,6 +10,44 @@ interface PopoverProps {
 }
 
 const Popover_: Component<PopoverProps> = (props) => {
+  let contentRef!: HTMLDivElement;
+
+  const onViewportResize = () => {
+    const vv = window.visualViewport;
+    if (!vv || !contentRef) return;
+    const offset = window.innerHeight - vv.height - vv.offsetTop;
+    if (offset <= 0) {
+      contentRef.style.transform = '';
+      return;
+    }
+    const rect = contentRef.getBoundingClientRect();
+    const visibleBottom = vv.height + vv.offsetTop;
+    if (rect.bottom > visibleBottom) {
+      const shift = rect.bottom - visibleBottom;
+      contentRef.style.transform = `translateY(-${shift}px)`;
+    } else {
+      contentRef.style.transform = '';
+    }
+  };
+
+  onMount(() => {
+    const vv = window.visualViewport;
+    vv?.addEventListener('resize', onViewportResize);
+    vv?.addEventListener('scroll', onViewportResize);
+  });
+
+  onCleanup(() => {
+    const vv = window.visualViewport;
+    vv?.removeEventListener('resize', onViewportResize);
+    vv?.removeEventListener('scroll', onViewportResize);
+  });
+
+  createEffect(() => {
+    if (!props.open && contentRef) {
+      contentRef.style.transform = '';
+    }
+  });
+
   return (
     <>
       <style>{`
@@ -34,6 +72,7 @@ const Popover_: Component<PopoverProps> = (props) => {
           outline: none;
           min-width: 200px;
           animation: ui-popover-in 0.12s ease-out;
+          transition: transform 0.15s ease;
         }
         .ui-popover-content[data-closed] {
           animation: ui-popover-out 0.1s ease-in;
@@ -54,7 +93,9 @@ const Popover_: Component<PopoverProps> = (props) => {
       >
         <Popover.Trigger class="ui-popover-trigger">{props.trigger}</Popover.Trigger>
         <Popover.Portal>
-          <Popover.Content class="ui-popover-content">{props.children}</Popover.Content>
+          <Popover.Content ref={contentRef} class="ui-popover-content">
+            {props.children}
+          </Popover.Content>
         </Popover.Portal>
       </Popover>
     </>
