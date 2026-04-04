@@ -31,7 +31,9 @@ function createToastItem(
         gap: '0.5rem',
         'pointer-events': 'auto',
         animation: 'kb-toast-in 0.2s ease-out',
+        cursor: 'pointer',
       }}
+      onClick={() => Toast.toaster.dismiss(props.toastId)}
     >
       <div
         style={{
