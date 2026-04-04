@@ -1,14 +1,11 @@
 import { Component, createEffect, onCleanup } from 'solid-js';
 import maplibregl from 'maplibre-gl';
-import circle from '@turf/circle';
 import { gpsPosition, setMarkerPosition } from '../../stores/gps';
 
 interface UserLocationMarkerProps {
   map: maplibregl.Map;
 }
 
-const ACCURACY_SOURCE_ID = 'user-location-accuracy';
-const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
 const ANIM_DURATION = 500;
 
 interface LocationState {
@@ -19,33 +16,18 @@ interface LocationState {
 
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let locationMarker: maplibregl.Marker | null = null;
+  let accuracyMarker: maplibregl.Marker | null = null;
   let animFrameId: number | null = null;
   let animStartTime = 0;
   let fromState: LocationState | null = null;
   let toState: LocationState | null = null;
   let currentState: LocationState | null = null;
 
-  function ensureAccuracyLayer() {
-    if (props.map.getSource(ACCURACY_SOURCE_ID) && props.map.getLayer(ACCURACY_LAYER_ID)) return;
-
-    if (!props.map.getSource(ACCURACY_SOURCE_ID)) {
-      props.map.addSource(ACCURACY_SOURCE_ID, {
-        type: 'geojson',
-        data: { type: 'FeatureCollection', features: [] },
-      });
-    }
-
-    if (!props.map.getLayer(ACCURACY_LAYER_ID)) {
-      props.map.addLayer({
-        id: ACCURACY_LAYER_ID,
-        type: 'fill',
-        source: ACCURACY_SOURCE_ID,
-        paint: {
-          'fill-color': '#53b54e',
-          'fill-opacity': 0.15,
-        },
-      });
-    }
+  function createAccuracyElement(): HTMLElement {
+    const el = document.createElement('div');
+    el.style.cssText =
+      'border-radius: 50%; background: rgba(83, 181, 78, 0.15); pointer-events: none;';
+    return el;
   }
 
   function createLocationElement(): HTMLElement {
@@ -63,11 +45,27 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     return container;
   }
 
+  function updateAccuracySize() {
+    if (!accuracyMarker || !currentState) return;
+    const map = props.map;
+    const center = map.project(new maplibregl.LngLat(currentState.lng, currentState.lat));
+    const lngPerMeter = 1 / (111320 * Math.cos((currentState.lat * Math.PI) / 180));
+    const edge = map.project(
+      new maplibregl.LngLat(
+        currentState.lng + currentState.accuracy * lngPerMeter,
+        currentState.lat
+      )
+    );
+    const pixelRadius = Math.abs(edge.x - center.x);
+    const el = accuracyMarker.getElement();
+    el.style.width = `${pixelRadius * 2}px`;
+    el.style.height = `${pixelRadius * 2}px`;
+  }
+
   function renderState(s: LocationState) {
-    ensureAccuracyLayer();
-    const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
-    source?.setData(circle([s.lng, s.lat], s.accuracy, { steps: 64, units: 'meters' }));
     locationMarker?.setLngLat([s.lng, s.lat]);
+    accuracyMarker?.setLngLat([s.lng, s.lat]);
+    updateAccuracySize();
     setMarkerPosition({ lng: s.lng, lat: s.lat });
   }
 
@@ -129,10 +127,8 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     setMarkerPosition(null);
     locationMarker?.remove();
     locationMarker = null;
-    const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
-    if (source) {
-      source.setData({ type: 'FeatureCollection', features: [] });
-    }
+    accuracyMarker?.remove();
+    accuracyMarker = null;
   }
 
   function sync() {
@@ -146,14 +142,23 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     const target: LocationState = { lng: pos.longitude, lat: pos.latitude, accuracy: pos.accuracy };
 
     if (!locationMarker) {
-      const el = createLocationElement();
+      const locEl = createLocationElement();
       locationMarker = new maplibregl.Marker({
-        element: el,
+        element: locEl,
         rotationAlignment: 'map',
         pitchAlignment: 'map',
       })
         .setLngLat([target.lng, target.lat])
         .addTo(props.map);
+
+      const accEl = createAccuracyElement();
+      accuracyMarker = new maplibregl.Marker({
+        element: accEl,
+        anchor: 'center',
+      })
+        .setLngLat([target.lng, target.lat])
+        .addTo(props.map);
+
       currentState = target;
       renderState(target);
       return;
@@ -169,15 +174,21 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
 
   props.map.on('styledata', sync);
 
+  const onMove = () => updateAccuracySize();
+  props.map.on('move', onMove);
+  props.map.on('zoom', onMove);
+  props.map.on('rotate', onMove);
+
   onCleanup(() => {
     props.map.off('styledata', sync);
+    props.map.off('move', onMove);
+    props.map.off('zoom', onMove);
+    props.map.off('rotate', onMove);
     if (animFrameId !== null) cancelAnimationFrame(animFrameId);
     locationMarker?.remove();
     locationMarker = null;
-    const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
-    if (source) {
-      source.setData({ type: 'FeatureCollection', features: [] });
-    }
+    accuracyMarker?.remove();
+    accuracyMarker = null;
   });
 
   return null;
