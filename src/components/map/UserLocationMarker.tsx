@@ -149,7 +149,9 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
         element: el,
         rotationAlignment: 'map',
         pitchAlignment: 'map',
-      }).addTo(props.map);
+      })
+        .setLngLat([target.lng, target.lat])
+        .addTo(props.map);
       currentState = target;
       renderState(target);
       return;
