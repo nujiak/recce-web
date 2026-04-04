@@ -297,7 +297,7 @@ const MapView: Component = () => {
       programmaticMoveTimer = null;
     }, EASE_DURATION + 20);
 
-    const mapPitch = pitch !== null ? Math.max(0, Math.min(85, pitch)) : 0;
+    const mapPitch = prefs.followPitch && pitch !== null ? Math.max(0, Math.min(85, pitch)) : 0;
     map.easeTo({
       bearing: smoothedBearing,
       pitch: mapPitch,

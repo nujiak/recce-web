@@ -63,6 +63,39 @@ const SettingsPanel: Component = () => {
           { value: 'system', label: 'System' },
         ]}
       />
+
+      <button
+        type="button"
+        onClick={() => setPrefs('followPitch', !prefs.followPitch)}
+        style={{
+          display: 'flex',
+          'align-items': 'center',
+          'justify-content': 'space-between',
+          padding: '0.5rem 0.75rem',
+          background: 'var(--color-bg-secondary)',
+          border: '1px solid var(--color-border)',
+          'border-radius': '8px',
+          color: 'var(--color-text)',
+          cursor: 'pointer',
+          'font-size': 'inherit',
+        }}
+      >
+        <span style={{ display: 'flex', 'flex-direction': 'column', gap: '2px' }}>
+          <span>Follow Tilt</span>
+          <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+            Tilt map by device pitch in bearing mode
+          </span>
+        </span>
+        <span
+          class="material-symbols-outlined"
+          style={{
+            'font-size': '24px',
+            color: prefs.followPitch ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+          }}
+        >
+          {prefs.followPitch ? 'toggle_on' : 'toggle_off'}
+        </span>
+      </button>
     </div>
   );
 };
