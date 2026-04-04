@@ -9,7 +9,7 @@ interface UserLocationMarkerProps {
 
 const ACCURACY_SOURCE_ID = 'user-location-accuracy';
 const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
-const ANIM_DURATION = 100;
+const ANIM_DURATION = 500;
 
 interface LocationState {
   lng: number;
