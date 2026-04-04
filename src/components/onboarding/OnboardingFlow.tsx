@@ -41,6 +41,7 @@ const OnboardingFlow: Component = () => {
   const [prefs, setPrefs] = usePrefs();
   const [step, setStep] = createSignal(0);
   const [installing, setInstalling] = createSignal(false);
+  const [pwaInstalled, setPwaInstalled] = createSignal(false);
 
   const pwaStep = {
     title: 'Install Recce',
@@ -111,10 +112,17 @@ const OnboardingFlow: Component = () => {
 
   const handleInstall = async () => {
     setInstalling(true);
-    await promptPWAInstall();
+    const outcome = await promptPWAInstall();
     setInstalling(false);
-    // Advance regardless of outcome so the user can continue onboarding.
-    setStep((s) => s + 1);
+    if (outcome === 'accepted') {
+      // Show success state instead of advancing — the user needs to know to
+      // open the installed app. Config steps still follow so settings are
+      // written to localStorage (shared with the PWA via the same origin).
+      setPwaInstalled(true);
+    } else {
+      // Dismissed or unavailable — advance so the user can continue.
+      setStep((s) => s + 1);
+    }
   };
 
   return (
@@ -170,12 +178,35 @@ const OnboardingFlow: Component = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '12px', 'flex-direction': 'column' }}>
-          <Show when={isPwaStepActive() && canInstallPWA()}>
+          <Show when={isPwaStepActive() && pwaInstalled()}>
+            <div
+              style={{
+                background: 'var(--color-bg-secondary)',
+                border: '1px solid var(--color-border)',
+                'border-radius': '8px',
+                padding: '0.75rem',
+                'font-size': '0.8125rem',
+                color: 'var(--color-text-secondary)',
+                display: 'flex',
+                'flex-direction': 'column',
+                gap: '4px',
+              }}
+            >
+              <span style={{ color: 'var(--color-accent)', 'font-weight': '600' }}>
+                Recce is installed!
+              </span>
+              <span>
+                Finish setup here — your settings will be ready when you open the app from your home
+                screen.
+              </span>
+            </div>
+          </Show>
+          <Show when={isPwaStepActive() && !pwaInstalled() && canInstallPWA()}>
             <Button onClick={handleInstall} disabled={installing()}>
               {installing() ? 'Installing…' : 'Install App'}
             </Button>
           </Show>
-          <Show when={isPwaStepActive() && isFirefoxAndroid()}>
+          <Show when={isPwaStepActive() && !pwaInstalled() && isFirefoxAndroid()}>
             <div
               style={{
                 background: 'var(--color-bg-secondary)',
@@ -209,11 +240,17 @@ const OnboardingFlow: Component = () => {
               </Button>
             )}
             <Button
-              variant={isPwaStepActive() ? 'ghost' : undefined}
+              variant={isPwaStepActive() && !pwaInstalled() ? 'ghost' : undefined}
               onClick={() => (isLast() ? finish() : setStep((s) => s + 1))}
-              style={{ flex: step() > 0 || isPwaStepActive() ? 2 : 1 }}
+              style={{ flex: step() > 0 || (isPwaStepActive() && !pwaInstalled()) ? 2 : 1 }}
             >
-              {isLast() ? 'Get Started' : isPwaStepActive() ? 'Skip' : 'Next'}
+              {isLast()
+                ? pwaInstalled()
+                  ? 'Done — Open from Home Screen'
+                  : 'Get Started'
+                : isPwaStepActive() && !pwaInstalled()
+                  ? 'Skip'
+                  : 'Next'}
             </Button>
           </div>
         </div>
