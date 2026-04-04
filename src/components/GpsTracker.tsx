@@ -45,7 +45,7 @@ const GpsTracker: Component = () => {
         setGpsPosition(pos.coords);
       },
       () => {},
-      { enableHighAccuracy: true, maximumAge: 2000 }
+      { enableHighAccuracy: true, maximumAge: 0 }
     );
   }
 
