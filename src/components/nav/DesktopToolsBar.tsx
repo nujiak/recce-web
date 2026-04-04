@@ -83,15 +83,27 @@ const DesktopToolsBar: Component = () => {
           flex-shrink: 0;
         }
         .dtb-resize-handle {
-          width: 4px;
+          width: 16px;
           flex-shrink: 0;
           cursor: col-resize;
           background: transparent;
-          transition: background 0.15s ease;
-          z-index: 1;
+          z-index: 2;
+          position: relative;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          touch-action: none;
         }
-        .dtb-resize-handle:hover,
-        .dtb-resize-handle:active {
+        .dtb-resize-handle::after {
+          content: '';
+          width: 4px;
+          height: 32px;
+          border-radius: 2px;
+          background: var(--color-border);
+          transition: background 0.15s ease;
+        }
+        .dtb-resize-handle:hover::after,
+        .dtb-resize-handle:active::after {
           background: var(--color-accent);
         }
         .dtb-panel {
