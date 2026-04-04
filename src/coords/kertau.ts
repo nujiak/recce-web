@@ -2,9 +2,10 @@ import proj4 from 'proj4';
 import type { CoordResult } from '../types';
 
 // Register EPSG:3168 (RSO Malaya m) — not bundled in proj4 by default
+// Source: https://epsg.io/3168.js
 proj4.defs(
   'EPSG:3168',
-  '+proj=omerc +no_uoff +lat_0=4 +lonc=102.25 +alpha=323.0257905 +gamma=323.130102361111 +k=0.99984 +x_0=804670.24 +y_0=0 +ellps=evrst69 +towgs84=-11,851,5,0,0,0,0 +units=m +no_defs'
+  '+proj=omerc +no_uoff +lat_0=4 +lonc=102.25 +alpha=323.0257905 +gamma=323.130102361111 +k=0.99984 +x_0=804670.24 +y_0=0 +ellps=evrst69 +towgs84=-11,851,5,0,0,0,0 +units=m +no_defs +type=crs'
 );
 
 const KERTAU_PROJ = 'EPSG:3168';
