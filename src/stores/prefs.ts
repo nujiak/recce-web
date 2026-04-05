@@ -10,6 +10,7 @@ const defaultPrefs: Prefs = {
   theme: 'dark',
   mapStyle: 'default',
   onboardingDone: false,
+  followPitch: false,
 };
 
 function loadPrefs(): Prefs {

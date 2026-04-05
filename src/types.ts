@@ -40,6 +40,7 @@ export interface Prefs {
   theme: Theme;
   mapStyle: MapStyle;
   onboardingDone: boolean;
+  followPitch: boolean;
 }
 
 export interface CoordResult {
