@@ -12,7 +12,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { getAllPins, getAllTracks } from '../../db/db';
 import { useUI } from '../../context/UIContext';
-import { gpsPosition, gpsHeading, gpsPitch, markerPosition } from '../../stores/gps';
+import { gpsPosition, gpsHeading, gpsPitch, gpsRoll, markerPosition } from '../../stores/gps';
 import { MapContext } from './MapContext';
 import Crosshair from './Crosshair';
 import PinMarkers from './PinMarkers';
@@ -83,8 +83,9 @@ const MapView: Component = () => {
   // movestart/dragstart handlers don't incorrectly drop the follow mode.
   let programmaticMove = false;
   let programmaticMoveTimer: ReturnType<typeof setTimeout> | null = null;
-  // Low-pass filtered bearing for smooth follow-bearing animation
+  // Low-pass filtered bearing/roll for smooth follow-bearing animation
   let smoothedBearing: number | null = null;
+  let smoothedRoll: number | null = null;
   const [plotState, setPlotState] = createStore<PlotState>({
     active: false,
     nodes: [],
@@ -268,16 +269,20 @@ const MapView: Component = () => {
     map.setCenter([marker.lng, marker.lat]);
   });
 
-  // Follow device bearing (rotate map to match device heading) and pitch the map
+  // Follow device bearing (rotate map to match device heading) and pitch/roll the map
   // according to device tilt. Low-pass filter removes sensor jitter; easeTo
   // animates across a longer window so successive calls glide rather than stutter.
   createEffect(() => {
     const map = mapInstance();
     const heading = gpsHeading();
     const pitch = gpsPitch();
+    const roll = gpsRoll();
     const mode = locationMode();
     if (!map || heading === null || mode !== 'following-bearing') {
-      if (mode !== 'following-bearing') smoothedBearing = null;
+      if (mode !== 'following-bearing') {
+        smoothedBearing = null;
+        smoothedRoll = null;
+      }
       return;
     }
 
@@ -298,9 +303,26 @@ const MapView: Component = () => {
     }, EASE_DURATION + 20);
 
     const mapPitch = prefs.followPitch && pitch !== null ? Math.max(0, Math.min(85, pitch)) : 0;
+
+    // Roll follows device side-tilt when tilt mode is on; same low-pass filter
+    // as bearing to suppress sensor jitter. Device gamma is bounded [-90°, 90°]
+    // so no wrap-around handling is needed.
+    let mapRoll = 0;
+    if (prefs.followPitch && roll !== null) {
+      if (smoothedRoll === null) {
+        smoothedRoll = roll;
+      } else {
+        smoothedRoll = smoothedRoll + ALPHA * (roll - smoothedRoll);
+      }
+      mapRoll = smoothedRoll;
+    } else {
+      smoothedRoll = null;
+    }
+
     map.easeTo({
       bearing: smoothedBearing,
       pitch: mapPitch,
+      roll: mapRoll,
       duration: EASE_DURATION,
       easing: (t) => t,
     });
@@ -332,12 +354,13 @@ const MapView: Component = () => {
       smoothedBearing = null;
       setLocationMode('following-bearing');
     } else if (mode === 'following-bearing') {
-      // Third press: exit follow modes entirely, reset map bearing to north
+      // Third press: exit follow modes entirely, reset map bearing/pitch/roll to north
       smoothedBearing = null;
+      smoothedRoll = null;
       setLocationMode('available');
       if (map) {
         setProgrammaticMove(500);
-        map.easeTo({ bearing: 0, pitch: 0, duration: 500 });
+        map.easeTo({ bearing: 0, pitch: 0, roll: 0, duration: 500 });
       }
     }
   }
