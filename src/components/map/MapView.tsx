@@ -275,9 +275,9 @@ const MapView: Component = () => {
   // Follow device bearing and, when followPitch is on, apply an AR ground-plane
   // camera. The AR model maps the device angle directly onto the camera:
   //
-  //   mapPitch = 180° − devicePitch (beta)
-  //     → device flat face-down (beta=180°) → pitch=0   (top-down view)
-  //     → device vertical       (beta=90°)  → pitch=90° (horizon view)
+  //   mapPitch = devicePitch (beta)
+  //     → device flat face-up  (beta≈0°)  → pitch=0   (top-down view)
+  //     → device vertical      (beta≈90°) → pitch=90° (horizon view)
   //
   //   mapRoll = deviceRoll (gamma, bounded ±90°)
   //     → tilting the device sideways tilts the virtual ground plane to match
@@ -321,8 +321,8 @@ const MapView: Component = () => {
     let mapRoll = 0;
 
     if (prefs.followPitch && pitch !== null && roll !== null) {
-      // AR pitch: complement of device tilt so the map lies on the ground plane
-      const targetPitch = 180 - pitch;
+      // AR pitch: beta maps directly — face-up (0°) is top-down, upright (90°) is horizon
+      const targetPitch = pitch;
       if (smoothedPitch === null) {
         smoothedPitch = targetPitch;
       } else {
