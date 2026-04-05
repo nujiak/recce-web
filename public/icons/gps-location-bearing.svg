@@ -6,11 +6,11 @@
     </radialGradient>
     <linearGradient id="line-left" x1="107" y1="97.48" x2="60" y2="16.08" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#53b54e" stop-opacity="1" />
-      <stop offset="100%" stop-color="#53b54e" stop-opacity="0.75" />
+      <stop offset="100%" stop-color="#53b54e" stop-opacity="0.25" />
     </linearGradient>
     <linearGradient id="line-right" x1="133" y1="97.48" x2="180" y2="16.08" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#53b54e" stop-opacity="1" />
-      <stop offset="100%" stop-color="#53b54e" stop-opacity="0.75" />
+      <stop offset="100%" stop-color="#53b54e" stop-opacity="0.25" />
     </linearGradient>
   </defs>
   <circle cx="120" cy="120" r="26" fill="#ffffff" />
