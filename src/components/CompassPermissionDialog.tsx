@@ -56,7 +56,7 @@ const CompassPermissionDialog: Component<Props> = (props) => {
             [
               ['near_me', 'Rotating the map to match your heading'],
               ['explore', 'Showing live azimuth, pitch, and roll in the GPS panel'],
-              ['location_on', 'Orienting the direction arrow on your location marker'],
+              ['location_on', 'Orienting the directional arc on your location marker'],
             ] as [string, string][]
           ).map(([icon, text]) => (
             <li style={{ display: 'flex', 'align-items': 'flex-start', gap: '10px' }}>
