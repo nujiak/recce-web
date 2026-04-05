@@ -1,7 +1,7 @@
 import { Component, createEffect, onCleanup } from 'solid-js';
 import maplibregl from 'maplibre-gl';
 import circle from '@turf/circle';
-import { gpsPosition, setMarkerPosition } from '../../stores/gps';
+import { gpsPosition, gpsHeading, setMarkerPosition } from '../../stores/gps';
 
 interface UserLocationMarkerProps {
   map: maplibregl.Map;
@@ -9,6 +9,9 @@ interface UserLocationMarkerProps {
 
 const ACCURACY_SOURCE_ID = 'user-location-accuracy';
 const ACCURACY_LAYER_ID = 'user-location-accuracy-circle';
+const LOCATION_SOURCE_ID = 'user-location';
+const LOCATION_LAYER_ID = 'user-location-dot';
+const LOCATION_IMAGE_ID = 'gps-bearing';
 const ANIM_DURATION = 500;
 
 interface LocationState {
@@ -17,8 +20,30 @@ interface LocationState {
   accuracy: number;
 }
 
+let imageLoaded = false;
+let imageLoadPromise: Promise<void> | null = null;
+
+function loadImageOnce(map: maplibregl.Map): Promise<void> {
+  if (imageLoaded) return Promise.resolve();
+  if (imageLoadPromise) return imageLoadPromise;
+
+  imageLoadPromise = new Promise<void>((resolve, reject) => {
+    const img = new Image(48, 48);
+    img.onload = () => {
+      if (!map.hasImage(LOCATION_IMAGE_ID)) {
+        map.addImage(LOCATION_IMAGE_ID, img);
+      }
+      imageLoaded = true;
+      resolve();
+    };
+    img.onerror = reject;
+    img.src = '/icons/gps-location-bearing.svg';
+  });
+
+  return imageLoadPromise;
+}
+
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
-  let locationMarker: maplibregl.Marker | null = null;
   let animFrameId: number | null = null;
   let animStartTime = 0;
   let fromState: LocationState | null = null;
@@ -29,6 +54,8 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let baseRing: number[][] | null = null;
   let renderRing: number[][] | null = null;
   let featureData: GeoJSON.Feature<GeoJSON.Polygon> | null = null;
+  let pointData: GeoJSON.Feature<GeoJSON.Point> | null = null;
+  let currentHeading = 0;
 
   function ensureAccuracyLayer() {
     if (props.map.getSource(ACCURACY_SOURCE_ID) && props.map.getLayer(ACCURACY_LAYER_ID)) return;
@@ -53,24 +80,44 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     }
   }
 
-  function createLocationElement(): HTMLElement {
-    const container = document.createElement('div');
-    container.style.cssText = 'position: relative; width: 24px; height: 24px;';
+  function ensureLocationLayer() {
+    if (props.map.getSource(LOCATION_SOURCE_ID) && props.map.getLayer(LOCATION_LAYER_ID)) return;
 
-    const img = document.createElement('img');
-    img.src = '/icons/gps-location.svg';
-    img.width = 24;
-    img.height = 24;
-    img.alt = 'Your location';
-    img.style.cssText = 'display: block;';
-    container.appendChild(img);
+    if (!props.map.getSource(LOCATION_SOURCE_ID)) {
+      pointData = {
+        type: 'Feature',
+        properties: { heading: currentHeading },
+        geometry: { type: 'Point', coordinates: [0, 0] },
+      };
+      props.map.addSource(LOCATION_SOURCE_ID, {
+        type: 'geojson',
+        data: pointData,
+      });
+    }
 
-    return container;
+    if (!props.map.getLayer(LOCATION_LAYER_ID)) {
+      props.map.addLayer({
+        id: LOCATION_LAYER_ID,
+        type: 'symbol',
+        source: LOCATION_SOURCE_ID,
+        layout: {
+          'icon-image': LOCATION_IMAGE_ID,
+          'icon-size': 0.5,
+          'icon-rotate': ['get', 'heading'],
+          'icon-rotation-alignment': 'map',
+          'icon-pitch-alignment': 'map',
+          'icon-allow-overlap': true,
+          'icon-anchor': 'center',
+        },
+      });
+    }
   }
 
   function renderState(s: LocationState) {
     ensureAccuracyLayer();
-    const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
+    const accSource = props.map.getSource(ACCURACY_SOURCE_ID) as
+      | maplibregl.GeoJSONSource
+      | undefined;
 
     if (!baseRing || s.accuracy !== cachedAccuracy) {
       const c = circle([0, 0], s.accuracy, { steps: 64, units: 'meters' });
@@ -89,8 +136,19 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
       renderRing![i][1] = baseRing[i][1] + s.lat;
     }
 
-    source?.setData(featureData!);
-    locationMarker?.setLngLat([s.lng, s.lat]);
+    accSource?.setData(featureData!);
+
+    const locSource = props.map.getSource(LOCATION_SOURCE_ID) as
+      | maplibregl.GeoJSONSource
+      | undefined;
+    if (locSource) {
+      locSource.setData({
+        type: 'Feature',
+        properties: { heading: currentHeading },
+        geometry: { type: 'Point', coordinates: [s.lng, s.lat] },
+      });
+    }
+
     setMarkerPosition({ lng: s.lng, lat: s.lat });
   }
 
@@ -153,12 +211,21 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     baseRing = null;
     renderRing = null;
     featureData = null;
+    pointData = null;
     setMarkerPosition(null);
-    locationMarker?.remove();
-    locationMarker = null;
-    const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
-    if (source) {
-      source.setData({ type: 'FeatureCollection', features: [] });
+
+    if (props.map.getLayer(LOCATION_LAYER_ID)) {
+      props.map.removeLayer(LOCATION_LAYER_ID);
+    }
+    if (props.map.getSource(LOCATION_SOURCE_ID)) {
+      props.map.removeSource(LOCATION_SOURCE_ID);
+    }
+
+    const accSource = props.map.getSource(ACCURACY_SOURCE_ID) as
+      | maplibregl.GeoJSONSource
+      | undefined;
+    if (accSource) {
+      accSource.setData({ type: 'FeatureCollection', features: [] });
     }
   }
 
@@ -166,27 +233,40 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     const pos = gpsPosition();
 
     if (!pos) {
-      if (locationMarker || currentState) clearAll();
+      if (currentState) clearAll();
       return;
     }
 
     const target: LocationState = { lng: pos.longitude, lat: pos.latitude, accuracy: pos.accuracy };
 
-    if (!locationMarker) {
-      const el = createLocationElement();
-      locationMarker = new maplibregl.Marker({
-        element: el,
-        rotationAlignment: 'map',
-        pitchAlignment: 'map',
-      })
-        .setLngLat([target.lng, target.lat])
-        .addTo(props.map);
-      currentState = target;
-      renderState(target);
+    if (!currentState) {
+      loadImageOnce(props.map).then(() => {
+        ensureLocationLayer();
+        currentState = target;
+        renderState(target);
+      });
       return;
     }
 
     animateTo(target);
+  }
+
+  function updateHeading() {
+    const h = gpsHeading();
+    currentHeading = h ?? 0;
+
+    if (!currentState) return;
+
+    const locSource = props.map.getSource(LOCATION_SOURCE_ID) as
+      | maplibregl.GeoJSONSource
+      | undefined;
+    if (locSource) {
+      locSource.setData({
+        type: 'Feature',
+        properties: { heading: currentHeading },
+        geometry: { type: 'Point', coordinates: [currentState.lng, currentState.lat] },
+      });
+    }
   }
 
   createEffect(() => {
@@ -194,16 +274,28 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     sync();
   });
 
+  createEffect(() => {
+    gpsHeading();
+    updateHeading();
+  });
+
   props.map.on('styledata', sync);
 
   onCleanup(() => {
     props.map.off('styledata', sync);
     if (animFrameId !== null) cancelAnimationFrame(animFrameId);
-    locationMarker?.remove();
-    locationMarker = null;
-    const source = props.map.getSource(ACCURACY_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
-    if (source) {
-      source.setData({ type: 'FeatureCollection', features: [] });
+
+    if (props.map.getLayer(LOCATION_LAYER_ID)) {
+      props.map.removeLayer(LOCATION_LAYER_ID);
+    }
+    if (props.map.getSource(LOCATION_SOURCE_ID)) {
+      props.map.removeSource(LOCATION_SOURCE_ID);
+    }
+    const accSource = props.map.getSource(ACCURACY_SOURCE_ID) as
+      | maplibregl.GeoJSONSource
+      | undefined;
+    if (accSource) {
+      accSource.setData({ type: 'FeatureCollection', features: [] });
     }
   });
 
