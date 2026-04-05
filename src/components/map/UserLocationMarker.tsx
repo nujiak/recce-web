@@ -28,7 +28,7 @@ function loadImageOnce(map: maplibregl.Map): Promise<void> {
   if (imageLoadPromise) return imageLoadPromise;
 
   imageLoadPromise = new Promise<void>((resolve, reject) => {
-    const img = new Image(48, 48);
+    const img = new Image(192, 192);
     img.onload = () => {
       if (!map.hasImage(LOCATION_IMAGE_ID)) {
         map.addImage(LOCATION_IMAGE_ID, img);
