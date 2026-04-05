@@ -83,8 +83,9 @@ const MapView: Component = () => {
   // movestart/dragstart handlers don't incorrectly drop the follow mode.
   let programmaticMove = false;
   let programmaticMoveTimer: ReturnType<typeof setTimeout> | null = null;
-  // Low-pass filtered bearing/roll for smooth follow-bearing animation
+  // Low-pass filtered bearing/pitch/roll for smooth follow-bearing animation
   let smoothedBearing: number | null = null;
+  let smoothedPitch: number | null = null;
   let smoothedRoll: number | null = null;
   const [plotState, setPlotState] = createStore<PlotState>({
     active: false,
@@ -103,6 +104,8 @@ const MapView: Component = () => {
       center: DEFAULT_MAP_CENTER,
       zoom: DEFAULT_MAP_ZOOM,
       attributionControl: false,
+      // Allow full 180° pitch so the AR ground-plane mode can reach the horizon.
+      maxPitch: 180,
     });
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'top-right');
@@ -269,9 +272,18 @@ const MapView: Component = () => {
     map.setCenter([marker.lng, marker.lat]);
   });
 
-  // Follow device bearing (rotate map to match device heading) and pitch/roll the map
-  // according to device tilt. Low-pass filter removes sensor jitter; easeTo
-  // animates across a longer window so successive calls glide rather than stutter.
+  // Follow device bearing and, when followPitch is on, apply an AR ground-plane
+  // camera. The AR model maps the device angle directly onto the camera:
+  //
+  //   mapPitch = 180° − devicePitch (beta)
+  //     → device flat face-down (beta=180°) → pitch=0   (top-down view)
+  //     → device vertical       (beta=90°)  → pitch=90° (horizon view)
+  //
+  //   mapRoll = deviceRoll (gamma, bounded ±90°)
+  //     → tilting the device sideways tilts the virtual ground plane to match
+  //
+  // All three axes use the same ALPHA low-pass filter to remove sensor jitter.
+  // maxPitch is set to 180° on the Map instance so pitch is never clamped.
   createEffect(() => {
     const map = mapInstance();
     const heading = gpsHeading();
@@ -281,16 +293,19 @@ const MapView: Component = () => {
     if (!map || heading === null || mode !== 'following-bearing') {
       if (mode !== 'following-bearing') {
         smoothedBearing = null;
+        smoothedPitch = null;
         smoothedRoll = null;
       }
       return;
     }
 
     const ALPHA = 0.15;
+
+    // Bearing — wrap-aware low-pass filter
     if (smoothedBearing === null) {
       smoothedBearing = heading;
     } else {
-      let diff = ((heading - smoothedBearing + 540) % 360) - 180;
+      const diff = ((heading - smoothedBearing + 540) % 360) - 180;
       smoothedBearing = (smoothedBearing + ALPHA * diff + 360) % 360;
     }
 
@@ -302,13 +317,20 @@ const MapView: Component = () => {
       programmaticMoveTimer = null;
     }, EASE_DURATION + 20);
 
-    const mapPitch = prefs.followPitch && pitch !== null ? Math.max(0, Math.min(85, pitch)) : 0;
-
-    // Roll follows device side-tilt when tilt mode is on; same low-pass filter
-    // as bearing to suppress sensor jitter. Device gamma is bounded [-90°, 90°]
-    // so no wrap-around handling is needed.
+    let mapPitch = 0;
     let mapRoll = 0;
-    if (prefs.followPitch && roll !== null) {
+
+    if (prefs.followPitch && pitch !== null && roll !== null) {
+      // AR pitch: complement of device tilt so the map lies on the ground plane
+      const targetPitch = 180 - pitch;
+      if (smoothedPitch === null) {
+        smoothedPitch = targetPitch;
+      } else {
+        smoothedPitch = smoothedPitch + ALPHA * (targetPitch - smoothedPitch);
+      }
+      mapPitch = Math.max(0, Math.min(180, smoothedPitch));
+
+      // AR roll: device gamma maps directly to camera roll
       if (smoothedRoll === null) {
         smoothedRoll = roll;
       } else {
@@ -316,6 +338,7 @@ const MapView: Component = () => {
       }
       mapRoll = smoothedRoll;
     } else {
+      smoothedPitch = null;
       smoothedRoll = null;
     }
 
@@ -356,6 +379,7 @@ const MapView: Component = () => {
     } else if (mode === 'following-bearing') {
       // Third press: exit follow modes entirely, reset map bearing/pitch/roll to north
       smoothedBearing = null;
+      smoothedPitch = null;
       smoothedRoll = null;
       setLocationMode('available');
       if (map) {
