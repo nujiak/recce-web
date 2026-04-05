@@ -20,20 +20,26 @@ interface LocationState {
   accuracy: number;
 }
 
-let imageLoaded = false;
+let cachedImage: HTMLImageElement | null = null;
 let imageLoadPromise: Promise<void> | null = null;
 
 function loadImageOnce(map: maplibregl.Map): Promise<void> {
-  if (imageLoaded) return Promise.resolve();
+  // Image is cached — re-add to map if style change wiped it, then resolve immediately.
+  if (cachedImage) {
+    if (!map.hasImage(LOCATION_IMAGE_ID)) {
+      map.addImage(LOCATION_IMAGE_ID, cachedImage);
+    }
+    return Promise.resolve();
+  }
   if (imageLoadPromise) return imageLoadPromise;
 
   imageLoadPromise = new Promise<void>((resolve, reject) => {
     const img = new Image(192, 192);
     img.onload = () => {
+      cachedImage = img;
       if (!map.hasImage(LOCATION_IMAGE_ID)) {
         map.addImage(LOCATION_IMAGE_ID, img);
       }
-      imageLoaded = true;
       resolve();
     };
     img.onerror = reject;
@@ -239,16 +245,14 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
 
     const target: LocationState = { lng: pos.longitude, lat: pos.latitude, accuracy: pos.accuracy };
 
-    if (!currentState) {
-      loadImageOnce(props.map).then(() => {
-        ensureLocationLayer();
-        currentState = target;
-        renderState(target);
-      });
-      return;
-    }
-
-    animateTo(target);
+    // Always go through loadImageOnce so that after a style change the image is
+    // re-registered and ensureLocationLayer() re-adds the wiped layer. When the
+    // image is already cached this resolves as a microtask with no network fetch.
+    loadImageOnce(props.map).then(() => {
+      ensureLocationLayer();
+      if (!currentState) currentState = target;
+      animateTo(target);
+    });
   }
 
   function updateHeading() {
