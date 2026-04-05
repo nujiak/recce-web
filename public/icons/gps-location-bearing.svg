@@ -4,10 +4,18 @@
       <stop offset="0%" stop-color="#53b54e" stop-opacity="0.6" />
       <stop offset="100%" stop-color="#53b54e" stop-opacity="0" />
     </radialGradient>
+    <linearGradient id="line-left" x1="107" y1="97.48" x2="60" y2="16.08" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#53b54e" stop-opacity="1" />
+      <stop offset="100%" stop-color="#53b54e" stop-opacity="0.75" />
+    </linearGradient>
+    <linearGradient id="line-right" x1="133" y1="97.48" x2="180" y2="16.08" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#53b54e" stop-opacity="1" />
+      <stop offset="100%" stop-color="#53b54e" stop-opacity="0.75" />
+    </linearGradient>
   </defs>
   <circle cx="120" cy="120" r="26" fill="#ffffff" />
   <circle cx="120" cy="120" r="18" fill="#53b54e" />
   <path d="M107 97.48 L60 16.08 A120 120 0 0 1 180 16.08 L133 97.48 A26 26 0 0 0 107 97.48 Z" fill="url(#arc-fade)" />
-  <line x1="107" y1="97.48" x2="60" y2="16.08" stroke="#53b54e" stroke-width="3" stroke-linecap="round" />
-  <line x1="133" y1="97.48" x2="180" y2="16.08" stroke="#53b54e" stroke-width="3" stroke-linecap="round" />
+  <line x1="107" y1="97.48" x2="60" y2="16.08" stroke="url(#line-left)" stroke-width="3" stroke-linecap="round" />
+  <line x1="133" y1="97.48" x2="180" y2="16.08" stroke="url(#line-right)" stroke-width="3" stroke-linecap="round" />
 </svg>
