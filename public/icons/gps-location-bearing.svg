@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
   <defs>
     <radialGradient id="arc-fade" cx="120" cy="120" r="120" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#53b54e" stop-opacity="0.6" />
-      <stop offset="100%" stop-color="#53b54e" stop-opacity="0" />
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.75" />
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
     </radialGradient>
   </defs>
   <circle cx="120" cy="120" r="26" fill="#ffffff" />
