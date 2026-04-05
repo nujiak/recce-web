@@ -1,12 +1,13 @@
-import { Component, createSignal, createEffect, Show } from 'solid-js';
+import { Component, createSignal, createEffect, Show, For } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import { CoordinateTransformer } from '../../coords/index';
 import { usePrefs } from '../../context/PrefsContext';
 import { addPin, updatePin, deletePin } from '../../db/db';
 import { showToast } from '../ui/Toast';
 import { SYSTEM_NAMES } from '../../coords/index';
+import { PIN_COLORS } from '../../utils/colors';
+import { PIN_ICON_PATH } from '../../utils/colors';
 import type { PinColor } from '../../types';
-import ColorPicker from '../ColorPicker';
 import Dialog from '../ui/Dialog';
 import TextField from '../ui/TextField';
 import Button from '../ui/Button';
@@ -25,6 +26,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
   const [coordInput, setCoordInput] = createSignal('');
   const [coordError, setCoordError] = createSignal('');
   const [color, setColor] = createSignal<PinColor>('red');
+  const [markerPickerOpen, setMarkerPickerOpen] = createSignal(false);
   const [group, setGroup] = createSignal('');
   const [description, setDescription] = createSignal('');
 
@@ -136,7 +138,74 @@ const PinEditor: Component<PinEditorProps> = (props) => {
           </Show>
         </div>
 
-        <ColorPicker value={color()} onChange={setColor} />
+        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
+          <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+            Marker
+          </span>
+          <button
+            type="button"
+            onClick={() => setMarkerPickerOpen(true)}
+            style={{
+              display: 'flex',
+              'align-items': 'center',
+              gap: '10px',
+              padding: '0.5rem 0.75rem',
+              background: 'var(--color-bg-secondary)',
+              border: '1px solid var(--color-border)',
+              'border-radius': '8px',
+              color: 'var(--color-text)',
+              cursor: 'pointer',
+              width: '100%',
+              'text-align': 'left',
+              'font-size': 'inherit',
+              'font-family': 'inherit',
+            }}
+          >
+            <img
+              src={PIN_ICON_PATH[color()]}
+              alt=""
+              style={{ width: '20px', height: '20px', 'flex-shrink': 0 }}
+            />
+            <span style={{ 'text-transform': 'capitalize' }}>{color()}</span>
+          </button>
+        </div>
+
+        <Dialog open={markerPickerOpen()} onOpenChange={setMarkerPickerOpen} title="Choose Marker">
+          <div
+            style={{
+              display: 'flex',
+              gap: '8px',
+              'justify-content': 'center',
+              'margin-top': '0.75rem',
+            }}
+          >
+            <For each={PIN_COLORS}>
+              {(c) => (
+                <button
+                  type="button"
+                  aria-label={c}
+                  aria-pressed={color() === c}
+                  onClick={() => {
+                    setColor(c);
+                    setMarkerPickerOpen(false);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: color() === c ? '2px solid var(--color-text)' : '2px solid transparent',
+                    'border-radius': '8px',
+                    padding: '8px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    'align-items': 'center',
+                    'justify-content': 'center',
+                  }}
+                >
+                  <img src={PIN_ICON_PATH[c]} alt={c} style={{ width: '36px', height: '36px' }} />
+                </button>
+              )}
+            </For>
+          </div>
+        </Dialog>
 
         <TextField label="Group" value={group()} onChange={setGroup} />
 

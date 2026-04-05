@@ -19,3 +19,11 @@ export const PIN_COLOR_HEX: Record<PinColor, string> = {
 };
 
 export const PIN_COLORS: PinColor[] = ['red', 'orange', 'green', 'azure', 'violet'];
+
+export const PIN_ICON_PATH: Record<PinColor, string> = {
+  red: '/icons/pin-red.svg',
+  orange: '/icons/pin-orange.svg',
+  green: '/icons/pin-green.svg',
+  azure: '/icons/pin-azure.svg',
+  violet: '/icons/pin-violet.svg',
+};
