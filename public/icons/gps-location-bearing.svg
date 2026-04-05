@@ -1,11 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
+<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
   <defs>
-    <radialGradient id="arc-fade" cx="96" cy="96" r="120" gradientUnits="userSpaceOnUse">
+    <radialGradient id="arc-fade" cx="120" cy="120" r="120" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#53b54e" stop-opacity="0.6" />
       <stop offset="100%" stop-color="#53b54e" stop-opacity="0" />
     </radialGradient>
   </defs>
-  <circle cx="96" cy="96" r="26" fill="#ffffff" />
-  <circle cx="96" cy="96" r="18" fill="#53b54e" />
-  <path d="M83 73.48 L36 -7.92 A120 120 0 0 1 156 -7.92 L109 73.48 A26 26 0 0 0 83 73.48 Z" fill="url(#arc-fade)" />
+  <circle cx="120" cy="120" r="26" fill="#ffffff" />
+  <circle cx="120" cy="120" r="18" fill="#53b54e" />
+  <path d="M107 97.48 L60 16.08 A120 120 0 0 1 180 16.08 L133 97.48 A26 26 0 0 0 107 97.48 Z" fill="url(#arc-fade)" />
 </svg>
