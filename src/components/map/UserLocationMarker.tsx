@@ -20,11 +20,12 @@ interface LocationState {
   accuracy: number;
 }
 
+// Module-level image cache shared across map style changes.
 let cachedImage: HTMLImageElement | null = null;
 let imageLoadPromise: Promise<void> | null = null;
 
 function loadImageOnce(map: maplibregl.Map): Promise<void> {
-  // Image is cached — re-add to map if style change wiped it, then resolve immediately.
+  // Image is cached — re-add to map if a style change wiped it, then resolve immediately.
   if (cachedImage) {
     if (!map.hasImage(LOCATION_IMAGE_ID)) {
       map.addImage(LOCATION_IMAGE_ID, cachedImage);
@@ -42,11 +43,27 @@ function loadImageOnce(map: maplibregl.Map): Promise<void> {
       }
       resolve();
     };
-    img.onerror = reject;
+    img.onerror = (err) => {
+      // Reset so a future call can retry the load.
+      imageLoadPromise = null;
+      reject(err);
+    };
     img.src = '/icons/gps-location-bearing.svg';
   });
 
   return imageLoadPromise;
+}
+
+function makePointFeature(
+  lng: number,
+  lat: number,
+  heading: number
+): GeoJSON.Feature<GeoJSON.Point> {
+  return {
+    type: 'Feature',
+    properties: { heading },
+    geometry: { type: 'Point', coordinates: [lng, lat] },
+  };
 }
 
 const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
@@ -60,7 +77,6 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   let baseRing: number[][] | null = null;
   let renderRing: number[][] | null = null;
   let featureData: GeoJSON.Feature<GeoJSON.Polygon> | null = null;
-  let pointData: GeoJSON.Feature<GeoJSON.Point> | null = null;
   let currentHeading = 0;
 
   function ensureAccuracyLayer() {
@@ -90,14 +106,9 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     if (props.map.getSource(LOCATION_SOURCE_ID) && props.map.getLayer(LOCATION_LAYER_ID)) return;
 
     if (!props.map.getSource(LOCATION_SOURCE_ID)) {
-      pointData = {
-        type: 'Feature',
-        properties: { heading: currentHeading },
-        geometry: { type: 'Point', coordinates: [0, 0] },
-      };
       props.map.addSource(LOCATION_SOURCE_ID, {
         type: 'geojson',
-        data: pointData,
+        data: makePointFeature(0, 0, currentHeading),
       });
     }
 
@@ -117,6 +128,10 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
         },
       });
     }
+  }
+
+  function getLocSource(): maplibregl.GeoJSONSource | undefined {
+    return props.map.getSource(LOCATION_SOURCE_ID) as maplibregl.GeoJSONSource | undefined;
   }
 
   function renderState(s: LocationState) {
@@ -143,18 +158,7 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     }
 
     accSource?.setData(featureData!);
-
-    const locSource = props.map.getSource(LOCATION_SOURCE_ID) as
-      | maplibregl.GeoJSONSource
-      | undefined;
-    if (locSource) {
-      locSource.setData({
-        type: 'Feature',
-        properties: { heading: currentHeading },
-        geometry: { type: 'Point', coordinates: [s.lng, s.lat] },
-      });
-    }
-
+    getLocSource()?.setData(makePointFeature(s.lng, s.lat, currentHeading));
     setMarkerPosition({ lng: s.lng, lat: s.lat });
   }
 
@@ -217,7 +221,6 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
     baseRing = null;
     renderRing = null;
     featureData = null;
-    pointData = null;
     setMarkerPosition(null);
 
     if (props.map.getLayer(LOCATION_LAYER_ID)) {
@@ -256,51 +259,21 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
   }
 
   function updateHeading() {
-    const h = gpsHeading();
-    currentHeading = h ?? 0;
-
-    if (!currentState) return;
-
-    const locSource = props.map.getSource(LOCATION_SOURCE_ID) as
-      | maplibregl.GeoJSONSource
-      | undefined;
-    if (locSource) {
-      locSource.setData({
-        type: 'Feature',
-        properties: { heading: currentHeading },
-        geometry: { type: 'Point', coordinates: [currentState.lng, currentState.lat] },
-      });
+    currentHeading = gpsHeading() ?? 0;
+    if (currentState) {
+      getLocSource()?.setData(makePointFeature(currentState.lng, currentState.lat, currentHeading));
     }
   }
 
-  createEffect(() => {
-    gpsPosition();
-    sync();
-  });
+  createEffect(sync);
 
-  createEffect(() => {
-    gpsHeading();
-    updateHeading();
-  });
+  createEffect(updateHeading);
 
   props.map.on('styledata', sync);
 
   onCleanup(() => {
     props.map.off('styledata', sync);
-    if (animFrameId !== null) cancelAnimationFrame(animFrameId);
-
-    if (props.map.getLayer(LOCATION_LAYER_ID)) {
-      props.map.removeLayer(LOCATION_LAYER_ID);
-    }
-    if (props.map.getSource(LOCATION_SOURCE_ID)) {
-      props.map.removeSource(LOCATION_SOURCE_ID);
-    }
-    const accSource = props.map.getSource(ACCURACY_SOURCE_ID) as
-      | maplibregl.GeoJSONSource
-      | undefined;
-    if (accSource) {
-      accSource.setData({ type: 'FeatureCollection', features: [] });
-    }
+    clearAll();
   });
 
   return null;
