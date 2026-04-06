@@ -278,8 +278,8 @@ const PinEditor: Component<PinEditorProps> = (props) => {
                         src={getMarkerIconPath(c, 'arrow')}
                         alt={c}
                         style={{
-                          width: '36px',
-                          height: '48px',
+                          width: '30px',
+                          height: '40px',
                           transform: `rotate(${bearingDegrees()}deg)`,
                         }}
                       />
@@ -315,8 +315,8 @@ const PinEditor: Component<PinEditorProps> = (props) => {
                     src={getMarkerIconPath(color(), 'arrow')}
                     alt=""
                     style={{
-                      width: '48px',
-                      height: '64px',
+                      width: '38px',
+                      height: '51px',
                       transform: `rotate(${bearingDegrees()}deg)`,
                       transition: 'transform 0.15s ease',
                     }}

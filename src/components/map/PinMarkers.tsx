@@ -105,7 +105,7 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
         source: ARROW_SOURCE_ID,
         layout: {
           'icon-image': ['concat', IMAGE_PREFIX, ['get', 'color']],
-          'icon-size': 1,
+          'icon-size': 0.8,
           'icon-rotate': ['get', 'bearing'],
           'icon-rotation-alignment': 'map',
           'icon-pitch-alignment': 'map',
