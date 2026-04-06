@@ -33,7 +33,7 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
             resolve();
             return;
           }
-          const img = new Image(48, 96);
+          const img = new Image(36, 48);
           img.onload = () => {
             if (!props.map.hasImage(id)) {
               props.map.addImage(id, img);
@@ -105,7 +105,7 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
         source: ARROW_SOURCE_ID,
         layout: {
           'icon-image': ['concat', IMAGE_PREFIX, ['get', 'color']],
-          'icon-size': 0.5,
+          'icon-size': 1,
           'icon-rotate': ['get', 'bearing'],
           'icon-rotation-alignment': 'map',
           'icon-pitch-alignment': 'map',
