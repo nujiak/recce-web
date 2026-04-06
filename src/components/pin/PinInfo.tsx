@@ -22,7 +22,10 @@ const PinInfo: Component = () => {
     if (!p) return;
     setViewingPin(null);
     setActiveNav('map');
-    window.dispatchEvent(new CustomEvent('mapFlyTo', { detail: { lat: p.lat, lng: p.lng } }));
+    const bearing = p.markerType === 'arrow' ? p.bearing : undefined;
+    window.dispatchEvent(
+      new CustomEvent('mapFlyTo', { detail: { lat: p.lat, lng: p.lng, bearing } })
+    );
   }
 
   function openEdit() {

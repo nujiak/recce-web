@@ -1,4 +1,4 @@
-import type { PinColor } from '../types';
+import type { PinColor, MarkerType } from '../types';
 
 /** CSS variable references — use in JSX style props */
 export const PIN_COLOR_CSS: Record<PinColor, string> = {
@@ -19,3 +19,25 @@ export const PIN_COLOR_HEX: Record<PinColor, string> = {
 };
 
 export const PIN_COLORS: PinColor[] = ['red', 'orange', 'green', 'azure', 'violet'];
+
+export const PIN_ICON_PATH: Record<PinColor, string> = {
+  red: '/icons/pin-red.svg',
+  orange: '/icons/pin-orange.svg',
+  green: '/icons/pin-green.svg',
+  azure: '/icons/pin-azure.svg',
+  violet: '/icons/pin-violet.svg',
+};
+
+export const ARROW_ICON_PATH: Record<PinColor, string> = {
+  red: '/icons/arrow-red.svg',
+  orange: '/icons/arrow-orange.svg',
+  green: '/icons/arrow-green.svg',
+  azure: '/icons/arrow-azure.svg',
+  violet: '/icons/arrow-violet.svg',
+};
+
+export const MARKER_TYPES: MarkerType[] = ['pin', 'arrow'];
+
+export function getMarkerIconPath(color: PinColor, markerType: MarkerType): string {
+  return markerType === 'arrow' ? ARROW_ICON_PATH[color] : PIN_ICON_PATH[color];
+}

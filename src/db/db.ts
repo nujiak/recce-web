@@ -11,6 +11,20 @@ class RecceDatabase extends Dexie {
       pins: '++id, createdAt, name, lat, lng, color, group, description',
       tracks: '++id, createdAt, name, isCyclical, color, group, description',
     });
+    this.version(3)
+      .stores({
+        pins: '++id, createdAt, name, lat, lng, color, markerType, group, description',
+        tracks: '++id, createdAt, name, isCyclical, color, group, description',
+      })
+      .upgrade((tx) => {
+        return tx
+          .table('pins')
+          .toCollection()
+          .modify((pin) => {
+            if (!pin.markerType) pin.markerType = 'pin';
+            if (pin.bearing == null) pin.bearing = 0;
+          });
+      });
   }
 }
 
