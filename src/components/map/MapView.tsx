@@ -148,10 +148,10 @@ const MapView: Component = () => {
 
     // Listen for flyTo events from PlotControls / PinInfo / TrackInfo
     function handleFlyTo(e: Event) {
-      const { lat, lng } = (e as CustomEvent).detail;
+      const { lat, lng, bearing } = (e as CustomEvent).detail;
       // External flyTo breaks follow mode
       setLocationMode((m) => (m === 'following' || m === 'following-bearing' ? 'available' : m));
-      map.flyTo({ center: [lng, lat], zoom: 15 });
+      map.flyTo({ center: [lng, lat], zoom: 15, ...(bearing != null && { bearing }) });
     }
     function handleFitBounds(e: Event) {
       const { bounds } = (e as CustomEvent<{ bounds: [[number, number], [number, number]] }>)
