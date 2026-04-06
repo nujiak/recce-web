@@ -20,6 +20,7 @@ export interface Pin {
   lng: number;
   color: PinColor;
   markerType: MarkerType;
+  bearing: number;
   group: string;
   description: string;
 }

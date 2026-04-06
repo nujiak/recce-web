@@ -81,6 +81,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
       lng,
       color: 'red',
       markerType: 'pin',
+      bearing: 0,
       group: '',
       description: '',
       createdAt: Date.now(),

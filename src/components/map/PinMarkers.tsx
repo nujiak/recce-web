@@ -106,6 +106,7 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
         layout: {
           'icon-image': ['concat', IMAGE_PREFIX, ['get', 'color']],
           'icon-size': 0.5,
+          'icon-rotate': ['get', 'bearing'],
           'icon-rotation-alignment': 'map',
           'icon-pitch-alignment': 'map',
           'icon-allow-overlap': true,
@@ -116,7 +117,7 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
 
     const features = arrowPins.map((p) => ({
       type: 'Feature' as const,
-      properties: { color: p.color, pinId: p.id },
+      properties: { color: p.color, pinId: p.id, bearing: p.bearing ?? 0 },
       geometry: { type: 'Point' as const, coordinates: [p.lng, p.lat] },
     }));
 
