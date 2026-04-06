@@ -219,7 +219,6 @@ const PinEditor: Component<PinEditorProps> = (props) => {
                       onClick={() => {
                         setColor(c);
                         setMarkerType('pin');
-                        setMarkerPickerOpen(false);
                       }}
                       style={{
                         background: 'none',
@@ -260,7 +259,6 @@ const PinEditor: Component<PinEditorProps> = (props) => {
                       onClick={() => {
                         setColor(c);
                         setMarkerType('arrow');
-                        setMarkerPickerOpen(false);
                       }}
                       style={{
                         background: 'none',
@@ -282,10 +280,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
                         style={{
                           width: '24px',
                           height: '32px',
-                          transform:
-                            color() === c && markerType() === 'arrow'
-                              ? `rotate(${bearingDegrees()}deg)`
-                              : undefined,
+                          transform: `rotate(${bearingDegrees()}deg)`,
                         }}
                       />
                     </button>
@@ -296,12 +291,18 @@ const PinEditor: Component<PinEditorProps> = (props) => {
 
             <Show when={markerType() === 'arrow'}>
               <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-                <TextField
-                  label={`Bearing (0-${prefs.angleUnit === 'mils' ? '6400' : '360'})`}
-                  value={bearingInput()}
-                  onChange={setBearingInput}
-                  placeholder={prefs.angleUnit === 'mils' ? '0–6400' : '0–360'}
-                />
+                <div
+                  onKeyDown={(e: KeyboardEvent) => {
+                    if (e.key === 'Enter') e.preventDefault();
+                  }}
+                >
+                  <TextField
+                    label={`Bearing (0-${prefs.angleUnit === 'mils' ? '6400' : '360'})`}
+                    value={bearingInput()}
+                    onChange={setBearingInput}
+                    placeholder={prefs.angleUnit === 'mils' ? '0–6400' : '0–360'}
+                  />
+                </div>
                 <div
                   style={{
                     display: 'flex',
@@ -323,6 +324,14 @@ const PinEditor: Component<PinEditorProps> = (props) => {
                 </div>
               </div>
             </Show>
+
+            <Button
+              variant="primary"
+              onClick={() => setMarkerPickerOpen(false)}
+              style={{ width: '100%' }}
+            >
+              Select
+            </Button>
           </div>
         </Dialog>
 
