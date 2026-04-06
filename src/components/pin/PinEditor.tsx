@@ -258,7 +258,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
                       <img
                         src={getMarkerIconPath(c, 'arrow')}
                         alt={c}
-                        style={{ width: '24px', height: '48px' }}
+                        style={{ width: '24px', height: '32px' }}
                       />
                     </button>
                   )}
