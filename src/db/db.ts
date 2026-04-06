@@ -35,10 +35,7 @@ export async function getAllPins(): Promise<Pin[]> {
 }
 
 export async function addPin(pin: Omit<Pin, 'id'>): Promise<number> {
-  const data = { ...pin };
-  if (!data.markerType) (data as Record<string, unknown>).markerType = 'pin';
-  if (data.bearing == null) (data as Record<string, unknown>).bearing = 0;
-  return db.pins.add(data as Pin);
+  return db.pins.add(pin as Pin);
 }
 
 export async function updatePin(id: number, changes: Partial<Pin>): Promise<number> {

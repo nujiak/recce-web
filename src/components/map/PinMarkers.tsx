@@ -1,13 +1,12 @@
 import { Component, createEffect, onCleanup } from 'solid-js';
 import maplibregl from 'maplibre-gl';
 import { useUI } from '../../context/UIContext';
-import { getMarkerIconPath, PIN_COLOR_HEX } from '../../utils/colors';
+import { getMarkerIconPath } from '../../utils/colors';
 import type { Pin, PinColor } from '../../types';
 
 const ARROW_SOURCE_ID = 'arrow-markers';
 const ARROW_LAYER_ID = 'arrow-markers-layer';
 const IMAGE_PREFIX = 'arrow-icon-';
-const ANCHOR_LAYER_ID = 'arrow-anchors-layer';
 
 function arrowImageId(color: PinColor): string {
   return `${IMAGE_PREFIX}${color}`;
@@ -48,13 +47,8 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
     imagesLoaded = true;
   }
 
-  function getPinIcon(color: PinColor): string {
-    return getMarkerIconPath(color, 'pin');
-  }
-
   function syncMarkers() {
     const currentPins = props.pins;
-    const currentIds = new Set(currentPins.map((p) => p.id));
     const arrowPins = currentPins.filter((p) => p.markerType === 'arrow');
     const pinPins = currentPins.filter((p) => p.markerType !== 'arrow');
 
@@ -130,7 +124,7 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
   function createMarkerEl(pin: Pin): HTMLDivElement {
     const el = document.createElement('div');
     const img = document.createElement('img');
-    img.src = getPinIcon(pin.color);
+    img.src = getMarkerIconPath(pin.color, 'pin');
     img.width = 48;
     img.height = 48;
     img.alt = pin.name;
@@ -145,19 +139,17 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
     return el;
   }
 
-  function setupArrowClick() {
-    props.map.on('click', ARROW_LAYER_ID, (e) => {
-      const pinId = e.features?.[0]?.properties?.pinId as number | undefined;
-      if (pinId == null) return;
-      const pin = props.pins.find((p) => p.id === pinId);
-      if (pin) setViewingPin(pin);
-    });
+  function onArrowClick(e: maplibregl.MapLayerMouseEvent) {
+    const pinId = e.features?.[0]?.properties?.pinId as number | undefined;
+    if (pinId == null) return;
+    const pin = props.pins.find((p) => p.id === pinId);
+    if (pin) setViewingPin(pin);
   }
 
-  async function fullSync() {
+  async function reloadArrowLayer() {
+    imagesLoaded = false;
     await loadArrowImages();
     syncMarkers();
-    setupArrowClick();
   }
 
   createEffect(() => {
@@ -165,15 +157,14 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
     syncMarkers();
   });
 
-  props.map.on('styledata', () => {
-    imagesLoaded = false;
-    fullSync();
-  });
+  props.map.on('styledata', reloadArrowLayer);
+  props.map.on('click', ARROW_LAYER_ID, onArrowClick);
 
-  fullSync();
+  reloadArrowLayer();
 
   onCleanup(() => {
-    props.map.off('styledata', fullSync);
+    props.map.off('styledata', reloadArrowLayer);
+    props.map.off('click', onArrowClick);
     markerMap.forEach((m) => m.remove());
     markerMap.clear();
     if (props.map.getLayer(ARROW_LAYER_ID)) props.map.removeLayer(ARROW_LAYER_ID);
