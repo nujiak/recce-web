@@ -188,6 +188,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
                 height: '20px',
                 'flex-shrink': 0,
                 transform: markerType() === 'arrow' ? `rotate(${bearingDegrees()}deg)` : undefined,
+                transition: 'transform 0.15s ease',
               }}
             />
             <span style={{ 'text-transform': 'capitalize' }}>
@@ -281,6 +282,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
                           width: '30px',
                           height: '40px',
                           transform: `rotate(${bearingDegrees()}deg)`,
+                          transition: 'transform 0.15s ease',
                         }}
                       />
                     </button>
