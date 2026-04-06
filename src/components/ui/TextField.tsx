@@ -10,6 +10,8 @@ interface TextFieldProps {
   maxLength?: number;
   type?: string;
   class?: string;
+  disabled?: boolean;
+  onDisabledClick?: () => void;
 }
 
 const TextField: Component<TextFieldProps> = (props) => {
@@ -41,6 +43,10 @@ const TextField: Component<TextFieldProps> = (props) => {
           outline: 2px solid var(--color-accent);
           outline-offset: -1px;
         }
+        .ui-tf-input:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
         .ui-tf-textarea {
           width: 100%;
           background: var(--color-bg-secondary);
@@ -61,6 +67,10 @@ const TextField: Component<TextFieldProps> = (props) => {
           outline: 2px solid var(--color-accent);
           outline-offset: -1px;
         }
+        .ui-tf-textarea:disabled {
+          opacity: 0.4;
+          cursor: not-allowed;
+        }
       `}</style>
       <KobalteTextField value={props.value} onChange={props.onChange} class={props.class}>
         <Show when={props.label}>
@@ -73,6 +83,8 @@ const TextField: Component<TextFieldProps> = (props) => {
               class="ui-tf-textarea"
               placeholder={props.placeholder}
               maxLength={props.maxLength}
+              disabled={props.disabled}
+              onClick={props.disabled ? () => props.onDisabledClick?.() : undefined}
             />
           }
         >
@@ -81,6 +93,8 @@ const TextField: Component<TextFieldProps> = (props) => {
             type={props.type ?? 'text'}
             placeholder={props.placeholder}
             maxLength={props.maxLength}
+            disabled={props.disabled}
+            onClick={props.disabled ? () => props.onDisabledClick?.() : undefined}
           />
         </Show>
       </KobalteTextField>
