@@ -1,4 +1,5 @@
 export type PinColor = 'red' | 'orange' | 'green' | 'azure' | 'violet';
+export type MarkerType = 'pin' | 'arrow';
 export type CoordinateSystem = 'WGS84' | 'UTM' | 'MGRS' | 'BNG' | 'QTH' | 'KERTAU';
 export type AngleUnit = 'degrees' | 'mils';
 export type LengthUnit = 'metric' | 'imperial' | 'nautical';
@@ -18,6 +19,7 @@ export interface Pin {
   lat: number;
   lng: number;
   color: PinColor;
+  markerType: MarkerType;
   group: string;
   description: string;
 }

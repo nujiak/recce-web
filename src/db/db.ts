@@ -11,6 +11,19 @@ class RecceDatabase extends Dexie {
       pins: '++id, createdAt, name, lat, lng, color, group, description',
       tracks: '++id, createdAt, name, isCyclical, color, group, description',
     });
+    this.version(3)
+      .stores({
+        pins: '++id, createdAt, name, lat, lng, color, markerType, group, description',
+        tracks: '++id, createdAt, name, isCyclical, color, group, description',
+      })
+      .upgrade((tx) => {
+        return tx
+          .table('pins')
+          .toCollection()
+          .modify((pin) => {
+            if (!pin.markerType) pin.markerType = 'pin';
+          });
+      });
   }
 }
 
@@ -21,7 +34,9 @@ export async function getAllPins(): Promise<Pin[]> {
 }
 
 export async function addPin(pin: Omit<Pin, 'id'>): Promise<number> {
-  return db.pins.add(pin as Pin);
+  const data = { ...pin };
+  if (!data.markerType) (data as Record<string, unknown>).markerType = 'pin';
+  return db.pins.add(data as Pin);
 }
 
 export async function updatePin(id: number, changes: Partial<Pin>): Promise<number> {

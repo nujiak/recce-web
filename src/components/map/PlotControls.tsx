@@ -80,6 +80,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
       lat,
       lng,
       color: 'red',
+      markerType: 'pin',
       group: '',
       description: '',
       createdAt: Date.now(),

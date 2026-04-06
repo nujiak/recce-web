@@ -5,9 +5,8 @@ import { usePrefs } from '../../context/PrefsContext';
 import { addPin, updatePin, deletePin } from '../../db/db';
 import { showToast } from '../ui/Toast';
 import { SYSTEM_NAMES } from '../../coords/index';
-import { PIN_COLORS } from '../../utils/colors';
-import { PIN_ICON_PATH } from '../../utils/colors';
-import type { PinColor } from '../../types';
+import { PIN_COLORS, ARROW_ICON_PATH, getMarkerIconPath } from '../../utils/colors';
+import type { PinColor, MarkerType } from '../../types';
 import Dialog from '../ui/Dialog';
 import TextField from '../ui/TextField';
 import Button from '../ui/Button';
@@ -26,6 +25,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
   const [coordInput, setCoordInput] = createSignal('');
   const [coordError, setCoordError] = createSignal('');
   const [color, setColor] = createSignal<PinColor>('red');
+  const [markerType, setMarkerType] = createSignal<MarkerType>('pin');
   const [markerPickerOpen, setMarkerPickerOpen] = createSignal(false);
   const [group, setGroup] = createSignal('');
   const [description, setDescription] = createSignal('');
@@ -36,6 +36,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
       setName(p.name);
       setCoordInput(CoordinateTransformer.toDisplay(p.lat, p.lng, prefs.coordinateSystem) ?? '');
       setColor(p.color);
+      setMarkerType(p.markerType ?? 'pin');
       setGroup(p.group);
       setDescription(p.description);
     } else {
@@ -43,6 +44,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
       setCoordInput('');
       setCoordError('');
       setColor('red');
+      setMarkerType('pin');
       setGroup('');
       setDescription('');
     }
@@ -77,6 +79,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
       lat: coord.lat,
       lng: coord.lng,
       color: color(),
+      markerType: markerType(),
       group: group().trim(),
       description: description().trim(),
       createdAt: existing?.createdAt ?? Date.now(),
@@ -162,11 +165,13 @@ const PinEditor: Component<PinEditorProps> = (props) => {
             }}
           >
             <img
-              src={PIN_ICON_PATH[color()]}
+              src={getMarkerIconPath(color(), markerType())}
               alt=""
               style={{ width: '20px', height: '20px', 'flex-shrink': 0 }}
             />
-            <span style={{ 'text-transform': 'capitalize' }}>{color()}</span>
+            <span style={{ 'text-transform': 'capitalize' }}>
+              {color()} {markerType()}
+            </span>
           </button>
         </div>
 
@@ -174,36 +179,92 @@ const PinEditor: Component<PinEditorProps> = (props) => {
           <div
             style={{
               display: 'flex',
-              gap: '8px',
-              'justify-content': 'center',
+              'flex-direction': 'column',
+              gap: '16px',
               'margin-top': '0.75rem',
             }}
           >
-            <For each={PIN_COLORS}>
-              {(c) => (
-                <button
-                  type="button"
-                  aria-label={c}
-                  aria-pressed={color() === c}
-                  onClick={() => {
-                    setColor(c);
-                    setMarkerPickerOpen(false);
-                  }}
-                  style={{
-                    background: 'none',
-                    border: color() === c ? '2px solid var(--color-text)' : '2px solid transparent',
-                    'border-radius': '8px',
-                    padding: '8px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    'align-items': 'center',
-                    'justify-content': 'center',
-                  }}
-                >
-                  <img src={PIN_ICON_PATH[c]} alt={c} style={{ width: '36px', height: '36px' }} />
-                </button>
-              )}
-            </For>
+            <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
+              <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+                Pins
+              </span>
+              <div style={{ display: 'flex', gap: '8px', 'justify-content': 'center' }}>
+                <For each={PIN_COLORS}>
+                  {(c) => (
+                    <button
+                      type="button"
+                      aria-label={`${c} pin`}
+                      aria-pressed={color() === c && markerType() === 'pin'}
+                      onClick={() => {
+                        setColor(c);
+                        setMarkerType('pin');
+                        setMarkerPickerOpen(false);
+                      }}
+                      style={{
+                        background: 'none',
+                        border:
+                          color() === c && markerType() === 'pin'
+                            ? '2px solid var(--color-text)'
+                            : '2px solid transparent',
+                        'border-radius': '8px',
+                        padding: '8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        'align-items': 'center',
+                        'justify-content': 'center',
+                      }}
+                    >
+                      <img
+                        src={getMarkerIconPath(c, 'pin')}
+                        alt={c}
+                        style={{ width: '36px', height: '36px' }}
+                      />
+                    </button>
+                  )}
+                </For>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
+              <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+                Arrows
+              </span>
+              <div style={{ display: 'flex', gap: '8px', 'justify-content': 'center' }}>
+                <For each={PIN_COLORS}>
+                  {(c) => (
+                    <button
+                      type="button"
+                      aria-label={`${c} arrow`}
+                      aria-pressed={color() === c && markerType() === 'arrow'}
+                      onClick={() => {
+                        setColor(c);
+                        setMarkerType('arrow');
+                        setMarkerPickerOpen(false);
+                      }}
+                      style={{
+                        background: 'none',
+                        border:
+                          color() === c && markerType() === 'arrow'
+                            ? '2px solid var(--color-text)'
+                            : '2px solid transparent',
+                        'border-radius': '8px',
+                        padding: '8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        'align-items': 'center',
+                        'justify-content': 'center',
+                      }}
+                    >
+                      <img
+                        src={getMarkerIconPath(c, 'arrow')}
+                        alt={c}
+                        style={{ width: '24px', height: '48px' }}
+                      />
+                    </button>
+                  )}
+                </For>
+              </div>
+            </div>
           </div>
         </Dialog>
 
