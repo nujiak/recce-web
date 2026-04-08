@@ -126,6 +126,12 @@ const GpsTracker: Component = () => {
 
   onMount(() => {
     if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => setGpsPosition(pos.coords),
+        () => {},
+        { enableHighAccuracy: false, maximumAge: 60_000, timeout: 5_000 }
+      );
+
       watchId = navigator.geolocation.watchPosition(
         (pos) => setGpsPosition(pos.coords),
         () => {},
