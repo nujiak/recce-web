@@ -4,6 +4,8 @@ import { SYSTEM_NAMES } from '../../coords/index';
 import type { CoordinateSystem, AngleUnit, LengthUnit, Theme } from '../../types';
 import Select from '../ui/Select';
 
+const REPO_URL = 'https://github.com/nujiak/recce-web';
+
 const SettingsPanel: Component = () => {
   const [prefs, setPrefs] = usePrefs();
 
@@ -96,6 +98,40 @@ const SettingsPanel: Component = () => {
           {prefs.followPitch ? 'toggle_on' : 'toggle_off'}
         </span>
       </button>
+
+      <a
+        href={`${REPO_URL}/releases`}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'flex',
+          'align-items': 'center',
+          'justify-content': 'space-between',
+          padding: '0.5rem 0.75rem',
+          background: 'var(--color-bg-secondary)',
+          border: '1px solid var(--color-border)',
+          'border-radius': '8px',
+          color: 'var(--color-text)',
+          'text-decoration': 'none',
+          cursor: 'pointer',
+          'font-size': 'inherit',
+        }}
+      >
+        <span>Version</span>
+        <span
+          style={{
+            display: 'flex',
+            'align-items': 'center',
+            gap: '4px',
+            color: 'var(--color-text-secondary)',
+          }}
+        >
+          v{__APP_VERSION__}
+          <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+            open_in_new
+          </span>
+        </span>
+      </a>
     </div>
   );
 };
