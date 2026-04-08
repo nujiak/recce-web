@@ -251,6 +251,23 @@ const MapView: Component = () => {
     }
   });
 
+  // One-shot: fly to user's location on first GPS fix after map loads
+  let hasFlownToInitialLocation = false;
+  createEffect(() => {
+    const map = mapInstance();
+    const pos = gpsPosition();
+    if (!map || !pos || hasFlownToInitialLocation) return;
+
+    hasFlownToInitialLocation = true;
+    const zoom = Math.min(17, Math.max(9, 17 - Math.log2(pos.accuracy / 10)));
+    programmaticMove = true;
+    map.flyTo({ center: [pos.longitude, pos.latitude], zoom });
+    if (programmaticMoveTimer) clearTimeout(programmaticMoveTimer);
+    programmaticMoveTimer = setTimeout(() => {
+      programmaticMove = false;
+    }, 2000);
+  });
+
   // Follow GPS position
   // Uses markerPosition (the animated marker's current position) so the map
   // tracks the marker frame-by-frame instead of racing ahead with a separate easeTo.
