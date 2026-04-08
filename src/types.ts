@@ -2,6 +2,12 @@ export type PinColor = 'red' | 'orange' | 'green' | 'azure' | 'violet';
 export type MarkerType = 'pin' | 'arrow';
 export type CoordinateSystem = 'WGS84' | 'UTM' | 'MGRS' | 'BNG' | 'QTH' | 'KERTAU';
 export type AngleUnit = 'degrees' | 'mils';
+
+export const ANGLE_UNIT_OPTIONS: { value: AngleUnit; label: string }[] = [
+  { value: 'degrees', label: 'Degrees (0-360)' },
+  { value: 'mils', label: 'NATO Mils (0-6400)' },
+];
+
 export type LengthUnit = 'metric' | 'imperial' | 'nautical';
 export type Theme = 'light' | 'dark' | 'system';
 export type MapStyle = 'default' | 'satellite';
