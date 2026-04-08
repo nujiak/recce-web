@@ -54,6 +54,7 @@ const Select_: Component<SelectProps> = (props) => {
         .ui-select-trigger[data-expanded] {
           border-color: var(--color-accent);
         }
+
         .ui-select-value {
           flex: 1;
           min-width: 0;
