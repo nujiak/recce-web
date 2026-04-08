@@ -3,6 +3,7 @@ import { Select } from '@kobalte/core/select';
 import { usePrefs } from '../../context/PrefsContext';
 import { SYSTEM_NAMES } from '../../coords/index';
 import type { CoordinateSystem, AngleUnit, LengthUnit, Theme } from '../../types';
+import { ANGLE_UNIT_OPTIONS } from '../../types';
 
 const REPO_URL = 'https://github.com/nujiak/recce-web';
 
@@ -357,10 +358,7 @@ const SettingsPanel: Component = () => {
             label="Angle Unit"
             value={prefs.angleUnit}
             onChange={(v) => setPrefs('angleUnit', v as AngleUnit)}
-            options={[
-              { value: 'degrees', label: 'Degrees' },
-              { value: 'mils', label: 'Mils' },
-            ]}
+            options={ANGLE_UNIT_OPTIONS}
           />
           <RowDivider />
           <SettingSelectRow

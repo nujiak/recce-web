@@ -2,6 +2,7 @@ import { Component, createSignal, For } from 'solid-js';
 import { usePrefs } from '../../context/PrefsContext';
 import { SYSTEM_NAMES } from '../../coords/index';
 import type { AngleUnit, CoordinateSystem, LengthUnit, Theme } from '../../types';
+import { ANGLE_UNIT_OPTIONS } from '../../types';
 import Dialog from '../ui/Dialog';
 import Select from '../ui/Select';
 import Button from '../ui/Button';
@@ -19,11 +20,6 @@ const lengthOptions = [
   { value: 'metric', label: 'Metric (km / m)' },
   { value: 'imperial', label: 'Imperial (mi / ft)' },
   { value: 'nautical', label: 'Nautical (nm)' },
-];
-
-const angleOptions = [
-  { value: 'degrees', label: 'Degrees (0-360)' },
-  { value: 'mils', label: 'NATO Mils (0-6400)' },
 ];
 
 const themeOptions = [
@@ -69,7 +65,7 @@ const OnboardingFlow: Component = () => {
           label="Angle Unit"
           value={prefs.angleUnit}
           onChange={(v) => setPrefs('angleUnit', v as AngleUnit)}
-          options={angleOptions}
+          options={ANGLE_UNIT_OPTIONS}
         />
       ),
     },
