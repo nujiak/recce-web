@@ -22,6 +22,59 @@
 - Branch naming: `type/description` (e.g. `feature/track-creation`, `fix/coord-display`)
 - Verify author before amending; never amend pushed commits
 
+## Versioning & Changelog
+
+The project uses `semantic-release` to automate versioning and GitHub Releases on every push to `main`. **All commit messages must follow [Conventional Commits](https://www.conventionalcommits.org/).**
+
+### Commit Message Format
+
+```
+type(scope): description
+
+[optional body]
+```
+
+### Types and Version Impact
+
+| Type       | Version bump | Example                                        |
+| ---------- | ------------ | ---------------------------------------------- |
+| `feat`     | **minor**    | `feat: add PWA install step to onboarding`     |
+| `fix`      | **patch**    | `fix: reduce location marker appearance delay` |
+| `perf`     | **patch**    | `perf: debounce map redraw on track edit`      |
+| `refactor` | none         | `refactor: migrate UI to Kobalte`              |
+| `docs`     | none         | `docs: update AGENTS.md with versioning rules` |
+| `style`    | none         | `style: align tailwind classes in PinEditor`   |
+| `test`     | none         | `test: add coordinate conversion edge cases`   |
+| `chore`    | none         | `chore: bump devDependencies`                  |
+| `ci`       | none         | `ci: add lint step to release workflow`        |
+
+### Breaking Changes
+
+Add `BREAKING CHANGE:` (or `BREAKING CHANGE <scope>:`) in the commit body or footer to trigger a **major** version bump:
+
+```
+feat: drop support for legacy share-code format
+
+BREAKING CHANGE: share codes from versions <0.3.0 will no longer parse
+```
+
+### Scope (optional)
+
+Use a parenthesised scope after the type to indicate the area affected:
+
+```
+feat(map): add hybrid satellite basemap toggle
+fix(gps): attach listeners after iOS compass permission grant
+```
+
+### Rules
+
+- Use **imperative mood**, lowercase, no trailing period: `add feature` not `Added feature` or `adds feature.`
+- Keep the subject line under **72 characters**
+- One logical change per commit; do not mix `feat` and `fix` in the same commit
+- Commits with `chore` / `refactor` / `docs` / `style` / `test` / `ci` alone will **not** trigger a release
+- The `chore(release):` commits created by `semantic-release` include `[skip ci]` and must not be edited
+
 ## Pull Requests
 
 - Explain context/motivation; describe solution approach
