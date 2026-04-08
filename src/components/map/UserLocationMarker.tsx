@@ -1,4 +1,4 @@
-import { Component, createEffect, onCleanup } from 'solid-js';
+import { Component, createEffect, onCleanup, onMount } from 'solid-js';
 import maplibregl from 'maplibre-gl';
 import circle from '@turf/circle';
 import { gpsPosition, gpsHeading, setMarkerPosition } from '../../stores/gps';
@@ -264,6 +264,10 @@ const UserLocationMarker: Component<UserLocationMarkerProps> = (props) => {
       getLocSource()?.setData(makePointFeature(currentState.lng, currentState.lat, currentHeading));
     }
   }
+
+  onMount(() => {
+    loadImageOnce(props.map);
+  });
 
   createEffect(sync);
 
