@@ -40,7 +40,7 @@ const BottomNav: Component = () => {
               gap: '2px',
               'min-height': '56px',
               'min-width': '48px',
-              background: 'none',
+              background: activeNav() === tab.key ? 'var(--color-accent-bg)' : 'none',
               border: 'none',
               cursor: 'pointer',
               color:
