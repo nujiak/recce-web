@@ -60,10 +60,11 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
         trigger={
           <div
             style={{
-              height: '40px',
+              height: '48px',
+              'min-width': '48px',
               background: 'var(--color-bg-secondary)',
               border: '1px solid var(--color-border)',
-              'border-radius': '20px',
+              'border-radius': '0px',
               cursor: 'pointer',
               display: 'grid',
               'grid-template-columns': props.bearing !== 0 ? '64px 24px' : '0px 24px',
