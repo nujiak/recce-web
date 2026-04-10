@@ -29,9 +29,6 @@ const Accordion_: Component<AccordionProps> = (props) => {
         .ui-accordion-item + .ui-accordion-item .ui-accordion-trigger {
           border-top: 1px solid var(--color-border-subtle, var(--color-border));
         }
-        .ui-accordion-item + .ui-accordion-item .ui-accordion-trigger {
-          border-top: 1px solid var(--color-border);
-        }
         .ui-accordion-item:not(:last-child) .ui-accordion-trigger {
           border-bottom: 1px solid var(--color-border);
         }
@@ -40,22 +37,24 @@ const Accordion_: Component<AccordionProps> = (props) => {
           justify-content: space-between;
           align-items: center;
           width: 100%;
-          padding: 11px 16px;
+          min-height: 48px;
+          padding: 0 12px;
           color: var(--color-text);
-          font-weight: 600;
-          font-size: 0.8125rem;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
           font-family: inherit;
-          background: var(--color-bg-secondary);
+          background: transparent;
           border: none;
           cursor: pointer;
           outline: none;
           transition: background 0.15s ease, color 0.15s ease;
         }
         .ui-accordion-trigger:hover {
-          filter: brightness(0.97);
+          filter: none;
         }
         .ui-accordion-trigger[data-expanded] {
-          background: var(--color-accent-bg);
+          background: transparent;
           color: var(--color-accent);
         }
         .ui-accordion-trigger[data-expanded] .ui-accordion-chevron {
@@ -64,11 +63,10 @@ const Accordion_: Component<AccordionProps> = (props) => {
         .ui-accordion-trigger:focus-visible {
           outline: 2px solid var(--color-accent);
           outline-offset: -2px;
-          border-radius: var(--radius-md);
         }
         .ui-accordion-chevron {
           font-family: 'Material Symbols Outlined', sans-serif;
-          font-size: 14px;
+          font-size: 18px;
           color: var(--color-text-secondary);
           transition: transform 0.15s ease;
           flex-shrink: 0;
@@ -88,6 +86,8 @@ const Accordion_: Component<AccordionProps> = (props) => {
           overflow: hidden;
         }
         .ui-accordion-content-inner {
+          background: var(--color-bg);
+          padding: 12px;
           overflow-y: auto;
         }
       `}</style>
