@@ -95,6 +95,7 @@ const Dialog_: Component<DialogProps> = (props) => {
               overflow-y: auto;
               scrollbar-gutter: stable;
             }
+          }
           @keyframes ui-dialog-overlay-in {
             from { opacity: 0; }
             to { opacity: 1; }
