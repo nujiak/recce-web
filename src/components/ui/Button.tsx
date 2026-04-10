@@ -30,12 +30,15 @@ const Button: Component<ButtonProps> = (props) => {
         align-items: center;
         justify-content: center;
         gap: 0.375rem;
-        font-weight: 500;
         font-family: inherit;
         cursor: pointer;
-        transition: opacity 0.15s;
         border: none;
         outline: none;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        min-width: 48px;
+        min-height: 48px;
+        transition: background 0.15s, color 0.15s;
       }
       .ui-btn:focus-visible {
         outline: 2px solid var(--color-accent);
@@ -47,33 +50,41 @@ const Button: Component<ButtonProps> = (props) => {
       }
       .ui-btn--primary {
         background: var(--color-accent);
-        color: #fff;
-        border-radius: 8px;
+        color: oklch(0.07 0 0);
+        border-radius: 0px;
       }
       .ui-btn--ghost {
         background: transparent;
         color: var(--color-text);
         border: 1px solid var(--color-border);
-        border-radius: 8px;
+        border-radius: 0px;
+      }
+      .ui-btn--ghost:hover {
+        background: var(--color-accent-bg);
+        color: var(--color-accent);
       }
       .ui-btn--danger {
         background: var(--color-danger);
-        color: #fff;
-        border-radius: 8px;
+        color: oklch(0.95 0 0);
+        border-radius: 0px;
       }
       .ui-btn--icon {
         background: transparent;
         color: var(--color-text);
-        border-radius: 50%;
+        border-radius: 0px;
         padding: 0.375rem;
+      }
+      .ui-btn--icon:hover {
+        background: var(--color-accent-bg);
+        color: var(--color-accent);
       }
       .ui-btn--md {
         padding: 0.5rem 1rem;
-        font-size: 0.875rem;
+        font-size: 13px;
       }
       .ui-btn--sm {
         padding: 0.25rem 0.625rem;
-        font-size: 0.75rem;
+        font-size: 11px;
       }
     `}</style>
       <Root
