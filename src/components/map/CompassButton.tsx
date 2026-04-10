@@ -60,19 +60,18 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
         trigger={
           <div
             style={{
+              'box-sizing': 'border-box',
+              width: props.bearing !== 0 ? '112px' : '48px',
               height: '48px',
-              'min-width': '48px',
               background: 'var(--color-bg-secondary)',
               border: '1px solid var(--color-border)',
               'border-radius': '0px',
               cursor: 'pointer',
-              display: 'grid',
-              'grid-template-columns': props.bearing !== 0 ? '64px 24px' : '0px 24px',
+              display: 'flex',
               'align-items': 'center',
-              padding: '0 8px',
               'box-shadow': '0 2px 4px rgba(0,0,0,0.2)',
-              transition: 'grid-template-columns 0.3s ease',
               overflow: 'hidden',
+              transition: 'width 0.3s ease',
             }}
           >
             <span
@@ -81,17 +80,18 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
                 'font-weight': '600',
                 color: 'var(--color-text)',
                 'white-space': 'nowrap',
-                'min-width': '0',
                 overflow: 'hidden',
+                width: props.bearing !== 0 ? '64px' : '0px',
+                'text-align': 'center',
+                transition: 'width 0.3s ease',
               }}
             >
               {inverseBearing()}
             </span>
             <div
               style={{
-                position: 'relative',
-                width: '24px',
-                height: '24px',
+                width: '46px',
+                height: '46px',
                 'flex-shrink': '0',
                 display: 'flex',
                 'align-items': 'center',
@@ -101,7 +101,6 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
               <Needle
                 showLabel={false}
                 style={{
-                  position: 'absolute',
                   height: '22px',
                   'aspect-ratio': '1 / 1',
                   transform: `rotate(${-props.bearing}deg)`,
