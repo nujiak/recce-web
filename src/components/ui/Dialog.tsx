@@ -38,9 +38,9 @@ const Dialog_: Component<DialogProps> = (props) => {
             animation: ui-dialog-content-out 0.15s ease-in;
           }
           .ui-dialog-card {
-            background: var(--color-bg);
+            background: var(--color-bg-secondary);
             border: 1px solid var(--color-border);
-            border-radius: 12px;
+            border-radius: 0px;
             padding: 1.5rem;
             max-width: 480px;
             min-width: 360px;
@@ -50,9 +50,14 @@ const Dialog_: Component<DialogProps> = (props) => {
           }
           .ui-dialog-title {
             color: var(--color-text);
-            font-weight: 600;
-            font-size: 1.125rem;
+            font-weight: 400;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
             padding-right: 2rem;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 16px;
           }
           .ui-dialog-close {
             position: absolute;
@@ -62,17 +67,18 @@ const Dialog_: Component<DialogProps> = (props) => {
             border: none;
             cursor: pointer;
             color: var(--color-text-secondary);
-            width: 28px;
-            height: 28px;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
+            border-radius: 0px;
             font-family: 'Material Symbols Outlined', sans-serif;
             font-size: 20px;
           }
           .ui-dialog-close:hover {
-            background: var(--color-bg-secondary);
+            background: var(--color-accent-bg);
+            color: var(--color-accent);
           }
           @media (max-width: 767px) {
             .ui-dialog-content {
@@ -83,12 +89,12 @@ const Dialog_: Component<DialogProps> = (props) => {
               width: 100%;
               max-width: 100%;
               min-width: 0;
-              border-radius: 16px 16px 0 0;
+              border-radius: 0px;
               padding: 1.25rem 1rem;
               max-height: 85dvh;
               overflow-y: auto;
               scrollbar-gutter: stable;
-          }
+            }
           @keyframes ui-dialog-overlay-in {
             from { opacity: 0; }
             to { opacity: 1; }
