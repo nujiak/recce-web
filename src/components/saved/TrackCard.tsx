@@ -94,7 +94,7 @@ const TrackCard: Component<TrackCardProps> = (props) => {
         {firstCoord() && (
           <div
             style={{
-              'font-size': '0.625rem',
+              'font-size': '11px',
               color: 'var(--color-text-muted)',
               'margin-top': '2px',
               overflow: 'hidden',

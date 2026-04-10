@@ -114,7 +114,7 @@ const RulerPanel: Component = () => {
                       display: 'flex',
                       'align-items': 'center',
                       'justify-content': 'center',
-                      'font-size': '0.625rem',
+                      'font-size': '11px',
                       color: 'oklch(0.1 0 0)',
                       'font-weight': '700',
                       'flex-shrink': '0',
@@ -135,7 +135,7 @@ const RulerPanel: Component = () => {
                     </div>
                     <div
                       style={{
-                        'font-size': '0.625rem',
+                        'font-size': '11px',
                         color: 'var(--color-text-muted)',
                         'font-variant-numeric': 'tabular-nums',
                       }}

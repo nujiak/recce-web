@@ -157,7 +157,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                   border: '1px solid var(--color-border)',
                   'border-radius': '0px',
                   padding: '4px 14px',
-                  'font-size': '0.72rem',
+                  'font-size': '13px',
                   'white-space': 'nowrap',
                   opacity: overlay().rawDistance >= 0.1 ? 1 : 0,
                   transition: 'opacity 0.2s ease',
@@ -189,14 +189,14 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
             <span
               style={{
                 color: 'var(--color-text-secondary)',
-                'font-size': '0.6rem',
+                'font-size': '11px',
                 'letter-spacing': '0.04em',
                 'text-transform': 'uppercase' as const,
               }}
             >
               {SYSTEM_NAMES[prefs.coordinateSystem]}
             </span>
-            <span style={{ color: 'var(--color-text)', 'font-size': '0.78rem' }}>
+            <span style={{ color: 'var(--color-text)', 'font-size': '13px' }}>
               {coordDisplay()}
             </span>
           </button>

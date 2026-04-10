@@ -80,7 +80,7 @@ const PinCard: Component<PinCardProps> = (props) => {
         {props.pin.group && (
           <div
             style={{
-              'font-size': '0.625rem',
+              'font-size': '11px',
               color: 'var(--color-text-muted)',
               'margin-top': '2px',
             }}

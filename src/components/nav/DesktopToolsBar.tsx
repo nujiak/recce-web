@@ -184,7 +184,7 @@ const DesktopToolsBar: Component = () => {
           line-height: 1;
         }
         .dtb-tab-label {
-          font-size: 0.5625rem;
+          font-size: 10px;
           font-weight: 400;
           letter-spacing: 0.04em;
           line-height: 1;
