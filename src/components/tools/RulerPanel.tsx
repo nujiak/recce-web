@@ -68,7 +68,9 @@ const RulerPanel: Component = () => {
           <span class="material-symbols-outlined" style={{ 'font-size': '2rem' }}>
             straighten
           </span>
-          <span style={{ 'font-size': '0.875rem' }}>No points yet</span>
+          <span style={{ 'font-size': '0.875rem', 'text-transform': 'uppercase' }}>
+            No points yet
+          </span>
           <span style={{ 'font-size': '0.75rem', 'text-align': 'center' }}>
             Long-press items in Saved and tap "Add to Ruler"
           </span>
@@ -97,8 +99,9 @@ const RulerPanel: Component = () => {
                     'align-items': 'center',
                     gap: '8px',
                     padding: '8px',
+                    'min-height': '48px',
                     background: 'var(--color-bg-secondary)',
-                    'border-radius': 'var(--radius-sm)',
+                    'border-radius': '0px',
                     border: '1px solid var(--color-border)',
                   }}
                 >
@@ -106,7 +109,7 @@ const RulerPanel: Component = () => {
                     style={{
                       width: '20px',
                       height: '20px',
-                      'border-radius': '50%',
+                      'border-radius': '0px',
                       background: 'var(--color-accent)',
                       display: 'flex',
                       'align-items': 'center',
@@ -198,7 +201,14 @@ const RulerPanel: Component = () => {
             'align-items': 'center',
           }}
         >
-          <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-muted)' }}>
+          <span
+            style={{
+              'font-size': '11px',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.04em',
+              color: 'var(--color-text-secondary)',
+            }}
+          >
             Total distance
           </span>
           <span
