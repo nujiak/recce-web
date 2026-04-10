@@ -10,91 +10,50 @@ const BottomNav: Component = () => {
       aria-label="Main navigation"
       style={{
         display: 'flex',
-        height: 'var(--nav-height)',
+        'min-height': 'var(--nav-height)',
         background: 'var(--color-bg-secondary)',
         'border-top': '1px solid var(--color-border)',
       }}
     >
-      <button
-        class="bottom-nav__tab"
-        aria-label="Map"
-        aria-pressed={activeNav() === 'map'}
-        onClick={() => setActiveNav('map')}
-        style={{
-          flex: 1,
-          display: 'flex',
-          'flex-direction': 'column',
-          'align-items': 'center',
-          'justify-content': 'center',
-          gap: '2px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: activeNav() === 'map' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-          'font-size': '0.625rem',
-          'font-family': 'inherit',
-        }}
-      >
-        <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
-          map
-        </span>
-        Map
-      </button>
-
-      <button
-        class="bottom-nav__tab"
-        aria-label="Saved"
-        aria-pressed={activeNav() === 'saved'}
-        onClick={() => setActiveNav('saved')}
-        style={{
-          flex: 1,
-          display: 'flex',
-          'flex-direction': 'column',
-          'align-items': 'center',
-          'justify-content': 'center',
-          gap: '2px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: activeNav() === 'saved' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-          'font-size': '0.625rem',
-          'font-family': 'inherit',
-        }}
-      >
-        <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
-          bookmarks
-        </span>
-        Saved
-      </button>
-
-      <button
-        class="bottom-nav__tab"
-        aria-label="Tools"
-        aria-pressed={activeNav() === 'tools'}
-        onClick={() => {
-          setActiveNav('tools');
-          setActiveTool(null);
-        }}
-        style={{
-          flex: 1,
-          display: 'flex',
-          'flex-direction': 'column',
-          'align-items': 'center',
-          'justify-content': 'center',
-          gap: '2px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: activeNav() === 'tools' ? 'var(--color-accent)' : 'var(--color-text-secondary)',
-          'font-size': '0.625rem',
-          'font-family': 'inherit',
-        }}
-      >
-        <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
-          construction
-        </span>
-        Tools
-      </button>
+      {[
+        { key: 'map', label: 'MAP', icon: 'map' },
+        { key: 'saved', label: 'SAVED', icon: 'bookmarks' },
+        { key: 'tools', label: 'TOOLS', icon: 'construction' },
+      ].map((tab) => (
+        <button
+          class={`bottom-nav__tab${activeNav() === tab.key ? ' bracket-selected' : ''}`}
+          aria-label={tab.label.charAt(0) + tab.label.slice(1).toLowerCase()}
+          aria-pressed={activeNav() === tab.key}
+          onClick={() => {
+            setActiveNav(tab.key as 'map' | 'saved' | 'tools');
+            if (tab.key === 'tools') setActiveTool(null);
+          }}
+          style={{
+            flex: 1,
+            display: 'flex',
+            'flex-direction': 'column',
+            'align-items': 'center',
+            'justify-content': 'center',
+            gap: '2px',
+            'min-height': '56px',
+            'min-width': '48px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            color: activeNav() === tab.key ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+            'font-size': '10px',
+            'letter-spacing': '0.06em',
+            'font-family': 'inherit',
+            position: 'relative',
+            'text-transform': 'uppercase' as const,
+          }}
+        >
+          <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
+            {tab.icon}
+          </span>
+          {tab.label}
+        </button>
+      ))}
     </nav>
   );
 };
