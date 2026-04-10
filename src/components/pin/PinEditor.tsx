@@ -158,7 +158,14 @@ const PinEditor: Component<PinEditorProps> = (props) => {
         </div>
 
         <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-          <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+          <span
+            style={{
+              'font-size': '11px',
+              color: 'var(--color-text-secondary)',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.04em',
+            }}
+          >
             Marker
           </span>
           <button
@@ -169,9 +176,9 @@ const PinEditor: Component<PinEditorProps> = (props) => {
               'align-items': 'center',
               gap: '10px',
               padding: '0.5rem 0.75rem',
-              background: 'var(--color-bg-secondary)',
+              background: 'var(--color-bg-tertiary)',
               border: '1px solid var(--color-border)',
-              'border-radius': '8px',
+              'border-radius': '0px',
               color: 'var(--color-text)',
               cursor: 'pointer',
               width: '100%',
@@ -207,7 +214,14 @@ const PinEditor: Component<PinEditorProps> = (props) => {
             }}
           >
             <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-              <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+              <span
+                style={{
+                  'font-size': '11px',
+                  color: 'var(--color-text-secondary)',
+                  'text-transform': 'uppercase',
+                  'letter-spacing': '0.04em',
+                }}
+              >
                 Pins
               </span>
               <div style={{ display: 'flex', gap: '8px', 'justify-content': 'center' }}>
@@ -227,7 +241,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
                           color() === c && markerType() === 'pin'
                             ? '2px solid var(--color-text)'
                             : '2px solid transparent',
-                        'border-radius': '8px',
+                        'border-radius': '0px',
                         padding: '8px',
                         cursor: 'pointer',
                         display: 'flex',
@@ -247,7 +261,14 @@ const PinEditor: Component<PinEditorProps> = (props) => {
             </div>
 
             <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-              <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+              <span
+                style={{
+                  'font-size': '11px',
+                  color: 'var(--color-text-secondary)',
+                  'text-transform': 'uppercase',
+                  'letter-spacing': '0.04em',
+                }}
+              >
                 Arrows
               </span>
               <div style={{ display: 'flex', gap: '8px', 'justify-content': 'center' }}>
@@ -267,7 +288,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
                           color() === c && markerType() === 'arrow'
                             ? '2px solid var(--color-text)'
                             : '2px solid transparent',
-                        'border-radius': '8px',
+                        'border-radius': '0px',
                         padding: '8px',
                         cursor: 'pointer',
                         display: 'flex',
