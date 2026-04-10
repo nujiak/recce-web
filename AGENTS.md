@@ -41,11 +41,11 @@ type(scope): description
 | `feat`     | **minor**    | `feat: add PWA install step to onboarding`     |
 | `fix`      | **patch**    | `fix: reduce location marker appearance delay` |
 | `perf`     | **patch**    | `perf: debounce map redraw on track edit`      |
-| `refactor` | none         | `refactor: migrate UI to Kobalte`              |
+| `refactor` | **patch**    | `refactor: migrate UI to Kobalte`              |
 | `docs`     | none         | `docs: update AGENTS.md with versioning rules` |
-| `style`    | none         | `style: align tailwind classes in PinEditor`   |
+| `style`    | **patch**    | `style: align tailwind classes in PinEditor`   |
 | `test`     | none         | `test: add coordinate conversion edge cases`   |
-| `chore`    | none         | `chore: bump devDependencies`                  |
+| `chore`    | **patch**    | `chore: bump devDependencies`                  |
 | `ci`       | none         | `ci: add lint step to release workflow`        |
 
 ### Breaking Changes
@@ -72,7 +72,7 @@ fix(gps): attach listeners after iOS compass permission grant
 - Use **imperative mood**, lowercase, no trailing period: `add feature` not `Added feature` or `adds feature.`
 - Keep the subject line under **72 characters**
 - One logical change per commit; do not mix `feat` and `fix` in the same commit
-- Commits with `chore` / `refactor` / `docs` / `style` / `test` / `ci` alone will **not** trigger a release
+- Commits with `docs` / `test` / `ci` alone will **not** trigger a release
 - The `chore(release):` commits created by `semantic-release` include `[skip ci]` and must not be edited
 
 ## Pull Requests
