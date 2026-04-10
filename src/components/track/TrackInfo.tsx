@@ -52,20 +52,30 @@ const TrackInfo: Component = () => {
             }}
           >
             <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-              <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+              <div
+                style={{
+                  'font-size': '11px',
+                  color: 'var(--color-text-secondary)',
+                  'text-transform': 'uppercase',
+                  'letter-spacing': '0.04em',
+                }}
+              >
                 {t().isCyclical ? 'Area' : 'Path'}
               </div>
-              <div style={{ 'font-size': '0.875rem' }}>
-                <span>
-                  Distance:{' '}
+              <div class="readout-grid">
+                <span class="readout-label">Distance</span>
+                <span class="readout-sep">:</span>
+                <span class="readout-value">
                   {formatDistance(
                     calculateTotalDistance(t().nodes, t().isCyclical),
                     prefs.lengthUnit
                   )}
                 </span>
                 <Show when={t().isCyclical && t().nodes.length >= 3}>
-                  <span style={{ 'margin-left': '12px' }}>
-                    Area: {formatArea(calculateArea(t().nodes), prefs.lengthUnit)}
+                  <span class="readout-label">Area</span>
+                  <span class="readout-sep">:</span>
+                  <span class="readout-value">
+                    {formatArea(calculateArea(t().nodes), prefs.lengthUnit)}
                   </span>
                 </Show>
               </div>
@@ -73,7 +83,14 @@ const TrackInfo: Component = () => {
 
             <Show when={t().nodes.some((n) => n.name)}>
               <div style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
-                <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+                <span
+                  style={{
+                    'font-size': '11px',
+                    color: 'var(--color-text-secondary)',
+                    'text-transform': 'uppercase',
+                    'letter-spacing': '0.04em',
+                  }}
+                >
                   Checkpoints
                 </span>
                 <For each={t().nodes.filter((n) => n.name)}>
@@ -83,7 +100,7 @@ const TrackInfo: Component = () => {
                         'font-size': '0.875rem',
                         padding: '4px 8px',
                         background: 'var(--color-bg-tertiary)',
-                        'border-radius': 'var(--radius-sm)',
+                        'border-radius': '0px',
                       }}
                     >
                       {node.name}
@@ -94,7 +111,14 @@ const TrackInfo: Component = () => {
             </Show>
 
             <Show when={t().group}>
-              <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+              <div
+                style={{
+                  'font-size': '11px',
+                  color: 'var(--color-text-secondary)',
+                  'text-transform': 'uppercase',
+                  'letter-spacing': '0.04em',
+                }}
+              >
                 Group: {t().group}
               </div>
             </Show>

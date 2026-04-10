@@ -81,8 +81,8 @@ const CompassNeedle: Component = () => {
           {label && (
             <span
               style={{
-                'font-size': isCardinal ? '0.7rem' : '0.55rem',
-                'font-weight': isCardinal ? '700' : '500',
+                'font-size': isCardinal ? '13px' : '11px',
+
                 color: isCardinal ? 'var(--color-text)' : 'var(--color-text-secondary)',
                 'margin-top': '2px',
                 'white-space': 'nowrap',

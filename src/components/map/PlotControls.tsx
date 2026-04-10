@@ -111,12 +111,13 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
     padding: '7px 12px',
     background: bg,
     border: '1px solid var(--color-border)',
-    'border-radius': 'var(--radius-md)',
+    'border-radius': '0px',
     cursor: 'pointer',
     color: bg === 'var(--color-accent)' ? 'oklch(0.1 0 0)' : 'var(--color-text)',
-    'font-size': '0.8rem',
+    'font-size': '13px',
     'font-family': 'inherit',
-    'font-weight': '500',
+    'text-transform': 'uppercase' as const,
+    'letter-spacing': '0.04em',
     'box-shadow': '0 2px 4px rgba(0,0,0,0.25)',
     'white-space': 'nowrap',
   });
@@ -154,9 +155,9 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                   background: 'var(--color-bg-secondary)',
                   color: 'var(--color-accent)',
                   border: '1px solid var(--color-border)',
-                  'border-radius': '10px',
+                  'border-radius': '0px',
                   padding: '4px 14px',
-                  'font-size': '0.72rem',
+                  'font-size': '13px',
                   'white-space': 'nowrap',
                   opacity: overlay().rawDistance >= 0.1 ? 1 : 0,
                   transition: 'opacity 0.2s ease',
@@ -174,7 +175,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               'pointer-events': 'auto',
               background: 'var(--color-bg-secondary)',
               border: '1px solid var(--color-border)',
-              'border-radius': '10px',
+              'border-radius': '0px',
               padding: '5px 14px',
               cursor: 'pointer',
               'font-family': 'inherit',
@@ -188,13 +189,14 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
             <span
               style={{
                 color: 'var(--color-text-secondary)',
-                'font-size': '0.6rem',
+                'font-size': '11px',
                 'letter-spacing': '0.04em',
+                'text-transform': 'uppercase' as const,
               }}
             >
               {SYSTEM_NAMES[prefs.coordinateSystem]}
             </span>
-            <span style={{ color: 'var(--color-text)', 'font-size': '0.78rem' }}>
+            <span style={{ color: 'var(--color-text)', 'font-size': '13px' }}>
               {coordDisplay()}
             </span>
           </button>
@@ -290,7 +292,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                 display: 'flex',
                 gap: '6px',
                 background: 'var(--color-bg-secondary)',
-                'border-radius': '8px',
+                'border-radius': '0px',
                 padding: '6px',
                 border: '1px solid var(--color-border)',
                 'align-items': 'center',

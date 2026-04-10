@@ -26,29 +26,24 @@ function createToastItem(
       class="kb-toast-item"
       style={{
         padding: '0.5rem 1rem',
-        'border-radius': '999px',
+        'border-radius': '0px',
         background: 'var(--color-bg-secondary)',
-        border: '1px solid var(--color-border)',
+        border: `1px solid var(--color-border)`,
+        'border-left': `3px solid ${ACCENT_COLORS[type]}`,
         color: 'var(--color-text)',
-        'font-size': '0.8125rem',
+        'font-size': '13px',
+        'text-transform': 'uppercase',
+        'letter-spacing': '0.04em',
         'white-space': 'nowrap',
         display: 'flex',
         'align-items': 'stretch',
         gap: '0.5rem',
         'pointer-events': 'auto',
-        animation: 'kb-toast-in 0.2s ease-out',
+        animation: 'kb-toast-in 0.15s ease-out',
         cursor: 'pointer',
       }}
       onClick={() => Toast.toaster.dismiss(props.toastId)}
     >
-      <div
-        style={{
-          width: '3px',
-          'border-radius': '999px',
-          background: ACCENT_COLORS[type],
-          'flex-shrink': '0',
-        }}
-      />
       <span style={{ display: 'flex', 'align-items': 'center', flex: 1 }}>{message}</span>
       <Show when={action}>
         {(a) => (
@@ -56,10 +51,12 @@ function createToastItem(
             style={{
               background: 'var(--color-accent)',
               border: 'none',
-              color: '#fff',
-              'font-size': '0.8125rem',
-              'font-weight': '600',
-              'border-radius': '999px',
+              color: 'oklch(0.07 0 0)',
+              'font-size': '11px',
+              'font-weight': '400',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.04em',
+              'border-radius': '0px',
               cursor: 'pointer',
               padding: '0.2rem 0.65rem',
               'white-space': 'nowrap',

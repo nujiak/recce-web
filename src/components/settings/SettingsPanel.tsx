@@ -58,20 +58,14 @@ const styles = `
     transform: rotate(180deg);
   }
   .sp-select-content {
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-    z-index: 200;
+    background: var(--color-bg-tertiary);
     min-width: 160px;
     max-height: 240px;
     overflow-y: auto;
-    padding: 4px;
-    outline: none;
-    animation: sp-in 0.1s ease-out;
+    padding: 0;
   }
   .sp-select-content[data-closed] {
-    animation: sp-out 0.08s ease-in;
+    animation: popover-out 0.1s ease-in;
   }
   .sp-select-listbox {
     list-style: none;
@@ -83,12 +77,14 @@ const styles = `
     align-items: center;
     justify-content: space-between;
     padding: 8px 10px;
-    border-radius: var(--radius-sm);
+    border-radius: 0px;
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: 12px;
     color: var(--color-text);
     outline: none;
     transition: background 0.1s;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
   }
   .sp-select-item[data-highlighted],
   .sp-select-item:hover {
@@ -106,14 +102,6 @@ const styles = `
     margin-left: 8px;
     line-height: 1;
   }
-  @keyframes sp-in {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes sp-out {
-    from { opacity: 1; transform: translateY(0); }
-    to   { opacity: 0; transform: translateY(-4px); }
-  }
 `;
 
 // ── Primitives ────────────────────────────────────────────────────────────────
@@ -121,13 +109,14 @@ const styles = `
 const SectionHeader: Component<{ label: string }> = (props) => (
   <div
     style={{
-      'font-size': '0.6875rem',
-      'font-weight': '600',
+      'font-size': '11px',
       'letter-spacing': '0.08em',
       'text-transform': 'uppercase',
-      color: 'var(--color-accent)',
-      padding: '0 2px',
-      'margin-bottom': '2px',
+      color: 'var(--color-text-secondary)',
+      padding: '6px 12px',
+      'border-bottom': '1px solid var(--color-border)',
+      'margin-bottom': '0',
+      background: 'var(--color-bg-secondary)',
     }}
   >
     {props.label}
@@ -139,7 +128,7 @@ const GroupCard: Component<{ children: JSX.Element }> = (props) => (
     style={{
       background: 'var(--color-bg-secondary)',
       border: '1px solid var(--color-border)',
-      'border-radius': '10px',
+      'border-radius': '0px',
       overflow: 'hidden',
     }}
   >
@@ -201,7 +190,7 @@ const SettingSelectRow: Component<SettingSelectRowProps> = (props) => {
       </Select.Trigger>
 
       <Select.Portal>
-        <Select.Content class="sp-select-content">
+        <Select.Content class="sp-select-content popover-content">
           <Select.Listbox class="sp-select-listbox" />
         </Select.Content>
       </Select.Portal>
@@ -246,7 +235,11 @@ const SettingToggleRow: Component<SettingToggleRowProps> = (props) => (
         'min-width': '0',
       }}
     >
-      <span style={{ 'font-size': '0.875rem', 'white-space': 'nowrap' }}>{props.label}</span>
+      <span
+        style={{ 'font-size': '0.875rem', 'white-space': 'nowrap', 'text-transform': 'uppercase' }}
+      >
+        {props.label}
+      </span>
       {props.description && (
         <span
           style={{
@@ -299,7 +292,11 @@ const SettingLinkRow: Component<SettingLinkRowProps> = (props) => (
       gap: '8px',
     }}
   >
-    <span style={{ 'font-size': '0.875rem', 'white-space': 'nowrap' }}>{props.label}</span>
+    <span
+      style={{ 'font-size': '0.875rem', 'white-space': 'nowrap', 'text-transform': 'uppercase' }}
+    >
+      {props.label}
+    </span>
     <span
       style={{
         display: 'flex',
@@ -337,9 +334,9 @@ const SettingsPanel: Component = () => {
       <style>{styles}</style>
 
       {/* ── Display ── */}
-      <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-        <SectionHeader label="Display" />
+      <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0' }}>
         <GroupCard>
+          <SectionHeader label="Display" />
           <SettingSelectRow
             label="Coordinate System"
             value={prefs.coordinateSystem}
@@ -386,9 +383,9 @@ const SettingsPanel: Component = () => {
       </div>
 
       {/* ── Map ── */}
-      <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-        <SectionHeader label="Map" />
+      <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0' }}>
         <GroupCard>
+          <SectionHeader label="Map" />
           <SettingToggleRow
             label="Follow Tilt"
             description="Tilt map by device pitch in bearing mode"
@@ -399,9 +396,9 @@ const SettingsPanel: Component = () => {
       </div>
 
       {/* ── About ── */}
-      <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-        <SectionHeader label="About" />
+      <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0' }}>
         <GroupCard>
+          <SectionHeader label="About" />
           <SettingLinkRow
             label="Version"
             value={<>v{__APP_VERSION__}</>}

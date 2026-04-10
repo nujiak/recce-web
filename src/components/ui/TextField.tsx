@@ -20,28 +20,33 @@ const TextField: Component<TextFieldProps> = (props) => {
       <style>{`
         .ui-tf-label {
           color: var(--color-text-secondary);
-          font-size: 0.75rem;
-          margin-bottom: 0.25rem;
+          font-size: 11px;
+          margin-bottom: 4px;
           display: block;
-          font-weight: 500;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
         }
         .ui-tf-input {
           width: 100%;
-          background: var(--color-bg-secondary);
+          background: var(--color-bg-tertiary);
           border: 1px solid var(--color-border);
           color: var(--color-text);
-          border-radius: 8px;
+          border-radius: 0px;
           padding: 0.5rem 0.75rem;
-          font-size: 0.875rem;
+          font-size: 14px;
           font-family: inherit;
           box-sizing: border-box;
           outline: 2px solid transparent;
           outline-offset: -1px;
           transition: border-color 0.15s;
         }
+        .ui-tf-input::placeholder {
+          color: var(--color-text-muted);
+          text-transform: uppercase;
+        }
         .ui-tf-input[data-focus-visible] {
-          outline: 2px solid var(--color-accent);
-          outline-offset: -1px;
+          border-color: var(--color-accent);
+          outline: none;
         }
         .ui-tf-input:disabled {
           opacity: 0.4;
@@ -49,12 +54,12 @@ const TextField: Component<TextFieldProps> = (props) => {
         }
         .ui-tf-textarea {
           width: 100%;
-          background: var(--color-bg-secondary);
+          background: var(--color-bg-tertiary);
           border: 1px solid var(--color-border);
           color: var(--color-text);
-          border-radius: 8px;
+          border-radius: 0px;
           padding: 0.5rem 0.75rem;
-          font-size: 0.875rem;
+          font-size: 14px;
           font-family: inherit;
           box-sizing: border-box;
           outline: 2px solid transparent;
@@ -63,9 +68,13 @@ const TextField: Component<TextFieldProps> = (props) => {
           resize: vertical;
           min-height: 80px;
         }
+        .ui-tf-textarea::placeholder {
+          color: var(--color-text-muted);
+          text-transform: uppercase;
+        }
         .ui-tf-textarea[data-focus-visible] {
-          outline: 2px solid var(--color-accent);
-          outline-offset: -1px;
+          border-color: var(--color-accent);
+          outline: none;
         }
         .ui-tf-textarea:disabled {
           opacity: 0.4;

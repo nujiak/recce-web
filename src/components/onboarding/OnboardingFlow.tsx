@@ -34,7 +34,7 @@ const OnboardingFlow: Component = () => {
 
   const configSteps = [
     {
-      title: 'Welcome to Recce',
+      title: 'Welcome to recce',
       description: 'A mapping and reconnaissance tool for the field.',
       content: (
         <Select

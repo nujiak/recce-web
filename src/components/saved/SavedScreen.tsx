@@ -260,18 +260,8 @@ const SavedScreen: Component = () => {
               user-select: none;
             }
             .sort-menu-content {
-              background: var(--color-bg);
-              border: 1px solid var(--color-border);
-              border-radius: var(--radius-md);
-              box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-              z-index: 200;
               padding: 0.25rem;
-              outline: none;
               min-width: 130px;
-              animation: sort-menu-in 0.12s ease-out;
-            }
-            .sort-menu-content[data-closed] {
-              animation: sort-menu-out 0.1s ease-in;
             }
             .sort-menu-item {
               display: flex;
@@ -311,14 +301,6 @@ const SavedScreen: Component = () => {
             .sort-menu-item[data-checked] .sort-menu-item-indicator {
               visibility: visible;
             }
-            @keyframes sort-menu-in {
-              from { opacity: 0; transform: translateY(-4px); }
-              to { opacity: 1; transform: translateY(0); }
-            }
-            @keyframes sort-menu-out {
-              from { opacity: 1; transform: translateY(0); }
-              to { opacity: 0; transform: translateY(-4px); }
-            }
           `}</style>
             <DropdownMenu>
               <DropdownMenu.Trigger
@@ -328,7 +310,7 @@ const SavedScreen: Component = () => {
                 <span class="sort-menu-trigger-icon">{sortIcons[sortMode()]}</span>
               </DropdownMenu.Trigger>
               <DropdownMenu.Portal>
-                <DropdownMenu.Content class="sort-menu-content">
+                <DropdownMenu.Content class="sort-menu-content popover-content">
                   <DropdownMenu.RadioGroup
                     value={sortMode()}
                     onChange={(v) => setSortMode(v as SortMode)}

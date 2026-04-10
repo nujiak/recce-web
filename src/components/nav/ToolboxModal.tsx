@@ -53,7 +53,7 @@ const ToolboxModal: Component = () => {
                   arrow_back
                 </span>
               </Button>
-              <span style={{ 'font-size': '0.875rem', 'font-weight': '600' }}>
+              <span style={{ 'font-size': '0.875rem' }}>
                 {TOOL_CARDS.find((t) => t.id === activeTool())?.label ?? activeTool()}
               </span>
             </div>
@@ -74,9 +74,7 @@ const ToolboxModal: Component = () => {
         <Show when={activeTool() === null}>
           {/* Grid view */}
           <div style={{ padding: '16px' }}>
-            <h2 style={{ 'font-size': '0.875rem', 'font-weight': '600', 'margin-bottom': '12px' }}>
-              Tools
-            </h2>
+            <h2 style={{ 'font-size': '0.875rem', 'margin-bottom': '12px' }}>Tools</h2>
             <div
               style={{ display: 'grid', 'grid-template-columns': 'repeat(3, 1fr)', gap: '12px' }}
             >

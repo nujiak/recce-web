@@ -24,6 +24,7 @@ const PinCard: Component<PinCardProps> = (props) => {
   return (
     <div
       role="listitem"
+      class={props.selected ? 'bracket-selected' : ''}
       onPointerDown={props.onPointerDown}
       onPointerUp={props.onPointerUp}
       onPointerCancel={props.onPointerCancel}
@@ -33,9 +34,10 @@ const PinCard: Component<PinCardProps> = (props) => {
         'align-items': 'center',
         gap: '12px',
         padding: '12px 16px',
+        'min-height': '48px',
         background: props.selected ? 'var(--color-accent-bg)' : 'var(--color-bg-secondary)',
         border: `1px solid ${props.selected ? 'var(--color-accent-border)' : 'var(--color-border)'}`,
-        'border-radius': 'var(--radius-md)',
+        'border-radius': '0px',
         cursor: 'pointer',
         'user-select': 'none',
       }}
@@ -55,7 +57,7 @@ const PinCard: Component<PinCardProps> = (props) => {
         <div
           style={{
             'font-size': '0.875rem',
-            'font-weight': '600',
+
             overflow: 'hidden',
             'text-overflow': 'ellipsis',
             'white-space': 'nowrap',
@@ -78,7 +80,7 @@ const PinCard: Component<PinCardProps> = (props) => {
         {props.pin.group && (
           <div
             style={{
-              'font-size': '0.625rem',
+              'font-size': '11px',
               color: 'var(--color-text-muted)',
               'margin-top': '2px',
             }}

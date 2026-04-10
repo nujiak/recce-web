@@ -43,7 +43,7 @@ const PinInfo: Component = () => {
       title={viewingPin()?.name ?? ''}
     >
       <div style={{ display: 'flex', 'flex-direction': 'column', gap: '12px' }}>
-        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
+        <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0' }}>
           <For each={SYSTEMS}>
             {(sys: CoordinateSystem) => {
               const p = viewingPin();
@@ -57,33 +57,33 @@ const PinInfo: Component = () => {
                     'align-items': 'center',
                     'justify-content': 'space-between',
                     gap: '8px',
-                    padding: '8px 10px',
+                    padding: '0 12px',
+                    'min-height': '28px',
                     background: 'var(--color-bg-tertiary)',
-                    border: '1px solid var(--color-border)',
-                    'border-radius': 'var(--radius-sm)',
+                    border: 'none',
+                    'border-bottom': '1px solid var(--color-border-subtle)',
                   }}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      'flex-direction': 'column',
-                      gap: '2px',
-                      'min-width': '0',
-                      flex: 1,
-                    }}
-                  >
-                    <span style={{ 'font-size': '0.625rem', color: 'var(--color-text-muted)' }}>
-                      {SYSTEM_NAMES[sys]}
-                    </span>
+                  <div style={{ flex: 1, 'min-width': '0' }}>
                     <span
                       style={{
-                        'font-size': '0.8rem',
+                        'font-size': '11px',
+                        color: 'var(--color-text-muted)',
+                        'text-transform': 'uppercase',
+                        'letter-spacing': '0.04em',
+                      }}
+                    >
+                      {SYSTEM_NAMES[sys]}
+                    </span>
+                    <div
+                      style={{
+                        'font-size': '13px',
                         color: 'var(--color-text)',
                         'word-break': 'break-all',
                       }}
                     >
                       {display}
-                    </span>
+                    </div>
                   </div>
                   <Button
                     variant="icon"
@@ -106,7 +106,14 @@ const PinInfo: Component = () => {
         </div>
 
         <Show when={viewingPin()?.group}>
-          <div style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>
+          <div
+            style={{
+              'font-size': '11px',
+              color: 'var(--color-text-secondary)',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.04em',
+            }}
+          >
             Group: {viewingPin()?.group}
           </div>
         </Show>

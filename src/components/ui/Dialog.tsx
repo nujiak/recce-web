@@ -9,7 +9,12 @@ interface DialogProps {
   preventClose?: boolean;
 }
 
+let dialogZCounter = 0;
+
+const DIALOG_Z_BASE = 100;
+
 const Dialog_: Component<DialogProps> = (props) => {
+  const zIndex = DIALOG_Z_BASE + ++dialogZCounter * 2;
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <Dialog.Portal>
@@ -18,7 +23,6 @@ const Dialog_: Component<DialogProps> = (props) => {
             position: fixed;
             inset: 0;
             background: var(--color-overlay);
-            z-index: 100;
             animation: ui-dialog-overlay-in 0.15s ease-out;
           }
           .ui-dialog-overlay[data-closed] {
@@ -27,7 +31,6 @@ const Dialog_: Component<DialogProps> = (props) => {
           .ui-dialog-content {
             position: fixed;
             inset: 0;
-            z-index: 101;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -38,41 +41,56 @@ const Dialog_: Component<DialogProps> = (props) => {
             animation: ui-dialog-content-out 0.15s ease-in;
           }
           .ui-dialog-card {
-            background: var(--color-bg);
+            background: var(--color-bg-secondary);
             border: 1px solid var(--color-border);
-            border-radius: 12px;
+            border-radius: 0px;
             padding: 1.5rem;
             max-width: 480px;
             min-width: 360px;
             width: 90%;
             position: relative;
             outline: none;
+            box-shadow: 0 4px 16px oklch(0 0 0 / 40%);
           }
           .ui-dialog-title {
             color: var(--color-text);
-            font-weight: 600;
-            font-size: 1.125rem;
-            padding-right: 2rem;
+            font-weight: 400;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding-right: 3.5rem;
+            padding-bottom: 12px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--color-border);
+            margin-bottom: 16px;
           }
           .ui-dialog-close {
             position: absolute;
-            top: 1.25rem;
-            right: 1rem;
+            top: 0;
+            right: 0;
             background: none;
             border: none;
             cursor: pointer;
             color: var(--color-text-secondary);
-            width: 28px;
-            height: 28px;
+            width: 48px;
+            height: 48px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 50%;
+            border-radius: 0px;
             font-family: 'Material Symbols Outlined', sans-serif;
-            font-size: 20px;
+            font-size: 18px;
+            outline: none;
           }
           .ui-dialog-close:hover {
-            background: var(--color-bg-secondary);
+            background: var(--color-accent-bg);
+            color: var(--color-accent);
+          }
+          .ui-dialog-close:focus-visible {
+            outline: 2px solid var(--color-accent);
+            outline-offset: -2px;
           }
           @media (max-width: 767px) {
             .ui-dialog-content {
@@ -83,11 +101,12 @@ const Dialog_: Component<DialogProps> = (props) => {
               width: 100%;
               max-width: 100%;
               min-width: 0;
-              border-radius: 16px 16px 0 0;
+              border-radius: 0px;
               padding: 1.25rem 1rem;
               max-height: 85dvh;
               overflow-y: auto;
               scrollbar-gutter: stable;
+            }
           }
           @keyframes ui-dialog-overlay-in {
             from { opacity: 0; }
@@ -107,9 +126,10 @@ const Dialog_: Component<DialogProps> = (props) => {
           }
         `}</style>
 
-        <Dialog.Overlay class="ui-dialog-overlay" />
+        <Dialog.Overlay class="ui-dialog-overlay" style={{ 'z-index': zIndex }} />
         <Dialog.Content
           class="ui-dialog-content"
+          style={{ 'z-index': zIndex + 1 }}
           onClick={(e) => {
             if (!props.preventClose && e.target === e.currentTarget) {
               props.onOpenChange(false);

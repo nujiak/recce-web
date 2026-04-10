@@ -141,4 +141,4 @@ displays, compass azimuth, GPS overlay, ruler segments, saved list).
 | Compression    | pako (zlib / deflate)               |
 | Share encoding | Base62 (custom, no deps)            |
 | Icons          | Material Symbols (Google Fonts CDN) |
-| Font           | Geist Mono (Google Fonts)           |
+| Font           | Share Tech Mono (Google Fonts)      |
