@@ -26,14 +26,24 @@ const ToggleGroupPrimitive: Component<ToggleGroupProps> = (_props) => {
   return (
     <>
       <style>{`
+        .ui-toggle-group {
+          display: inline-flex;
+          background: var(--color-bg-tertiary);
+          border: 1px solid var(--color-border);
+          border-radius: 0px;
+          padding: 0.25rem;
+          gap: 0.125rem;
+        }
         .ui-toggle-item {
-          border-radius: 6px;
+          border-radius: 0px;
+          min-height: 48px;
           padding: 0.375rem 0.75rem;
-          font-size: 0.8125rem;
-          font-weight: 500;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
           cursor: pointer;
           transition: background 0.15s, color 0.15s;
-          border: none;
+          border: 1px solid transparent;
           outline: none;
           display: inline-flex;
           align-items: center;
@@ -41,21 +51,16 @@ const ToggleGroupPrimitive: Component<ToggleGroupProps> = (_props) => {
           color: var(--color-text-secondary);
         }
         .ui-toggle-item[data-pressed] {
-          background: var(--color-accent);
-          color: #fff;
+          background: var(--color-accent-bg);
+          color: var(--color-accent);
+          border-color: var(--color-accent-border);
         }
       `}</style>
       <ToggleGroup.Root
         value={props.value}
         onChange={handleChange}
         multiple={false}
-        style={{
-          display: 'inline-flex',
-          background: 'var(--color-bg-secondary)',
-          'border-radius': 'var(--radius-md)',
-          padding: '0.25rem',
-          gap: '0.125rem',
-        }}
+        class="ui-toggle-group"
         {...rest}
       >
         <For each={props.options}>
