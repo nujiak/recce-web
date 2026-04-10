@@ -28,28 +28,32 @@ const Select_: Component<SelectProps> = (props) => {
       <style>{`
         .ui-select-label {
           color: var(--color-text-secondary);
-          font-size: 0.75rem;
-          margin-bottom: 0.25rem;
+          font-size: 11px;
+          margin-bottom: 4px;
           display: block;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
         }
         .ui-select-trigger {
           display: flex;
           align-items: center;
           justify-content: space-between;
           width: 100%;
-          background: var(--color-bg-secondary);
+          min-height: 48px;
+          background: var(--color-bg-tertiary);
           border: 1px solid var(--color-border);
-          border-radius: var(--radius-md);
+          border-radius: 0px;
           padding: 0.5rem 0.75rem;
-          font-size: 0.875rem;
+          font-size: 14px;
           color: var(--color-text);
           cursor: pointer;
           outline: none;
           text-align: left;
+          text-transform: uppercase;
         }
         .ui-select-trigger:focus {
           border-color: var(--color-accent);
-          box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 25%, transparent);
+          box-shadow: none;
         }
         .ui-select-trigger[data-expanded] {
           border-color: var(--color-accent);
@@ -63,7 +67,7 @@ const Select_: Component<SelectProps> = (props) => {
           white-space: nowrap;
         }
         .ui-select-value[data-placeholder-shown] {
-          color: var(--color-text-secondary);
+          color: var(--color-text-muted);
         }
         .ui-select-icon {
           display: flex;
@@ -71,7 +75,7 @@ const Select_: Component<SelectProps> = (props) => {
           justify-content: center;
           font-family: 'Material Symbols Outlined', sans-serif;
           font-size: 20px;
-          color: var(--color-text-secondary);
+          color: var(--color-text-muted);
           margin-left: 0.5rem;
           flex-shrink: 0;
           transition: transform 0.15s ease;
@@ -80,14 +84,14 @@ const Select_: Component<SelectProps> = (props) => {
           transform: rotate(180deg);
         }
         .ui-select-content {
-          background: var(--color-bg);
+          background: var(--color-bg-tertiary);
           border: 1px solid var(--color-border);
-          border-radius: var(--radius-md);
-          box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+          border-radius: 0px;
+          box-shadow: 0 4px 16px oklch(0 0 0 / 40%);
           z-index: 200;
           max-height: 240px;
           overflow-y: auto;
-          padding: 0.25rem;
+          padding: 0;
           outline: none;
           animation: ui-select-content-in 0.12s ease-out;
         }
@@ -101,24 +105,28 @@ const Select_: Component<SelectProps> = (props) => {
         }
         .ui-select-item {
           color: var(--color-text);
-          padding: 0.5rem 0.75rem;
-          border-radius: var(--radius-sm);
+          min-height: 48px;
+          padding: 0 12px;
           cursor: pointer;
-          font-size: 0.875rem;
+          font-size: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
           outline: none;
-          border-left: 2px solid transparent;
+          border-left: 3px solid transparent;
           transition: background 0.1s;
+          display: flex;
+          align-items: center;
         }
         .ui-select-item:hover,
         .ui-select-item[data-highlighted] {
-          background: var(--color-bg-secondary);
+          background: var(--color-accent-bg);
         }
         .ui-select-item[data-selected] {
           border-left-color: var(--color-accent);
-          background: var(--color-bg-secondary);
+          background: var(--color-accent-bg);
         }
         .ui-select-item[data-focused] {
-          border-left-color: var(--color-accent);
+          background: var(--color-accent-bg);
         }
         @keyframes ui-select-content-in {
           from { opacity: 0; transform: translateY(-4px); }
