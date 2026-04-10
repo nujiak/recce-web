@@ -63,11 +63,11 @@ const Popover_: Component<PopoverProps> = (props) => {
           font: inherit;
         }
         .ui-popover-content {
-          background: var(--color-bg);
+          background: var(--color-bg-secondary);
           border: 1px solid var(--color-border);
-          border-radius: 10px;
+          border-radius: 0px;
           padding: 0.75rem;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+          box-shadow: 0 4px 16px oklch(0 0 0 / 40%);
           z-index: 50;
           outline: none;
           min-width: 200px;
