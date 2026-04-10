@@ -210,7 +210,13 @@ const SavedScreen: Component = () => {
         }}
       >
         <div style={{ display: 'flex', 'align-items': 'center', gap: '4px' }}>
-          <TextField type="search" placeholder="Search…" value={search()} onChange={setSearch} />
+          <TextField
+            type="search"
+            placeholder="Search…"
+            value={search()}
+            onChange={setSearch}
+            class="saved-search"
+          />
           <Button
             variant="ghost"
             size="sm"
@@ -229,28 +235,35 @@ const SavedScreen: Component = () => {
           </Button>
           <div style={{ display: 'flex', 'align-items': 'center' }}>
             <style>{`
+            .saved-search {
+              flex: 1;
+              min-width: 0;
+            }
             .sort-menu-trigger {
-              display: flex;
+              display: inline-flex;
               align-items: center;
               justify-content: center;
-              width: 32px;
-              height: 32px;
+              min-width: 48px;
+              min-height: 48px;
               background: transparent;
-              border: none;
-              border-radius: var(--radius-md);
-              color: var(--color-text-secondary);
+              border: 1px solid var(--color-border);
+              border-radius: 0px;
+              color: var(--color-text);
               cursor: pointer;
               outline: none;
+              padding: 0.25rem 0.625rem;
+              transition: background 0.15s, color 0.15s;
             }
             .sort-menu-trigger:hover {
-              background: var(--color-bg-secondary);
-              color: var(--color-text);
+              background: var(--color-accent-bg);
+              color: var(--color-accent);
             }
             .sort-menu-trigger:focus-visible {
-              box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-accent) 40%, transparent);
+              outline: 2px solid var(--color-accent);
+              outline-offset: 2px;
             }
             .sort-menu-trigger[data-expanded] {
-              background: var(--color-bg-secondary);
+              background: var(--color-accent-bg);
               color: var(--color-accent);
             }
             .sort-menu-trigger-icon {
