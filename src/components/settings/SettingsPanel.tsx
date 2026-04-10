@@ -59,19 +59,13 @@ const styles = `
   }
   .sp-select-content {
     background: var(--color-bg-tertiary);
-    border: 1px solid var(--color-border);
-    border-radius: 0px;
-    box-shadow: 0 4px 16px oklch(0 0 0 / 40%);
-    z-index: 200;
     min-width: 160px;
     max-height: 240px;
     overflow-y: auto;
     padding: 0;
-    outline: none;
-    animation: sp-in 0.1s ease-out;
   }
   .sp-select-content[data-closed] {
-    animation: sp-out 0.08s ease-in;
+    animation: popover-out 0.1s ease-in;
   }
   .sp-select-listbox {
     list-style: none;
@@ -107,14 +101,6 @@ const styles = `
     flex-shrink: 0;
     margin-left: 8px;
     line-height: 1;
-  }
-  @keyframes sp-in {
-    from { opacity: 0; transform: translateY(-4px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes sp-out {
-    from { opacity: 1; transform: translateY(0); }
-    to   { opacity: 0; transform: translateY(-4px); }
   }
 `;
 
@@ -204,7 +190,7 @@ const SettingSelectRow: Component<SettingSelectRowProps> = (props) => {
       </Select.Trigger>
 
       <Select.Portal>
-        <Select.Content class="sp-select-content">
+        <Select.Content class="sp-select-content popover-content">
           <Select.Listbox class="sp-select-listbox" />
         </Select.Content>
       </Select.Portal>
