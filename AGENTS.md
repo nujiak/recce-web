@@ -269,6 +269,400 @@ All internal storage uses WGS84. Conversion occurs on display/input via `src/coo
 
 ---
 
+## Frontend Overhaul — Design Specification
+
+> **Scope:** Visual styles only. Do not change component logic, state, routing, or data structures.
+
+---
+
+### 1. Design Intent
+
+The UI adopts a **Multi-Function Display (MFD)** aesthetic modelled on military C2 and cockpit instrumentation. Key principles:
+
+- Flat, panel-based layout with hard edges and no decorative rounding
+- Colour used as a **data channel**, not decoration — each hue maps to a tactical meaning
+- All text uppercase and monospace; information is **scannable at a glance**
+- Dense but uncluttered; every pixel earns its place
+- Touch-optimised for field use on both mobile and desktop
+
+---
+
+### 2. Typography
+
+| Property       | Value                                                                   |
+| -------------- | ----------------------------------------------------------------------- |
+| Font family    | `'Share Tech Mono', monospace`                                          |
+| Import         | `https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap` |
+| Weight         | 400 (only weight available)                                             |
+| Letter-spacing | `0.04em` on all labels and values                                       |
+| Case           | **ALL UPPERCASE** on labels, headings, button text, placeholders        |
+| Minimum sizes  | Labels: `11px` · Values: `13px` · Body/inputs: `14px`                   |
+
+Replace `'Geist Mono'` with `'Share Tech Mono'` everywhere — update `--font-mono` token in `src/styles/theme.css` and the `<link>` in `src/index.html`.
+
+---
+
+### 3. Colour Tokens
+
+All tokens live in `src/styles/theme.css`. Retain existing CSS variable names. Replace all values.
+
+#### 3.1 NIGHT theme (`data-theme="dark"`, default)
+
+```css
+[data-theme='dark'] {
+  --color-bg: oklch(0.07 0 0); /* near-black */
+  --color-bg-secondary: oklch(0.11 0 0);
+  --color-bg-tertiary: oklch(0.15 0 0);
+  --color-text: oklch(0.9 0 0); /* off-white */
+  --color-text-secondary: oklch(0.62 0 0);
+  --color-text-muted: oklch(0.42 0 0);
+  --color-border: oklch(0.26 0 0);
+  --color-border-subtle: oklch(0.18 0 0);
+  --color-accent: oklch(0.76 0.16 75); /* amber */
+  --color-accent-bg: oklch(0.76 0.16 75 / 12%);
+  --color-accent-border: oklch(0.76 0.16 75 / 45%);
+  --color-danger: oklch(0.6 0.22 25); /* red */
+  --color-overlay: oklch(0 0 0 / 85%);
+}
+```
+
+#### 3.2 DAY theme (`data-theme="light"`)
+
+```css
+[data-theme='light'] {
+  --color-bg: oklch(0.94 0.015 90); /* olive-cream paper */
+  --color-bg-secondary: oklch(0.9 0.013 90);
+  --color-bg-tertiary: oklch(0.86 0.012 90);
+  --color-text: oklch(0.15 0.02 90); /* dark olive-ink */
+  --color-text-secondary: oklch(0.38 0.015 90);
+  --color-text-muted: oklch(0.52 0.01 90);
+  --color-border: oklch(0.68 0.015 90);
+  --color-border-subtle: oklch(0.78 0.01 90);
+  --color-accent: oklch(0.52 0.18 75); /* amber darkened for AA contrast */
+  --color-accent-bg: oklch(0.52 0.18 75 / 12%);
+  --color-accent-border: oklch(0.52 0.18 75 / 40%);
+  --color-danger: oklch(0.48 0.22 25);
+  --color-overlay: oklch(0 0 0 / 55%);
+}
+```
+
+#### 3.3 Entity / data colours (both themes)
+
+These map to NATO-inspired tactical signal meanings. CSS variable names are unchanged (no DB migration needed).
+
+```css
+--color-red: oklch(0.6 0.22 25); /* HOSTILE */
+--color-orange: oklch(0.74 0.17 65); /* UNKNOWN */
+--color-green: oklch(0.62 0.18 151); /* FRIENDLY */
+--color-azure: oklch(0.63 0.16 230); /* NEUTRAL */
+--color-violet: oklch(0.63 0.2 310); /* SPECIAL */
+```
+
+#### 3.4 Contrast requirements (WCAG 2.1 AA)
+
+| Pair                                         | Min ratio |
+| -------------------------------------------- | --------- |
+| `--color-text` on `--color-bg`               | ≥ 4.5 : 1 |
+| `--color-text` on `--color-bg-secondary`     | ≥ 4.5 : 1 |
+| `--color-accent` on `--color-bg-secondary`   | ≥ 3 : 1   |
+| Entity colours used as icon/chip fills on bg | ≥ 3 : 1   |
+
+Verify with a contrast checker after implementation. Adjust lightness only if a pair fails.
+
+---
+
+### 4. Shape & Borders
+
+| Property      | Value                                  |
+| ------------- | -------------------------------------- |
+| Border radius | **0px everywhere** — no exceptions     |
+| Panel border  | `1px solid var(--color-border)`        |
+| Dividers      | `1px solid var(--color-border-subtle)` |
+
+#### 4.1 Bracket corner mark (active / selected state)
+
+Applied via CSS `::before` + `::after` on the selected element. No extra DOM nodes.
+
+```
+┌─     ─┐
+│       │
+└─     ─┘
+```
+
+Specification:
+
+- Arm length: `8px`
+- Thickness: `1px`
+- Colour: `var(--color-accent)`
+- Implemented as two pseudo-elements, each drawing two perpendicular lines using `border` shorthand:
+
+```css
+.selected::before,
+.selected::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-color: var(--color-accent);
+  border-style: solid;
+}
+.selected::before {
+  top: 0;
+  left: 0;
+  border-width: 1px 0 0 1px; /* top-left corner */
+}
+.selected::after {
+  bottom: 0;
+  right: 0;
+  border-width: 0 1px 1px 0; /* bottom-right corner */
+}
+```
+
+Add `position: relative` to the parent. Apply this pattern to: active nav tab, selected card, active toggle group item.
+
+---
+
+### 5. Touch Targets
+
+Every interactive element must meet **48 × 48px** minimum hit area on both mobile and desktop. Enforce with `min-width`/`min-height` or padding — visual size may be smaller. Affected elements:
+
+- All `<button>` and icon buttons
+- Nav tabs (bottom nav + desktop sidebar)
+- List/card rows (add `min-height: 48px`)
+- Select trigger and options
+- Toggle group items
+- Accordion triggers
+- Close icons in dialogs
+
+---
+
+### 6. Component Specifications
+
+#### 6.1 Panel / Card
+
+```
+┌─────────────────────────────┐
+│ SECTION HEADER              │  ← 11px uppercase, --color-text-secondary, 6px 12px padding, 1px border-bottom
+├─────────────────────────────┤
+│ content area                │  ← --color-bg-secondary background
+└─────────────────────────────┘
+```
+
+- Background: `var(--color-bg-secondary)`
+- Border: `1px solid var(--color-border)`
+- Radius: `0px`
+- Header: `font-size: 11px`, `letter-spacing: 0.08em`, uppercase, `color: var(--color-text-secondary)`, `padding: 6px 12px`, `border-bottom: 1px solid var(--color-border)`
+- **Selected state:** background → `var(--color-accent-bg)`, border → `1px solid var(--color-accent-border)`, add bracket marks (§4.1)
+
+#### 6.2 Button
+
+| Variant   | Background            | Text colour         | Border                          |
+| --------- | --------------------- | ------------------- | ------------------------------- |
+| `primary` | `var(--color-accent)` | `oklch(0.07 0 0)`   | none                            |
+| `ghost`   | transparent           | `var(--color-text)` | `1px solid var(--color-border)` |
+| `danger`  | `var(--color-danger)` | `oklch(0.95 0 0)`   | none                            |
+| `icon`    | transparent           | `var(--color-text)` | none                            |
+
+All buttons:
+
+- Radius: `0px`
+- Text: uppercase, `font-size: 13px`, `letter-spacing: 0.04em`
+- Min size: `48 × 48px` (use padding to reach this on small buttons)
+- Focus ring: `outline: 2px solid var(--color-accent); outline-offset: 2px`
+- Hover (`ghost`/`icon`): background → `var(--color-accent-bg)`, text → `var(--color-accent)`
+- Disabled: `opacity: 0.4; pointer-events: none`
+
+#### 6.3 Dialog / Bottom Sheet
+
+```
+┌──────────────────────────────┐
+│ DIALOG TITLE            [✕]  │  ← header: 1px border-bottom, padding 12px 16px
+├──────────────────────────────┤
+│                              │
+│  content                     │
+│                              │
+└──────────────────────────────┘
+```
+
+- Radius: `0px` everywhere — including mobile bottom sheet top corners
+- Overlay: `background: var(--color-overlay)`
+- Header: uppercase title (`font-size: 14px`), close icon button (48×48px, `aria-label="Close"`)
+- Desktop: centred, `max-width: 480px`, `background: var(--color-bg-secondary)`, `border: 1px solid var(--color-border)`
+- Mobile (bottom sheet): full width, `max-height: 85dvh`, anchored to bottom, `background: var(--color-bg-secondary)`, `border-top: 1px solid var(--color-border)`
+
+#### 6.4 Input / Textarea
+
+- Background: `var(--color-bg-tertiary)`
+- Border: `1px solid var(--color-border)`
+- Radius: `0px`
+- Text: `var(--color-text)`, `font-size: 14px`
+- Placeholder: `var(--color-text-muted)`, uppercase
+- Label: `font-size: 11px`, uppercase, `color: var(--color-text-secondary)`, `margin-bottom: 4px`
+- Focus: `border-color: var(--color-accent)` (no box-shadow)
+- Disabled: `opacity: 0.4`
+
+#### 6.5 Select
+
+- Trigger: same as input (§6.4), chevron icon right-aligned, `color: var(--color-text-muted)`
+- Dropdown listbox: `background: var(--color-bg-tertiary)`, `border: 1px solid var(--color-border)`, `0px radius`
+- Option: `min-height: 48px`, `padding: 0 12px`, uppercase text
+- Selected option: `background: var(--color-accent-bg)`, left border `3px solid var(--color-accent)`
+- Focused option: `background: var(--color-accent-bg)`
+
+#### 6.6 Toggle Group
+
+- Container: `background: var(--color-bg-tertiary)`, `border: 1px solid var(--color-border)`, `0px radius`
+- Item: `min-height: 48px`, uppercase `font-size: 12px`, `color: var(--color-text-secondary)`
+- Active item: `background: var(--color-accent-bg)`, `color: var(--color-accent)`, bracket marks (§4.1), `border: 1px solid var(--color-accent-border)`
+
+#### 6.7 Accordion
+
+- Trigger: `min-height: 48px`, `padding: 0 12px`, uppercase `font-size: 12px`, `border-bottom: 1px solid var(--color-border-subtle)`
+- Expanded trigger: `color: var(--color-accent)`
+- Chevron: 18px, rotates `180deg` when expanded, transition `0.15s ease`
+- Content: `background: var(--color-bg)`, `padding: 12px`
+
+#### 6.8 Popover
+
+- Background: `var(--color-bg-secondary)`
+- Border: `1px solid var(--color-border)`
+- Radius: `0px`
+- Shadow: `0 4px 16px oklch(0 0 0 / 40%)`
+
+#### 6.9 Toast
+
+- Radius: `0px`
+- Left border: `3px solid var(--color-accent)` (info/success) or `3px solid var(--color-danger)` (error)
+- Background: `var(--color-bg-secondary)`
+- Border: `1px solid var(--color-border)`
+- Message text: uppercase, `font-size: 13px`
+- Position: anchored `72px` above bottom of viewport (above bottom nav)
+- Max 3 visible; slide-up enter, slide-down exit, `0.15s ease`
+
+#### 6.10 Bottom Nav (mobile)
+
+```
+┌──────────┬──────────┬──────────┐
+│  [icon]  │  [icon]  │  [icon]  │
+│   MAP    │   SAVED  │   TOOLS  │  ← 10px uppercase labels
+└──────────┴──────────┴──────────┘
+```
+
+- Background: `var(--color-bg-secondary)`
+- Top border: `1px solid var(--color-border)`
+- Each tab: `min-height: 56px`, `min-width: 48px`, flex column, icon `24px`
+- Inactive: `color: var(--color-text-secondary)`
+- Active: `color: var(--color-accent)` + bracket mark above icon (§4.1)
+- Labels: `font-size: 10px`, uppercase, `letter-spacing: 0.06em`
+
+#### 6.11 Desktop Sidebar Nav
+
+- Right border: `1px solid var(--color-border)`
+- Same tab rules as bottom nav, oriented vertically
+
+---
+
+### 7. Readout Panel Layout
+
+Used in: GpsPanel, RulerPanel, PinInfo coordinate list, any live-data display.
+
+```
+┌─────────────────────────────────┐
+│ PANEL TITLE                     │
+├─────────────────────────────────┤
+│ LAT        :  1.35210° N        │
+│ LNG        :  103.81980° E      │
+│ ALT        :  45 M              │
+│ ACCURACY   :  ±8 M             │
+└─────────────────────────────────┘
+```
+
+CSS grid layout:
+
+```css
+.readout-grid {
+  display: grid;
+  grid-template-columns: 100px 12px 1fr; /* label | colon | value */
+  row-gap: 0;
+}
+.readout-label {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 28px;
+}
+.readout-sep {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 28px;
+  text-align: center;
+}
+.readout-value {
+  font-size: 13px;
+  color: var(--color-text);
+  line-height: 28px;
+  text-align: right;
+}
+```
+
+- Row `min-height: 28px` (scannable, non-interactive rows still meet visual density standard)
+- Separator is a literal `:` character, not a border
+
+---
+
+### 8. Accessibility Checklist
+
+All items must pass before a PR is merged.
+
+| Criterion   | Requirement                                                                                                |
+| ----------- | ---------------------------------------------------------------------------------------------------------- |
+| WCAG 1.4.3  | Text contrast ≥ 4.5 : 1 in both themes                                                                     |
+| WCAG 1.4.11 | UI component contrast ≥ 3 : 1                                                                              |
+| WCAG 1.4.1  | Colour is never the sole differentiator — pair entity colour chips with a text label                       |
+| WCAG 2.4.7  | All interactive elements have a visible focus ring: `2px solid var(--color-accent)`, `outline-offset: 2px` |
+| WCAG 2.5.5  | All touch targets ≥ 48 × 48px                                                                              |
+| WCAG 4.1.2  | All icon-only buttons have `aria-label`                                                                    |
+| WCAG 4.1.2  | Kobalte components retain correct `role`, `aria-expanded`, `aria-selected` after restyling                 |
+| Navigation  | Visible text labels on all nav items — do not remove labels to save space                                  |
+
+---
+
+### 9. Implementation Scope
+
+Work file-by-file in this order. Each file is **styles only** — no logic changes.
+
+| #   | File(s)                                        | Changes                                                    |
+| --- | ---------------------------------------------- | ---------------------------------------------------------- |
+| 1   | `src/index.html`                               | Replace Geist Mono `<link>` with Share Tech Mono           |
+| 2   | `src/styles/theme.css`                         | Replace all colour token values (§3); update `--font-mono` |
+| 3   | `src/components/ui/Button.tsx`                 | Apply §6.2                                                 |
+| 4   | `src/components/ui/Dialog.tsx`                 | Apply §6.3                                                 |
+| 5   | `src/components/ui/TextField.tsx`              | Apply §6.4                                                 |
+| 6   | `src/components/ui/Select.tsx`                 | Apply §6.5                                                 |
+| 7   | `src/components/ui/ToggleGroup.tsx`            | Apply §6.6                                                 |
+| 8   | `src/components/ui/Accordion.tsx`              | Apply §6.7                                                 |
+| 9   | `src/components/ui/Popover.tsx`                | Apply §6.8                                                 |
+| 10  | `src/components/ui/Toast.tsx`                  | Apply §6.9                                                 |
+| 11  | `src/components/nav/BottomNav.tsx`             | Apply §6.10; bracket active state                          |
+| 12  | `src/components/nav/DesktopToolsBar.tsx`       | Apply §6.11; bracket active state                          |
+| 13  | `src/components/saved/PinCard.tsx`             | Panel pattern §6.1; bracket on selected                    |
+| 14  | `src/components/saved/TrackCard.tsx`           | Panel pattern §6.1; bracket on selected                    |
+| 15  | `src/components/tools/GpsPanel.tsx`            | Readout grid §7                                            |
+| 16  | `src/components/tools/RulerPanel.tsx`          | Readout grid §7                                            |
+| 17  | `src/components/settings/SettingsPanel.tsx`    | Panel pattern §6.1                                         |
+| 18  | `src/components/onboarding/OnboardingFlow.tsx` | Dialog pattern §6.3                                        |
+| 19  | `src/components/map/CompassButton.tsx`         | Icon button §6.2; 48px target                              |
+| 20  | `src/components/map/LocationButton.tsx`        | Icon button §6.2; 48px target                              |
+| 21  | `src/components/map/PlotControls.tsx`          | Panel §6.1; button §6.2                                    |
+| 22  | `src/components/map/MapStyleToggle.tsx`        | Panel §6.1; 48px targets                                   |
+| 23  | `src/components/pin/PinEditor.tsx`             | Dialog §6.3; input §6.4                                    |
+| 24  | `src/components/pin/PinInfo.tsx`               | Dialog §6.3; readout grid §7                               |
+| 25  | `src/components/track/TrackEditor.tsx`         | Dialog §6.3; input §6.4                                    |
+| 26  | `src/components/track/TrackInfo.tsx`           | Dialog §6.3; readout grid §7                               |
+
+---
+
 ## Coding Conventions
 
 - SolidJS components (`.tsx`).
@@ -316,251 +710,3 @@ All UI-related changes and integration tests must be verified using Chrome MCP t
 ## SVG Icon Resources
 
 Custom SVG icons are located in `public/icons/`. Most general icons have been replaced by Material Symbols (`https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined`).
-
----
-
-## UI Library Migration: Kobalte
-
-### Motivation
-
-The app has no shared UI primitives. Every dialog, bottom sheet, select, toast, accordion, and button is hand-rolled inline per feature, producing visual and behavioural inconsistencies. Adopting **Kobalte** (`@kobalte/core`) provides robust, accessible, fully unstyled foundations for all interactive components. All existing CSS custom property tokens, fonts, and icons are preserved — only the structural HTML and JS wiring changes.
-
-### Libraries
-
-| Library         | Purpose                                                                              | Docs                |
-| --------------- | ------------------------------------------------------------------------------------ | ------------------- |
-| `@kobalte/core` | Button, Dialog, Popover, Select, TextField, Toast, Accordion, ToggleGroup, Separator | https://kobalte.dev |
-
-Install with:
-
-```bash
-npm install @kobalte/core
-```
-
-### Design Principles for the Migration
-
-- **Never introduce new visual tokens.** Use the existing CSS vars (`--color-bg`, `--color-accent`, `--color-border`, etc.) on every Kobalte element.
-- **Build shared primitives first**, then replace feature components one by one.
-- **Shared primitives live in `src/components/ui/`** — one file per primitive type.
-- **Feature components import only from `src/components/ui/`**, never directly from `@kobalte/core`.
-- All primitives must work in both light and dark themes.
-
----
-
-### Phase 1 — Install & Shared Primitive Layer
-
-**Goal:** Install the library and create the shared `src/components/ui/` building blocks that all feature components will use. No feature components are changed yet.
-
-#### 1.1 Install packages
-
-```bash
-npm install @kobalte/core
-```
-
-Run `npm run build` to confirm no import errors before proceeding.
-
-#### 1.2 Create `src/components/ui/Dialog.tsx`
-
-Wrap `@kobalte/core/dialog` `Dialog` into a single reusable component with:
-
-- Props: `open`, `onOpenChange`, `title`, `children`, `preventClose?: boolean`
-- Renders a `Dialog.Portal` containing `Dialog.Overlay` (fixed, full-screen, semi-transparent using `--color-overlay`) and `Dialog.Content`
-- On **mobile** (`@media (max-width: 767px)`): content is a bottom sheet — `position: fixed; bottom: 0; left: 0; right: 0; border-radius: 16px 16px 0 0; padding: 1.25rem 1rem; max-height: 85dvh; overflow-y: auto` — with a drag-handle bar (`4px × 36px`, `--color-border`, `border-radius: 2px`) above the title
-- On **desktop** (`@media (min-width: 768px)`): content is a centered card — `position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 12px; padding: 1.5rem; min-width: 360px; max-width: 480px`
-- Both layouts: `--color-bg` background, `--color-border` border, `z-index: 100`
-- `Dialog.Title` uses `--color-text`, `font-weight: 600`; includes a `Dialog.CloseButton` (Material Symbol `close` icon) top-right, hidden when `preventClose` is true
-- When `preventClose` is true: pass `onPointerDownOutside={e => e.preventDefault()}` and `onEscapeKeyDown={e => e.preventDefault()}` to `Dialog.Content`
-- This single `Dialog` component replaces both the old `Dialog.tsx`, `Drawer.tsx`, and `Sheet.tsx` — feature components use it directly
-
-#### 1.3 Create `src/components/ui/Select.tsx`
-
-Wrap `@kobalte/core/select` `Select` with:
-
-- Props: `value`, `onChange`, `options: Array<{ value: string; label: string }>`, `placeholder?`, `label?`
-- Optional `Select.Label` rendered above the trigger when `label` is provided; style: `--color-text-secondary`, `font-size: 0.75rem`, `margin-bottom: 0.25rem`
-- Trigger button: full-width, `--color-bg-secondary` background, `--color-border` border, `--color-text` text, `border-radius: 8px`, `padding: 0.5rem 0.75rem`; trailing chevron (Material Symbol `expand_more`) that rotates when open via `data-expanded`
-- `Select.Portal` → `Select.Content` → `Select.Listbox`: `--color-bg` background, `--color-border` border, `border-radius: 8px`, `box-shadow: 0 4px 16px rgba(0,0,0,0.2)`, `z-index: 200`
-- `Select.Item`: `--color-text` text, hover uses `--color-bg-secondary`; `Select.ItemIndicator` shows `check` icon in `--color-accent` when selected
-- Replaces all 8 native `<select>` elements in `OnboardingFlow.tsx` and `SettingsPanel.tsx`
-
-#### 1.4 Create `src/components/ui/Toast.tsx`
-
-Wrap `@kobalte/core/toast` replacing the hand-rolled `src/components/Toast.tsx`:
-
-- Keep the same API surface: `showToast(message, type)` where `type` is `'success' | 'error' | 'info'`
-- Export a `<ToastRegion />` component to mount once in `App.tsx`
-- Pill style: `--color-bg-secondary` background, `--color-border` border, `border-radius: 999px`, `padding: 0.5rem 1rem`, `--color-text` text
-- Per-type left accent: `--color-accent` (info/success), `--color-danger` (error)
-- Auto-dismiss after 3 s; max 3 visible at once; stacks from bottom-center
-
-#### 1.5 Create `src/components/ui/Accordion.tsx`
-
-Wrap `@kobalte/core/accordion` `Accordion` with:
-
-- Props: `items: Array<{ value: string; trigger: JSX.Element; content: JSX.Element }>`, `defaultValue?`, `multiple?: boolean`
-- Trigger row: full-width `Accordion.ItemTrigger` button, `--color-text`, chevron icon (Material Symbol `expand_more`) rotates 180° on open via `data-expanded` CSS selector, `0.15s ease` transition
-- Content: `Accordion.ItemContent` with CSS grid `grid-template-rows` trick (`0fr` → `1fr`) for smooth expand/collapse, `0.2s ease` — matches the existing pattern in `DesktopToolsBar.tsx`
-- Replaces the hand-rolled accordion in `DesktopToolsBar.tsx`
-
-#### 1.6 Create `src/components/ui/ToggleGroup.tsx`
-
-Wrap `@kobalte/core/toggle-group` `ToggleGroup` (single-select) with:
-
-- Props: `value`, `onChange`, `options: Array<{ value: string; label: string | JSX.Element }>`
-- Renders a pill-shaped segmented control: `border-radius: 8px` container, `border-radius: 6px` items, `padding: 0.25rem`, `--color-bg-secondary` background
-- Active item (`data-pressed`): `--color-accent` background, white text; inactive: transparent, `--color-text-secondary`
-- Replaces the Path/Area toggle in `TrackEditor.tsx` and the sort chips in `SavedScreen.tsx`
-
-#### 1.7 Create `src/components/ui/TextField.tsx`
-
-Wrap `@kobalte/core/text-field` `TextField` with:
-
-- Props: `label?`, `value`, `onChange`, `placeholder?`, `multiline?` (renders `TextField.TextArea` if true), `maxLength?`, `type?`
-- `TextField.Label`: `--color-text-secondary`, `font-size: 0.75rem`, `margin-bottom: 0.25rem`
-- `TextField.Input` / `TextField.TextArea`: full-width, `--color-bg-secondary` background, `--color-border` border, `--color-text` text, `border-radius: 8px`, `padding: 0.5rem 0.75rem`; focus ring via `outline: 2px solid var(--color-accent)` on `[data-focus-visible]`
-- Uses Kobalte's controlled `value` + `onChange` API (string-based)
-- Replaces all hand-rolled `<input>` and `<textarea>` elements in `PinEditor.tsx`, `TrackEditor.tsx`, `SavedScreen.tsx`, `PlotControls.tsx`, `CompassButton.tsx`
-
-#### 1.8 Create `src/components/ui/Button.tsx`
-
-Wrap `@kobalte/core/button` `Button` with:
-
-- Props: `variant: 'primary' | 'ghost' | 'danger' | 'icon'`, `size?: 'sm' | 'md'`, `onClick`, `disabled?`, `type?`, `aria-label?`, `children`
-- `primary`: `--color-accent` background, white text, `border-radius: 8px`, `padding: 0.5rem 1rem`
-- `ghost`: transparent background, `--color-text` text, `--color-border` border
-- `danger`: `--color-danger` background, white text
-- `icon`: square, no border, `--color-text` icon color; use for single-icon action buttons (close, copy, edit) — replaces the many ad-hoc icon buttons throughout the app
-- `sm`: reduced padding and font-size
-- `data-disabled` provided by Kobalte; style `opacity: 0.4; pointer-events: none` on that attribute
-- Replaces all ad-hoc `<button>` elements throughout all feature components
-
-#### 1.9 Create `src/components/ui/Popover.tsx`
-
-Wrap `@kobalte/core/popover` `Popover` with:
-
-- Props: `open`, `onOpenChange`, `trigger: JSX.Element`, `children`, `placement?: Placement`
-- Renders `Popover.Trigger` (as slot, wrapping the passed `trigger`), then `Popover.Portal` → `Popover.Content`
-- Content card: `--color-bg` background, `--color-border` border, `border-radius: 10px`, `padding: 0.75rem`, `box-shadow: 0 4px 16px rgba(0,0,0,0.2)`, `z-index: 50`
-- Replaces the hand-rolled floating popover in `CompassButton.tsx` (bearing input panel) and `PlotControls.tsx` (Go To coordinate input panel)
-
----
-
-### Phase 2 — Replace Feature Components
-
-Replace feature components one at a time. After each replacement, run `npx tsc --noEmit` and verify visually in both mobile and desktop viewports using Chrome MCP tools.
-
-#### 2.1 `PinEditor.tsx`
-
-- Replace hand-rolled bottom sheet / dialog with `<Dialog>` from `src/components/ui/Dialog.tsx`
-- Replace name, group, description inputs with `<TextField>`
-- Replace save/delete buttons with `<Button variant="primary">` / `<Button variant="danger">`
-- Replace close button with `<Button variant="icon">`
-- `ColorPicker.tsx` is unchanged (bespoke enough to keep as-is)
-- Remove all inline `position: fixed` overlay, focus-trap, and `useEscapeToClose` logic — Kobalte handles this
-
-#### 2.2 `PinInfo.tsx`
-
-- Replace hand-rolled bottom sheet with `<Dialog>` (bottom sheet on mobile, centered on desktop via responsive CSS in the primitive)
-- Replace action buttons (Go To, Edit, Open in Maps) with `<Button variant="ghost">`
-- Coordinate row copy buttons: replace with `<Button variant="icon" size="sm">`
-- Replace close button with `<Button variant="icon">`
-- Remove `useEscapeToClose` hook
-
-#### 2.3 `TrackEditor.tsx`
-
-- Replace hand-rolled bottom sheet / dialog with `<Dialog>`
-- Replace name, group, description inputs with `<TextField>`
-- Replace Path/Area segmented toggle with `<ToggleGroup>`
-- Replace save/delete/cancel buttons with `<Button>`
-- Replace close button with `<Button variant="icon">`
-- Remove inline focus-trap and `useEscapeToClose` logic
-
-#### 2.4 `TrackInfo.tsx`
-
-- Replace hand-rolled bottom sheet with `<Dialog>`
-- Replace action buttons with `<Button variant="ghost">`
-- Replace close button with `<Button variant="icon">`
-- Remove `useEscapeToClose` hook
-
-#### 2.5 `OnboardingFlow.tsx`
-
-- Replace the full-screen modal wrapper with `<Dialog preventClose>` (blocks map until `onboardingDone`; `preventClose` suppresses Escape and outside-click dismissal)
-- Replace all 4 native `<select>` elements with `<Select>`
-- Replace Back/Next buttons with `<Button>`
-- Keep step-dot progress indicator as-is (bespoke)
-
-#### 2.6 `SettingsPanel.tsx`
-
-- Replace all 4 native `<select>` elements with `<Select>`
-- No sheet wrapping needed (it renders inside the sidebar/accordion already)
-
-#### 2.7 `DesktopToolsBar.tsx`
-
-- Replace hand-rolled accordion with `<Accordion>` from `src/components/ui/Accordion.tsx`
-- The four sections (Saved, GPS, Ruler, Settings) become accordion items
-
-#### 2.8 `SavedScreen.tsx`
-
-- Replace sort chip row with `<ToggleGroup>`
-- Replace search `<input>` with `<TextField>`
-- Bulk action buttons: replace with `<Button>`
-- Share code import `<input>` and submit button: replace with `<TextField>` + `<Button>`
-- Long-press / multi-select logic is unchanged
-
-#### 2.9 `PlotControls.tsx`
-
-- Replace "Go To" floating coordinate panel with `<Popover>` from `src/components/ui/Popover.tsx`; anchor to the Go To toggle button
-- Replace coordinate input with `<TextField>` inside the popover content
-- Replace confirm/cancel/undo/discard buttons with `<Button>`
-- The floating toolbar positioning logic is unchanged
-
-#### 2.10 `CompassButton.tsx`
-
-- Replace hand-rolled floating bearing-input panel with `<Popover>` anchored to the compass button
-- Replace bearing `<input>` with `<TextField>` inside the popover content
-- Replace confirm/close buttons with `<Button>`
-
-#### 2.11 `App.tsx` — swap Toast
-
-- Remove import of old `src/components/Toast.tsx`
-- Mount `<ToastRegion />` from `src/components/ui/Toast.tsx`
-- Update all `showToast()` call sites to the new API if the signature changed
-
-#### 2.12 `ToolboxModal.tsx` and `nav/BottomNav.tsx`
-
-- Replace ad-hoc tool card and nav buttons with `<Button variant="ghost">`
-- The full-screen overlay and grid layout are structural/nav concerns — keep as-is
-
-#### 2.13 `GpsPanel.tsx` and `RulerPanel.tsx`
-
-- Replace the `role="button"` div in `GpsPanel.tsx` with `<Button variant="ghost">` for proper accessibility
-- Replace the "Enable Compass" button in `GpsPanel.tsx` and the "Clear All" button in `RulerPanel.tsx` with `<Button>`
-
----
-
-### Phase 3 — Cleanup
-
-- Delete the old `src/components/Toast.tsx` once `App.tsx` is migrated
-- Delete `src/components/ui/Drawer.tsx` and `src/components/ui/Sheet.tsx` if they exist (superseded by the responsive `Dialog`)
-- Run `npx tsc --noEmit` — must pass with zero errors
-- Run `npm run build` — must succeed
-- Search for any remaining raw `<button>`, `<input>`, `<textarea>`, `<select>` outside of `src/components/ui/` and the headless map components; replace stragglers
-- Do a final visual pass in Chrome MCP: mobile (375 × 812) and desktop (1280 × 800) across all screens and interactions
-
----
-
-### Acceptance Criteria
-
-- [ ] `npm run build` passes with no errors or warnings
-- [ ] `npx tsc --noEmit` passes with zero type errors
-- [ ] All 8 `<select>` elements replaced with `<Select>` primitive
-- [ ] All 4 bottom-sheet/dialog pairs use `<Dialog>` (responsive via CSS)
-- [ ] Toast region mounted once via Kobalte; old `Toast.tsx` deleted
-- [ ] DesktopToolsBar accordion uses `<Accordion>` primitive
-- [ ] Path/Area toggle and sort chips use `<ToggleGroup>` primitive
-- [ ] CompassButton and PlotControls floating panels use `<Popover>` primitive
-- [ ] `role="button"` div in `GpsPanel.tsx` replaced with `<Button>`
-- [ ] No raw `<button>` / `<input>` / `<textarea>` / `<select>` outside `src/components/ui/` (excluding map/headless components)
-- [ ] Visual parity confirmed via Chrome MCP screenshots in both viewports
-- [ ] No new CSS tokens introduced; all primitives use existing `--color-*` vars
-- [ ] No `corvu` dependency; only `@kobalte/core`
