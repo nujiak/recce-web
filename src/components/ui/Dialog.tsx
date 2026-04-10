@@ -54,15 +54,18 @@ const Dialog_: Component<DialogProps> = (props) => {
             font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            padding-right: 2rem;
+            padding-right: 3.5rem;
             padding-bottom: 12px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
             border-bottom: 1px solid var(--color-border);
             margin-bottom: 16px;
           }
           .ui-dialog-close {
             position: absolute;
-            top: 1.25rem;
-            right: 1rem;
+            top: 0;
+            right: 0;
             background: none;
             border: none;
             cursor: pointer;
@@ -74,11 +77,16 @@ const Dialog_: Component<DialogProps> = (props) => {
             justify-content: center;
             border-radius: 0px;
             font-family: 'Material Symbols Outlined', sans-serif;
-            font-size: 20px;
+            font-size: 18px;
+            outline: none;
           }
           .ui-dialog-close:hover {
             background: var(--color-accent-bg);
             color: var(--color-accent);
+          }
+          .ui-dialog-close:focus-visible {
+            outline: 2px solid var(--color-accent);
+            outline-offset: -2px;
           }
           @media (max-width: 767px) {
             .ui-dialog-content {
