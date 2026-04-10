@@ -86,19 +86,19 @@ fix(gps): attach listeners after iOS compass permission grant
 
 ### Stack
 
-| Concern       | Choice                    | Reason                                         |
-| ------------- | ------------------------- | ---------------------------------------------- |
-| Framework     | SolidJS + TypeScript      | Fine-grained reactivity; strict types          |
-| Styling       | Tailwind CSS v4           | CSS-var-native theming; no class bloat         |
-| Build         | Vite + vite-plugin-pwa    | Fast HMR, static `dist/` output, good CI story |
-| Map           | MapLibre GL JS            | Vector tiles; free                             |
-| Map utilities | @turf/circle              | Drawing GPS accuracy polygons                  |
-| Map tiles     | OpenFreeMap               | No API key needed                              |
-| Database      | Dexie (IndexedDB)         | Typed, promise-based                           |
-| Coordinates   | proj4js + utm-latlng      | Handles all 6 coordinate systems               |
-| Compression   | pako (zlib)               | Share-code compression                         |
-| Icons         | Material Symbols (CDN)    | Standardized SVG icons                         |
-| Font          | Geist Mono (Google Fonts) | Monospace; good for coordinate display         |
+| Concern       | Choice                         | Reason                                         |
+| ------------- | ------------------------------ | ---------------------------------------------- |
+| Framework     | SolidJS + TypeScript           | Fine-grained reactivity; strict types          |
+| Styling       | Tailwind CSS v4                | CSS-var-native theming; no class bloat         |
+| Build         | Vite + vite-plugin-pwa         | Fast HMR, static `dist/` output, good CI story |
+| Map           | MapLibre GL JS                 | Vector tiles; free                             |
+| Map utilities | @turf/circle                   | Drawing GPS accuracy polygons                  |
+| Map tiles     | OpenFreeMap                    | No API key needed                              |
+| Database      | Dexie (IndexedDB)              | Typed, promise-based                           |
+| Coordinates   | proj4js + utm-latlng           | Handles all 6 coordinate systems               |
+| Compression   | pako (zlib)                    | Share-code compression                         |
+| Icons         | Material Symbols (CDN)         | Standardized SVG icons                         |
+| Font          | Share Tech Mono (Google Fonts) | Monospace MFD aesthetic for coordinate display |
 
 ### File Layout
 

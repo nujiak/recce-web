@@ -186,9 +186,8 @@ const GpsPanel: Component = () => {
                   <span
                     style={{
                       'font-size': '0.75rem',
-                      'font-weight': '600',
                       'text-transform': 'uppercase',
-                      'letter-spacing': '0.5px',
+                      'letter-spacing': '0.06em',
                       color: 'var(--color-text-muted)',
                     }}
                   >
@@ -197,7 +196,6 @@ const GpsPanel: Component = () => {
                   <span
                     style={{
                       'font-size': '1.1rem',
-                      'font-weight': '600',
                       'font-variant-numeric': 'tabular-nums',
                     }}
                   >
@@ -208,9 +206,8 @@ const GpsPanel: Component = () => {
                   <span
                     style={{
                       'font-size': '0.75rem',
-                      'font-weight': '600',
                       'text-transform': 'uppercase',
-                      'letter-spacing': '0.5px',
+                      'letter-spacing': '0.06em',
                       color: 'var(--color-text-muted)',
                     }}
                   >
@@ -219,7 +216,6 @@ const GpsPanel: Component = () => {
                   <span
                     style={{
                       'font-size': '1.1rem',
-                      'font-weight': '600',
                       'font-variant-numeric': 'tabular-nums',
                     }}
                   >
@@ -230,9 +226,8 @@ const GpsPanel: Component = () => {
                   <span
                     style={{
                       'font-size': '0.75rem',
-                      'font-weight': '600',
                       'text-transform': 'uppercase',
-                      'letter-spacing': '0.5px',
+                      'letter-spacing': '0.06em',
                       color: 'var(--color-text-muted)',
                     }}
                   >
@@ -241,7 +236,6 @@ const GpsPanel: Component = () => {
                   <span
                     style={{
                       'font-size': '1.1rem',
-                      'font-weight': '600',
                       'font-variant-numeric': 'tabular-nums',
                     }}
                   >
@@ -254,7 +248,6 @@ const GpsPanel: Component = () => {
                   style={{
                     'font-size': '0.75rem',
                     color: 'var(--color-text-muted)',
-                    'font-style': 'italic',
                     'text-align': 'center',
                     margin: '0',
                   }}

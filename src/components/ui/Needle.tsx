@@ -35,7 +35,7 @@ const Needle: Component<NeedleProps> = (props) => {
             left: '50%',
             transform: 'translateX(-50%)',
             'font-size': '11px',
-            'font-weight': '700',
+
             color: '#fff',
             'z-index': '1',
             'pointer-events': 'none',

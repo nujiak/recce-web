@@ -77,7 +77,7 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
             <span
               style={{
                 'font-size': '13px',
-                'font-weight': '600',
+
                 color: 'var(--color-text)',
                 'white-space': 'nowrap',
                 overflow: 'hidden',

@@ -73,7 +73,7 @@ const TrackCard: Component<TrackCardProps> = (props) => {
         <div
           style={{
             'font-size': '0.875rem',
-            'font-weight': '600',
+
             overflow: 'hidden',
             'text-overflow': 'ellipsis',
             'white-space': 'nowrap',
