@@ -92,7 +92,16 @@ const TrackEditor: Component<TrackEditorProps> = (props) => {
         <TextField label="Name" value={name()} onChange={setName} />
 
         <div style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-          <span style={{ 'font-size': '0.75rem', color: 'var(--color-text-secondary)' }}>Type</span>
+          <span
+            style={{
+              'font-size': '11px',
+              color: 'var(--color-text-secondary)',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.04em',
+            }}
+          >
+            Type
+          </span>
           <ToggleGroup
             value={isCyclical() ? 'area' : 'path'}
             onChange={(v) => setIsCyclical(v === 'area')}
