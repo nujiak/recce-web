@@ -159,7 +159,8 @@ const DesktopToolsBar: Component = () => {
           gap: 3px;
           width: 100%;
           height: 52px;
-          border-radius: 8px;
+          min-height: 48px;
+          border-radius: 0px;
           border: none;
           background: transparent;
           color: var(--color-text-secondary);
@@ -167,6 +168,7 @@ const DesktopToolsBar: Component = () => {
           transition: background 0.12s ease, color 0.12s ease;
           padding: 0;
           font-family: inherit;
+          position: relative;
         }
         .dtb-tab:hover {
           background: var(--color-bg);
@@ -183,9 +185,10 @@ const DesktopToolsBar: Component = () => {
         }
         .dtb-tab-label {
           font-size: 0.5625rem;
-          font-weight: 600;
-          letter-spacing: 0.02em;
+          font-weight: 400;
+          letter-spacing: 0.04em;
           line-height: 1;
+          text-transform: uppercase;
         }
       `}</style>
 
@@ -214,7 +217,7 @@ const DesktopToolsBar: Component = () => {
           {(tool) => (
             <button
               role="tab"
-              class={`dtb-tab${active() === tool.id ? ' is-active' : ''}`}
+              class={`dtb-tab${active() === tool.id ? ' is-active bracket-selected' : ''}`}
               aria-selected={active() === tool.id}
               aria-label={tool.label}
               title={tool.label}
