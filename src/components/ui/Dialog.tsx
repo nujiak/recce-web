@@ -9,7 +9,12 @@ interface DialogProps {
   preventClose?: boolean;
 }
 
+let dialogZCounter = 0;
+
+const DIALOG_Z_BASE = 100;
+
 const Dialog_: Component<DialogProps> = (props) => {
+  const zIndex = DIALOG_Z_BASE + ++dialogZCounter * 2;
   return (
     <Dialog open={props.open} onOpenChange={props.onOpenChange}>
       <Dialog.Portal>
@@ -18,7 +23,6 @@ const Dialog_: Component<DialogProps> = (props) => {
             position: fixed;
             inset: 0;
             background: var(--color-overlay);
-            z-index: 100;
             animation: ui-dialog-overlay-in 0.15s ease-out;
           }
           .ui-dialog-overlay[data-closed] {
@@ -27,7 +31,6 @@ const Dialog_: Component<DialogProps> = (props) => {
           .ui-dialog-content {
             position: fixed;
             inset: 0;
-            z-index: 101;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -47,6 +50,7 @@ const Dialog_: Component<DialogProps> = (props) => {
             width: 90%;
             position: relative;
             outline: none;
+            box-shadow: 0 4px 16px oklch(0 0 0 / 40%);
           }
           .ui-dialog-title {
             color: var(--color-text);
@@ -122,9 +126,10 @@ const Dialog_: Component<DialogProps> = (props) => {
           }
         `}</style>
 
-        <Dialog.Overlay class="ui-dialog-overlay" />
+        <Dialog.Overlay class="ui-dialog-overlay" style={{ 'z-index': zIndex }} />
         <Dialog.Content
           class="ui-dialog-content"
+          style={{ 'z-index': zIndex + 1 }}
           onClick={(e) => {
             if (!props.preventClose && e.target === e.currentTarget) {
               props.onOpenChange(false);
