@@ -17,7 +17,7 @@ interface PinEditorProps {
 }
 
 const PinEditor: Component<PinEditorProps> = (props) => {
-  const { editingPin, setEditingPin } = useUI();
+  const { editingPin, setEditingPin, markerPickerOpen, setMarkerPickerOpen } = useUI();
   const [prefs] = usePrefs();
 
   const pin = editingPin;
@@ -27,7 +27,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
   const [coordError, setCoordError] = createSignal('');
   const [color, setColor] = createSignal<PinColor>('red');
   const [markerType, setMarkerType] = createSignal<MarkerType>('pin');
-  const [markerPickerOpen, setMarkerPickerOpen] = createSignal(false);
+
   const [bearingInput, setBearingInput] = createSignal('');
 
   const bearingDegrees = createMemo(() => {
@@ -62,6 +62,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
       setBearingInput('');
       setGroup('');
       setDescription('');
+      setMarkerPickerOpen(false);
     }
   });
 

@@ -26,6 +26,9 @@ interface UIContextValue {
   setEditingPin: (p: Pin | null) => void;
   viewingPin: () => Pin | null;
   setViewingPin: (p: Pin | null) => void;
+  // Nested dialog inside PinEditor
+  markerPickerOpen: () => boolean;
+  setMarkerPickerOpen: (v: boolean) => void;
   // Track editor/info
   editingTrack: () => Track | null;
   setEditingTrack: (t: Track | null) => void;
@@ -73,6 +76,7 @@ export const UIProvider: ParentComponent = (props) => {
   const [isMultiSelect, setIsMultiSelect] = createSignal(false);
   const [editingPin, setEditingPin] = createSignal<Pin | null>(null);
   const [viewingPin, setViewingPin] = createSignal<Pin | null>(null);
+  const [markerPickerOpen, setMarkerPickerOpen] = createSignal(false);
   const [editingTrack, setEditingTrack] = createSignal<Track | null>(null);
   const [viewingTrack, setViewingTrack] = createSignal<Track | null>(null);
   const [savedVersion, setSavedVersion] = createSignal(0);
@@ -95,6 +99,8 @@ export const UIProvider: ParentComponent = (props) => {
         setEditingPin,
         viewingPin,
         setViewingPin,
+        markerPickerOpen,
+        setMarkerPickerOpen,
         editingTrack,
         setEditingTrack,
         viewingTrack,

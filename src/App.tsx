@@ -34,6 +34,8 @@ function AppInner() {
     setEditingPin,
     viewingPin,
     setViewingPin,
+    markerPickerOpen,
+    setMarkerPickerOpen,
     editingTrack,
     setEditingTrack,
     viewingTrack,
@@ -114,6 +116,7 @@ function AppInner() {
   // Ordered list of open states, highest priority first.
   // Returns true when at least one interceptable overlay is open.
   const backNavOpen = () =>
+    markerPickerOpen() ||
     !!viewingPin() ||
     !!editingPin() ||
     !!viewingTrack() ||
@@ -126,6 +129,10 @@ function AppInner() {
 
   // Close only the topmost overlay; leave everything else untouched.
   const closeTopmost = () => {
+    if (markerPickerOpen()) {
+      setMarkerPickerOpen(false);
+      return;
+    }
     if (viewingPin()) {
       setViewingPin(null);
       return;
