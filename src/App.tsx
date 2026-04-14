@@ -1,6 +1,7 @@
-import { createEffect, createSignal, onCleanup, onMount, Show } from 'solid-js';
+import { createEffect, createSignal, Show } from 'solid-js';
 import { PrefsProvider, usePrefs } from './context/PrefsContext';
 import { UIProvider, useUI } from './context/UIContext';
+import { createBackNav } from './utils/backNav';
 import AppShell from './components/layout/AppShell';
 import ToolboxModal from './components/nav/ToolboxModal';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
@@ -105,130 +106,31 @@ function AppInner() {
   });
 
   // ---------- Back-navigation via History API sentinel ----------
-  // When any overlay is open we push a dummy "sentinel" entry onto the history
-  // stack so that the browser back gesture/button pops it instead of leaving
-  // the app. On popstate we close the topmost overlay and re-push the sentinel
-  // if further overlays remain open. The sentinel is also removed reactively
-  // when overlays are closed programmatically (e.g. tapping X or saving).
-
+  // Priority-ordered layers: index 0 is closed first on back press.
+  // To add a new interceptable overlay, append an entry here.
   const isMobile = () => window.innerWidth < DESKTOP_BREAKPOINT;
 
-  // Ordered list of open states, highest priority first.
-  // Returns true when at least one interceptable overlay is open.
-  const backNavOpen = () =>
-    markerPickerOpen() ||
-    !!viewingPin() ||
-    !!editingPin() ||
-    !!viewingTrack() ||
-    !!editingTrack() ||
-    compassDialogOpen() ||
-    firefoxDialogOpen() ||
-    (isMobile() && activeNav() === 'tools' && activeTool() !== null) ||
-    (isMobile() && activeNav() === 'tools') ||
-    (isMobile() && activeNav() === 'saved');
-
-  // Close only the topmost overlay; leave everything else untouched.
-  const closeTopmost = () => {
-    if (markerPickerOpen()) {
-      setMarkerPickerOpen(false);
-      return;
-    }
-    if (viewingPin()) {
-      setViewingPin(null);
-      return;
-    }
-    if (editingPin()) {
-      setEditingPin(null);
-      return;
-    }
-    if (viewingTrack()) {
-      setViewingTrack(null);
-      return;
-    }
-    if (editingTrack()) {
-      setEditingTrack(null);
-      return;
-    }
-    if (compassDialogOpen()) {
-      setCompassDialogOpen(false);
-      return;
-    }
-    if (firefoxDialogOpen()) {
-      setFirefoxDialogOpen(false);
-      return;
-    }
-    if (isMobile()) {
-      if (activeNav() === 'tools' && activeTool() !== null) {
-        setActiveTool(null); // tools panel → grid
-        return;
-      }
-      if (activeNav() === 'tools' || activeNav() === 'saved') {
-        setActiveNav('map');
-        return;
-      }
-    }
-  };
-
-  // sentinelActive tracks whether we have pushed a sentinel entry.
-  // ignoreNextPopstate suppresses the handler when we call history.back()
-  // ourselves to remove a stale sentinel.
-  let sentinelActive = false;
-  let ignoreNextPopstate = false;
-
-  const pushSentinel = () => {
-    history.pushState({ backNav: true }, '');
-    sentinelActive = true;
-  };
-
-  const popSentinel = () => {
-    ignoreNextPopstate = true;
-    sentinelActive = false;
-    history.back();
-  };
-
-  onMount(() => {
-    // Neutralise any leftover sentinel from a previous session so our
-    // in-memory sentinelActive flag and history.state stay in sync.
-    if (history.state?.backNav) {
-      history.replaceState(null, '');
-    }
-
-    const onPopstate = () => {
-      if (ignoreNextPopstate) {
-        ignoreNextPopstate = false;
-        return;
-      }
-      // Sentinel was popped by the user pressing back.
-      sentinelActive = false;
-
-      // Onboarding must not be dismissed via back — re-push immediately.
-      if (!prefs.onboardingDone) {
-        pushSentinel();
-        return;
-      }
-
-      closeTopmost();
-
-      // If additional overlays are still open, keep the sentinel in place.
-      if (backNavOpen()) {
-        pushSentinel();
-      }
-    };
-
-    window.addEventListener('popstate', onPopstate);
-    onCleanup(() => window.removeEventListener('popstate', onPopstate));
-  });
-
-  // Reactively maintain the sentinel: push when something opens,
-  // remove when everything closes (programmatic close path).
-  createEffect(() => {
-    const open = backNavOpen();
-    if (open && !sentinelActive) {
-      pushSentinel();
-    } else if (!open && sentinelActive) {
-      popSentinel();
-    }
-  });
+  createBackNav(
+    () => [
+      { isOpen: markerPickerOpen, close: () => setMarkerPickerOpen(false) },
+      { isOpen: () => !!viewingPin(), close: () => setViewingPin(null) },
+      { isOpen: () => !!editingPin(), close: () => setEditingPin(null) },
+      { isOpen: () => !!viewingTrack(), close: () => setViewingTrack(null) },
+      { isOpen: () => !!editingTrack(), close: () => setEditingTrack(null) },
+      { isOpen: compassDialogOpen, close: () => setCompassDialogOpen(false) },
+      { isOpen: firefoxDialogOpen, close: () => setFirefoxDialogOpen(false) },
+      // Mobile-only: tool panel → tools grid → map tab
+      {
+        isOpen: () => isMobile() && activeNav() === 'tools' && activeTool() !== null,
+        close: () => setActiveTool(null),
+      },
+      {
+        isOpen: () => isMobile() && (activeNav() === 'tools' || activeNav() === 'saved'),
+        close: () => setActiveNav('map'),
+      },
+    ],
+    { canClose: () => prefs.onboardingDone }
+  );
   // ---------- End back-navigation ----------
 
   return (
