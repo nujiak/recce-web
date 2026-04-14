@@ -40,20 +40,31 @@ const ToggleGroupPrimitive: Component<ToggleGroupProps> = (_props) => {
           padding: 0.375rem 0.75rem;
           font-size: 12px;
           text-transform: uppercase;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.08em;
           cursor: pointer;
-          transition: background 0.15s, color 0.15s;
+          transition: background 75ms linear, color 75ms linear;
           border: 1px solid transparent;
           outline: none;
           display: inline-flex;
           align-items: center;
           background: transparent;
           color: var(--color-text-secondary);
+          font-family: inherit;
+        }
+        .ui-toggle-item:focus-visible {
+          outline: 1px solid var(--color-accent);
+          outline-offset: 3px;
         }
         .ui-toggle-item[data-pressed] {
           background: var(--color-accent-bg);
           color: var(--color-accent);
           border-color: var(--color-accent-border);
+          /* 4-corner bracket via box-shadow */
+          box-shadow:
+            -10px -10px 0 -9px var(--color-accent),
+            10px -10px 0 -9px var(--color-accent),
+            -10px 10px 0 -9px var(--color-accent),
+            10px 10px 0 -9px var(--color-accent);
         }
       `}</style>
       <ToggleGroup.Root

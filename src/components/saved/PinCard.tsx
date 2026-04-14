@@ -42,12 +42,12 @@ const PinCard: Component<PinCardProps> = (props) => {
         'user-select': 'none',
       }}
     >
-      {/* Color chip */}
+      {/* Color chip — square, no rounding */}
       <div
         style={{
           width: '12px',
           height: '12px',
-          'border-radius': '50%',
+          'border-radius': '0px',
           background: PIN_COLOR_CSS[props.pin.color] ?? 'var(--color-text-muted)',
           'flex-shrink': '0',
         }}
@@ -56,8 +56,9 @@ const PinCard: Component<PinCardProps> = (props) => {
       <div style={{ flex: 1, 'min-width': 0 }}>
         <div
           style={{
-            'font-size': '0.875rem',
-
+            'font-size': '14px',
+            'font-weight': '500',
+            'text-transform': 'uppercase',
             overflow: 'hidden',
             'text-overflow': 'ellipsis',
             'white-space': 'nowrap',
@@ -67,9 +68,9 @@ const PinCard: Component<PinCardProps> = (props) => {
         </div>
         <div
           style={{
-            'font-size': '0.75rem',
+            'font-size': '12px',
             color: 'var(--color-text-secondary)',
-            'margin-top': '2px',
+            'margin-top': '3px',
             overflow: 'hidden',
             'text-overflow': 'ellipsis',
             'white-space': 'nowrap',
@@ -80,8 +81,10 @@ const PinCard: Component<PinCardProps> = (props) => {
         {props.pin.group && (
           <div
             style={{
-              'font-size': '11px',
+              'font-size': '10px',
               color: 'var(--color-text-muted)',
+              'text-transform': 'uppercase',
+              'letter-spacing': '0.06em',
               'margin-top': '2px',
             }}
           >

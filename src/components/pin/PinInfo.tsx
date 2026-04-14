@@ -57,29 +57,33 @@ const PinInfo: Component = () => {
                     'align-items': 'center',
                     'justify-content': 'space-between',
                     gap: '8px',
-                    padding: '0 12px',
-                    'min-height': '28px',
+                    padding: '8px 12px',
+                    'min-height': '48px',
                     background: 'var(--color-bg-tertiary)',
                     border: 'none',
                     'border-bottom': '1px solid var(--color-border-subtle)',
                   }}
                 >
                   <div style={{ flex: 1, 'min-width': '0' }}>
-                    <span
+                    <div
                       style={{
-                        'font-size': '11px',
+                        'font-size': '10px',
+                        'font-weight': '400',
                         color: 'var(--color-text-muted)',
                         'text-transform': 'uppercase',
-                        'letter-spacing': '0.04em',
+                        'letter-spacing': '0.08em',
+                        'margin-bottom': '2px',
                       }}
                     >
                       {SYSTEM_NAMES[sys]}
-                    </span>
+                    </div>
                     <div
                       style={{
-                        'font-size': '13px',
+                        'font-size': '14px',
+                        'font-weight': '500',
                         color: 'var(--color-text)',
                         'word-break': 'break-all',
+                        'letter-spacing': '0.02em',
                       }}
                     >
                       {display}

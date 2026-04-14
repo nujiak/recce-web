@@ -43,13 +43,14 @@ const BottomNav: Component = () => {
               background: activeNav() === tab.key ? 'var(--color-accent-bg)' : 'none',
               border: 'none',
               cursor: 'pointer',
-              color:
-                activeNav() === tab.key ? 'var(--color-accent)' : 'var(--color-text-secondary)',
+              color: activeNav() === tab.key ? 'var(--color-accent)' : 'var(--color-text-muted)',
               'font-size': '10px',
-              'letter-spacing': '0.06em',
+              'font-weight': activeNav() === tab.key ? '500' : '400',
+              'letter-spacing': '0.10em',
               'font-family': 'inherit',
               position: 'relative',
               'text-transform': 'uppercase' as const,
+              transition: 'color 75ms linear, background 75ms linear',
             }}
           >
             <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>

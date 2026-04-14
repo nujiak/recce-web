@@ -1,25 +1,30 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-bg: oklch(0.07 0 0);
-  --color-bg-secondary: oklch(0.11 0 0);
-  --color-bg-tertiary: oklch(0.15 0 0);
-  --color-text: oklch(0.9 0 0);
-  --color-text-secondary: oklch(0.62 0 0);
-  --color-text-muted: oklch(0.42 0 0);
-  --color-border: oklch(0.26 0 0);
-  --color-border-subtle: oklch(0.18 0 0);
-  --color-accent: oklch(0.76 0.16 75);
-  --color-accent-bg: oklch(0.76 0.16 75 / 12%);
-  --color-accent-border: oklch(0.76 0.16 75 / 45%);
-  --color-danger: oklch(0.6 0.22 25);
-  --color-overlay: oklch(0 0 0 / 85%);
+  /* NIGHT theme defaults (overridden by [data-theme='light'] below) */
+  /* Backgrounds carry a faint phosphor-green CRT wash — not pure black */
+  --color-bg: #020e05;
+  --color-bg-secondary: #071a0b;
+  --color-bg-tertiary: #0c2114;
+  /* Text: primary phosphor, secondary ~75%, muted ~35% */
+  --color-text: #00ff41;
+  --color-text-secondary: #00c032;
+  --color-text-muted: #2d6e42;
+  /* Borders: structural lines are dim forest-green; accent-bright reserved for active/selected */
+  --color-border: #1e5c30;
+  --color-border-subtle: #133d1e;
+  --color-accent: #00ff41;
+  --color-accent-bg: rgba(0, 255, 65, 0.1);
+  --color-accent-border: rgba(0, 255, 65, 0.4);
+  --color-danger: #ff2020;
+  --color-overlay: rgba(0, 8, 2, 0.9);
 
-  --color-red: oklch(0.6 0.22 25);
-  --color-orange: oklch(0.74 0.17 65);
-  --color-green: oklch(0.62 0.18 151);
-  --color-azure: oklch(0.63 0.16 230);
-  --color-violet: oklch(0.63 0.2 310);
+  /* Entity / data colours — NATO tactical signal meanings */
+  --color-red: #ff2020;
+  --color-orange: #ff8c00;
+  --color-green: #00ff41;
+  --color-azure: #00bfff;
+  --color-violet: #bf5fff;
 
   --radius-sm: 0px;
   --radius-md: 0px;
@@ -36,7 +41,7 @@
   --header-height: 48px;
   --fab-size: 56px;
 
-  --font-mono: 'Share Tech Mono', monospace;
+  --font-mono: 'IBM Plex Mono', monospace;
 }
 
 @layer base {
@@ -45,22 +50,24 @@
     font-family: var(--font-mono);
     font-weight: 400;
     font-style: normal;
+    letter-spacing: 0.02em;
   }
 
+  /* DAY theme — paper-map palette */
   [data-theme='light'] {
-    --color-bg: oklch(0.94 0.015 90);
-    --color-bg-secondary: oklch(0.9 0.013 90);
-    --color-bg-tertiary: oklch(0.86 0.012 90);
-    --color-text: oklch(0.15 0.02 90);
-    --color-text-secondary: oklch(0.38 0.015 90);
-    --color-text-muted: oklch(0.52 0.01 90);
-    --color-border: oklch(0.68 0.015 90);
-    --color-border-subtle: oklch(0.78 0.01 90);
-    --color-accent: oklch(0.52 0.18 75);
-    --color-accent-bg: oklch(0.52 0.18 75 / 12%);
-    --color-accent-border: oklch(0.52 0.18 75 / 40%);
-    --color-danger: oklch(0.48 0.22 25);
-    --color-overlay: oklch(0 0 0 / 55%);
+    --color-bg: #f0ead6;
+    --color-bg-secondary: #e8e0c8;
+    --color-bg-tertiary: #ddd5b8;
+    --color-text: #1a1a0a;
+    --color-text-secondary: #3a3820;
+    --color-text-muted: #706b4a;
+    --color-border: #4a4628;
+    --color-border-subtle: #a09870;
+    --color-accent: #8b6000;
+    --color-accent-bg: rgba(139, 96, 0, 0.1);
+    --color-accent-border: rgba(139, 96, 0, 0.4);
+    --color-danger: #b01010;
+    --color-overlay: rgba(0, 0, 0, 0.6);
   }
 
   * {
@@ -108,6 +115,32 @@
     color: var(--color-accent);
   }
 
+  /* ── HUD Corner Bracket — 2 corners (top-left + bottom-right) ── */
+  .hud-bracketed {
+    position: relative;
+  }
+  .hud-bracketed::before,
+  .hud-bracketed::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-color: var(--color-accent);
+    border-style: solid;
+    pointer-events: none;
+  }
+  .hud-bracketed::before {
+    top: 0;
+    left: 0;
+    border-width: 1px 0 0 1px;
+  }
+  .hud-bracketed::after {
+    bottom: 0;
+    right: 0;
+    border-width: 0 1px 1px 0;
+  }
+
+  /* Legacy alias — kept for existing usages */
   .bracket-selected {
     position: relative;
   }
@@ -115,10 +148,11 @@
   .bracket-selected::after {
     content: '';
     position: absolute;
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-color: var(--color-accent);
     border-style: solid;
+    pointer-events: none;
   }
   .bracket-selected::before {
     top: 0;
@@ -131,28 +165,47 @@
     border-width: 0 1px 1px 0;
   }
 
+  /* ── HUD Corner Bracket — all 4 corners via box-shadow ── */
+  .hud-bracketed-full {
+    outline: 1px solid transparent;
+    box-shadow:
+      -10px -10px 0 -9px var(--color-accent),
+      10px -10px 0 -9px var(--color-accent),
+      -10px 10px 0 -9px var(--color-accent),
+      10px 10px 0 -9px var(--color-accent);
+  }
+
+  /* ── Panel header accent left stripe ── */
+  .panel-header {
+    border-left: 3px solid var(--color-accent);
+    padding-left: 9px;
+  }
+
+  /* ── Readout grid — label | colon | value ── */
   .readout-grid {
     display: grid;
-    grid-template-columns: 100px 12px 1fr;
+    grid-template-columns: 96px 14px 1fr;
     row-gap: 0;
   }
   .readout-label {
     font-size: 11px;
     color: var(--color-text-secondary);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    line-height: 28px;
+    line-height: 26px;
   }
   .readout-sep {
     font-size: 11px;
     color: var(--color-text-muted);
-    line-height: 28px;
+    line-height: 26px;
     text-align: center;
   }
   .readout-value {
     font-size: 13px;
+    font-weight: 500;
     color: var(--color-text);
-    line-height: 28px;
+    letter-spacing: 0.03em;
+    line-height: 26px;
     text-align: right;
   }
 
@@ -212,16 +265,14 @@
   }
 
   *::-webkit-scrollbar-thumb {
-    background-color: var(--color-border);
-    border-radius: 999px;
-    /* 2px transparent border + background-clip creates visual padding
-       so the thumb appears inset and doesn't touch the track edges */
+    background-color: var(--color-border-subtle);
+    border-radius: 0px;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
 
   *::-webkit-scrollbar-thumb:hover {
-    background-color: var(--color-text-muted);
+    background-color: var(--color-border);
   }
 
   *::-webkit-scrollbar-corner {
@@ -231,40 +282,34 @@
 
 @layer components {
   .popover-content {
-    background: var(--color-bg);
+    background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    box-shadow:
-      0 4px 16px oklch(0 0 0 / 50%),
-      0 0 0 1px var(--color-border);
+    border-radius: 0px;
+    /* No box-shadow — flat display discipline */
     z-index: 200;
     outline: none;
-    animation: popover-in 0.12s ease-out;
+    animation: popover-in 0.075s linear;
   }
 
   .popover-content[data-closed] {
-    animation: popover-out 0.1s ease-in;
+    animation: popover-out 0.075s linear;
   }
 
   @keyframes popover-in {
     from {
       opacity: 0;
-      transform: translateY(-4px);
     }
     to {
       opacity: 1;
-      transform: translateY(0);
     }
   }
 
   @keyframes popover-out {
     from {
       opacity: 1;
-      transform: translateY(0);
     }
     to {
       opacity: 0;
-      transform: translateY(-4px);
     }
   }
 }

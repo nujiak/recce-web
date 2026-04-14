@@ -32,7 +32,7 @@ const Select_: Component<SelectProps> = (props) => {
           margin-bottom: 4px;
           display: block;
           text-transform: uppercase;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.10em;
         }
         .ui-select-trigger {
           display: flex;
@@ -41,22 +41,23 @@ const Select_: Component<SelectProps> = (props) => {
           width: 100%;
           min-height: 48px;
           background: var(--color-bg-tertiary);
-          border: 1px solid var(--color-border);
+          border: 1px solid var(--color-border-subtle);
           border-radius: 0px;
           padding: 0.5rem 0.75rem;
           font-size: 14px;
+          letter-spacing: 0.04em;
           color: var(--color-text);
           cursor: pointer;
           outline: none;
           text-align: left;
           text-transform: uppercase;
+          font-family: inherit;
+          transition: border-color 75ms linear;
         }
-        .ui-select-trigger:focus {
-          border-color: var(--color-accent);
-          box-shadow: none;
-        }
+        .ui-select-trigger:focus,
         .ui-select-trigger[data-expanded] {
           border-color: var(--color-accent);
+          border-left: 2px solid var(--color-accent);
         }
 
         .ui-select-value {
@@ -78,7 +79,7 @@ const Select_: Component<SelectProps> = (props) => {
           color: var(--color-text-muted);
           margin-left: 0.5rem;
           flex-shrink: 0;
-          transition: transform 0.15s ease;
+          transition: transform 75ms linear;
         }
         .ui-select-icon[data-expanded] {
           transform: rotate(180deg);
@@ -87,16 +88,16 @@ const Select_: Component<SelectProps> = (props) => {
           background: var(--color-bg-tertiary);
           border: 1px solid var(--color-border);
           border-radius: 0px;
-          box-shadow: 0 4px 16px oklch(0 0 0 / 40%);
+          /* no box-shadow */
           z-index: 200;
           max-height: 240px;
           overflow-y: auto;
           padding: 0;
           outline: none;
-          animation: ui-select-content-in 0.12s ease-out;
+          animation: ui-select-content-in 0.075s linear;
         }
         .ui-select-content[data-closed] {
-          animation: ui-select-content-out 0.1s ease-in;
+          animation: ui-select-content-out 0.075s linear;
         }
         .ui-select-listbox {
           list-style: none;
@@ -113,7 +114,7 @@ const Select_: Component<SelectProps> = (props) => {
           letter-spacing: 0.04em;
           outline: none;
           border-left: 3px solid transparent;
-          transition: background 0.1s;
+          transition: background 75ms linear;
           display: flex;
           align-items: center;
         }
@@ -129,12 +130,12 @@ const Select_: Component<SelectProps> = (props) => {
           background: var(--color-accent-bg);
         }
         @keyframes ui-select-content-in {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         @keyframes ui-select-content-out {
-          from { opacity: 1; transform: translateY(0); }
-          to { opacity: 0; transform: translateY(-4px); }
+          from { opacity: 1; }
+          to { opacity: 0; }
         }
       `}</style>
 

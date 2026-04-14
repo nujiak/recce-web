@@ -35,29 +35,31 @@ const Button: Component<ButtonProps> = (props) => {
         border: none;
         outline: none;
         text-transform: uppercase;
-        letter-spacing: 0.04em;
+        letter-spacing: 0.08em;
         min-width: 48px;
         min-height: 48px;
-        transition: background 0.15s, color 0.15s;
+        transition: background 75ms linear, color 75ms linear;
+        border-radius: 0px;
       }
       .ui-btn:focus-visible {
-        outline: 2px solid var(--color-accent);
-        outline-offset: 2px;
+        outline: 1px solid var(--color-accent);
+        outline-offset: 3px;
+      }
+      .ui-btn:active {
+        opacity: 0.75;
       }
       .ui-btn[data-disabled] {
-        opacity: 0.4;
+        opacity: 0.3;
         pointer-events: none;
       }
       .ui-btn--primary {
         background: var(--color-accent);
-        color: oklch(0.07 0 0);
-        border-radius: 0px;
+        color: #000000;
       }
       .ui-btn--ghost {
         background: transparent;
         color: var(--color-text);
         border: 1px solid var(--color-border);
-        border-radius: 0px;
       }
       .ui-btn--ghost:hover {
         background: var(--color-accent-bg);
@@ -65,13 +67,11 @@ const Button: Component<ButtonProps> = (props) => {
       }
       .ui-btn--danger {
         background: var(--color-danger);
-        color: oklch(0.95 0 0);
-        border-radius: 0px;
+        color: #ffffff;
       }
       .ui-btn--icon {
         background: transparent;
         color: var(--color-text);
-        border-radius: 0px;
         padding: 0.375rem;
       }
       .ui-btn--icon:hover {

@@ -33,15 +33,20 @@ const styles = `
   }
   .sp-select-label {
     flex: 1;
-    font-size: 0.875rem;
-    color: var(--color-text);
-    white-space: nowrap;
-  }
-  .sp-select-value {
-    font-size: 0.8125rem;
+    font-size: 12px;
+    font-weight: 400;
     color: var(--color-text-secondary);
     white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .sp-select-value {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text);
+    white-space: nowrap;
     flex-shrink: 0;
+    text-transform: uppercase;
   }
   .sp-select-value[data-placeholder-shown] {
     color: var(--color-text-muted);
@@ -108,12 +113,13 @@ const styles = `
 
 const SectionHeader: Component<{ label: string }> = (props) => (
   <div
+    class="panel-header"
     style={{
       'font-size': '11px',
-      'letter-spacing': '0.08em',
+      'letter-spacing': '0.10em',
       'text-transform': 'uppercase',
       color: 'var(--color-text-secondary)',
-      padding: '6px 12px',
+      padding: '6px 12px 6px 9px',
       'border-bottom': '1px solid var(--color-border)',
       'margin-bottom': '0',
       background: 'var(--color-bg-secondary)',
@@ -236,17 +242,24 @@ const SettingToggleRow: Component<SettingToggleRowProps> = (props) => (
       }}
     >
       <span
-        style={{ 'font-size': '0.875rem', 'white-space': 'nowrap', 'text-transform': 'uppercase' }}
+        style={{
+          'font-size': '12px',
+          'font-weight': '400',
+          'white-space': 'nowrap',
+          'text-transform': 'uppercase',
+          'letter-spacing': '0.06em',
+          color: 'var(--color-text-secondary)',
+        }}
       >
         {props.label}
       </span>
       {props.description && (
         <span
           style={{
-            'font-size': '0.75rem',
-            color: 'var(--color-text-secondary)',
+            'font-size': '11px',
+            color: 'var(--color-text-muted)',
             'white-space': 'normal',
-            'line-height': '1.3',
+            'line-height': '1.4',
           }}
         >
           {props.description}
@@ -293,7 +306,14 @@ const SettingLinkRow: Component<SettingLinkRowProps> = (props) => (
     }}
   >
     <span
-      style={{ 'font-size': '0.875rem', 'white-space': 'nowrap', 'text-transform': 'uppercase' }}
+      style={{
+        'font-size': '12px',
+        'font-weight': '400',
+        'white-space': 'nowrap',
+        'text-transform': 'uppercase',
+        'letter-spacing': '0.06em',
+        color: 'var(--color-text-secondary)',
+      }}
     >
       {props.label}
     </span>
@@ -302,8 +322,9 @@ const SettingLinkRow: Component<SettingLinkRowProps> = (props) => (
         display: 'flex',
         'align-items': 'center',
         gap: '4px',
-        color: 'var(--color-text-secondary)',
-        'font-size': '0.8125rem',
+        color: 'var(--color-text)',
+        'font-size': '14px',
+        'font-weight': '500',
         'flex-shrink': '0',
       }}
     >

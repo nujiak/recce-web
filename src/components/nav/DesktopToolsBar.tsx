@@ -162,21 +162,23 @@ const DesktopToolsBar: Component = () => {
           min-height: 48px;
           border-radius: 0px;
           border: none;
+          border-left: 3px solid transparent;
           background: transparent;
-          color: var(--color-text-secondary);
+          color: var(--color-text-muted);
           cursor: pointer;
-          transition: background 0.12s ease, color 0.12s ease;
+          transition: background 75ms linear, color 75ms linear, border-color 75ms linear;
           padding: 0;
           font-family: inherit;
           position: relative;
         }
         .dtb-tab:hover {
-          background: var(--color-bg);
+          background: var(--color-accent-bg);
           color: var(--color-text);
         }
         .dtb-tab.is-active {
           background: var(--color-accent-bg);
           color: var(--color-accent);
+          border-left-color: var(--color-accent);
         }
         .dtb-tab-icon {
           font-family: 'Material Symbols Outlined', sans-serif;
@@ -186,7 +188,7 @@ const DesktopToolsBar: Component = () => {
         .dtb-tab-label {
           font-size: 10px;
           font-weight: 400;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.10em;
           line-height: 1;
           text-transform: uppercase;
         }

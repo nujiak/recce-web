@@ -39,7 +39,7 @@ function createToastItem(
         'align-items': 'stretch',
         gap: '0.5rem',
         'pointer-events': 'auto',
-        animation: 'kb-toast-in 0.15s ease-out',
+        animation: 'kb-toast-in 0.075s linear',
         cursor: 'pointer',
       }}
       onClick={() => Toast.toaster.dismiss(props.toastId)}
@@ -55,7 +55,7 @@ function createToastItem(
               'font-size': '11px',
               'font-weight': '400',
               'text-transform': 'uppercase',
-              'letter-spacing': '0.04em',
+              'letter-spacing': '0.06em',
               'border-radius': '0px',
               cursor: 'pointer',
               padding: '0.2rem 0.65rem',
@@ -92,23 +92,15 @@ export function ToastRegion() {
     <>
       <style>{`
         @keyframes kb-toast-in {
-          from {
-            opacity: 0;
-            transform: translateY(8px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         .kb-toast-item[data-kb-toast-dismiss] {
-          animation: kb-toast-out 0.15s ease-in forwards;
+          animation: kb-toast-out 0.075s linear forwards;
         }
         @keyframes kb-toast-out {
-          to {
-            opacity: 0;
-            transform: translateY(-4px);
-          }
+          from { opacity: 1; }
+          to { opacity: 0; }
         }
       `}</style>
       <Toast.Region

@@ -27,10 +27,7 @@ const Accordion_: Component<AccordionProps> = (props) => {
     >
       <style>{`
         .ui-accordion-item + .ui-accordion-item .ui-accordion-trigger {
-          border-top: 1px solid var(--color-border-subtle, var(--color-border));
-        }
-        .ui-accordion-item:not(:last-child) .ui-accordion-trigger {
-          border-bottom: 1px solid var(--color-border);
+          border-top: 1px solid var(--color-border-subtle);
         }
         .ui-accordion-trigger {
           display: flex;
@@ -42,33 +39,36 @@ const Accordion_: Component<AccordionProps> = (props) => {
           color: var(--color-text);
           font-size: 12px;
           text-transform: uppercase;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.08em;
           font-family: inherit;
           background: transparent;
           border: none;
+          border-bottom: 1px solid var(--color-border-subtle);
           cursor: pointer;
           outline: none;
-          transition: background 0.15s ease, color 0.15s ease;
+          transition: color 75ms linear;
         }
         .ui-accordion-trigger:hover {
           filter: none;
         }
         .ui-accordion-trigger[data-expanded] {
-          background: transparent;
           color: var(--color-accent);
+          /* accent left stripe */
+          border-left: 3px solid var(--color-accent);
+          padding-left: 9px;
         }
         .ui-accordion-trigger[data-expanded] .ui-accordion-chevron {
           color: var(--color-accent);
         }
         .ui-accordion-trigger:focus-visible {
-          outline: 2px solid var(--color-accent);
-          outline-offset: -2px;
+          outline: 1px solid var(--color-accent);
+          outline-offset: 3px;
         }
         .ui-accordion-chevron {
           font-family: 'Material Symbols Outlined', sans-serif;
           font-size: 18px;
           color: var(--color-text-secondary);
-          transition: transform 0.15s ease;
+          transition: transform 75ms linear;
           flex-shrink: 0;
         }
         .ui-accordion-trigger[data-expanded] .ui-accordion-chevron {
@@ -77,7 +77,7 @@ const Accordion_: Component<AccordionProps> = (props) => {
         .ui-accordion-content {
           overflow: hidden;
           max-height: var(--kb-accordion-content-height, 9999px);
-          transition: max-height 0.25s ease;
+          transition: max-height 75ms linear;
         }
         .ui-accordion-content[data-closed] {
           max-height: 0;

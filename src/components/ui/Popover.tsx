@@ -67,23 +67,28 @@ const Popover_: Component<PopoverProps> = (props) => {
           border: 1px solid var(--color-border);
           border-radius: 0px;
           padding: 0.75rem;
-          box-shadow: 0 4px 16px oklch(0 0 0 / 40%);
+          /* no box-shadow — flat display discipline */
           z-index: 50;
           outline: none;
           min-width: 200px;
-          animation: ui-popover-in 0.12s ease-out;
-          transition: transform 0.15s ease;
+          animation: ui-popover-in 0.075s linear;
+          /* 4-corner bracket dressing */
+          box-shadow:
+            -10px -10px 0 -9px var(--color-accent),
+            10px -10px 0 -9px var(--color-accent),
+            -10px 10px 0 -9px var(--color-accent),
+            10px 10px 0 -9px var(--color-accent);
         }
         .ui-popover-content[data-closed] {
-          animation: ui-popover-out 0.1s ease-in;
+          animation: ui-popover-out 0.075s linear;
         }
         @keyframes ui-popover-in {
-          from { opacity: 0; transform: scale(0.96); }
-          to { opacity: 1; transform: scale(1); }
+          from { opacity: 0; }
+          to { opacity: 1; }
         }
         @keyframes ui-popover-out {
-          from { opacity: 1; transform: scale(1); }
-          to { opacity: 0; transform: scale(0.96); }
+          from { opacity: 1; }
+          to { opacity: 0; }
         }
       `}</style>
       <Popover

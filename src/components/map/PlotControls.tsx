@@ -188,15 +188,22 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
           >
             <span
               style={{
-                color: 'var(--color-text-secondary)',
-                'font-size': '11px',
-                'letter-spacing': '0.04em',
+                color: 'var(--color-text-muted)',
+                'font-size': '10px',
+                'letter-spacing': '0.08em',
                 'text-transform': 'uppercase' as const,
               }}
             >
               {SYSTEM_NAMES[prefs.coordinateSystem]}
             </span>
-            <span style={{ color: 'var(--color-text)', 'font-size': '13px' }}>
+            <span
+              style={{
+                color: 'var(--color-text)',
+                'font-size': '15px',
+                'font-weight': '500',
+                'letter-spacing': '0.02em',
+              }}
+            >
               {coordDisplay()}
             </span>
           </button>
