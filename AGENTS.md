@@ -185,6 +185,42 @@ App state is reactive and managed using SolidJS signals, contexts, and stores. D
 | **Saved**         | Full screen, tab-switched                  | Right pane (fixed width, scrollable)          |
 | **Tools**         | Third bottom-nav tab → modal grid launcher | Icon row pinned below Saved panel (accordion) |
 
+### Back Navigation (mobile)
+
+The app intercepts the Android back gesture / browser back button using a **History API sentinel** in `src/App.tsx` (`AppInner`). There is no router; a single dummy history entry `{ backNav: true }` is pushed onto the stack whenever any interceptable overlay is open, so the OS back action pops the sentinel rather than leaving the app.
+
+**How it works:**
+
+- `backNavOpen()` — reactive function in `AppInner` that returns `true` when at least one overlay is open. All signals it reads must be tracked by a `createEffect`.
+- `closeTopmost()` — closes the single highest-priority open overlay and returns.
+- A `createEffect` watches `backNavOpen()` and calls `pushSentinel()` / `popSentinel()` to keep the history entry in sync when overlays open or close programmatically.
+- A `popstate` listener (registered in `onMount`) fires when the user presses back. It calls `closeTopmost()`, then re-pushes the sentinel if further overlays remain. Onboarding re-pushes immediately without closing anything.
+- `ignoreNextPopstate` flag suppresses the listener for the one `history.back()` call made by `popSentinel()` to avoid a feedback loop.
+- On mount, `history.replaceState(null, '')` neutralises any stale sentinel left by a previous session.
+
+**Overlay priority order** (highest = closed first):
+
+| Priority | Overlay                                 | Signal in UIContext                      | Closer                        |
+| -------- | --------------------------------------- | ---------------------------------------- | ----------------------------- |
+| 1        | Choose Marker dialog (inside PinEditor) | `markerPickerOpen`                       | `setMarkerPickerOpen(false)`  |
+| 2        | PinInfo dialog                          | `viewingPin`                             | `setViewingPin(null)`         |
+| 3        | PinEditor dialog                        | `editingPin`                             | `setEditingPin(null)`         |
+| 4        | TrackInfo dialog                        | `viewingTrack`                           | `setViewingTrack(null)`       |
+| 5        | TrackEditor dialog                      | `editingTrack`                           | `setEditingTrack(null)`       |
+| 6        | iOS compass permission dialog           | `compassDialogOpen` (local in AppInner)  | `setCompassDialogOpen(false)` |
+| 7        | Firefox PWA install dialog              | `firefoxDialogOpen` (local in AppInner)  | `setFirefoxDialogOpen(false)` |
+| 8        | Tools panel (mobile)                    | `activeTool !== null` while on tools tab | `setActiveTool(null)` → grid  |
+| 9        | Tools grid / Saved screen (mobile)      | `activeNav === 'tools'` or `'saved'`     | `setActiveNav('map')`         |
+
+Desktop is unaffected — `isMobile()` (`window.innerWidth < DESKTOP_BREAKPOINT`) guards the tab-level entries.
+
+**Adding a new interceptable overlay:**
+
+1. If the controlling signal is local to a child component, lift it into `UIContext` (follow the `markerPickerOpen` pattern).
+2. Add a condition to `backNavOpen()` in `AppInner` at the correct priority position.
+3. Add the matching `closeTopmost()` branch in the same position.
+4. If the signal must reset when a parent overlay closes, add `setYourSignal(false/null)` to the parent's cleanup path (e.g. in the existing `else` branch of its `createEffect`).
+
 ---
 
 ## Feature Specifications
