@@ -61,7 +61,7 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
           <div
             style={{
               'box-sizing': 'border-box',
-              width: props.bearing !== 0 ? '128px' : '48px',
+              width: props.bearing !== 0 ? 'calc(9ch + 64px)' : '48px',
               height: '48px',
               background: 'var(--color-bg-secondary)',
               border: '1px solid var(--color-border)',
@@ -80,10 +80,9 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
                 color: 'var(--color-text)',
                 'white-space': 'nowrap',
                 overflow: 'hidden',
-                width: props.bearing !== 0 ? '80px' : '0px',
+                width: props.bearing !== 0 ? 'calc(9ch + 16px)' : '0ch',
                 'text-align': 'center',
-                'padding-left': props.bearing !== 0 ? '8px' : '0px',
-                transition: 'width 0.3s ease, padding-left 0.3s ease',
+                transition: 'width 0.3s ease',
               }}
             >
               {inverseBearing()}
