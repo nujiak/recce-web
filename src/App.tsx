@@ -1,6 +1,7 @@
 import { createEffect, createSignal, Show } from 'solid-js';
 import { PrefsProvider, usePrefs } from './context/PrefsContext';
 import { UIProvider, useUI } from './context/UIContext';
+import { createBackNav } from './utils/backNav';
 import AppShell from './components/layout/AppShell';
 import ToolboxModal from './components/nav/ToolboxModal';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
@@ -15,6 +16,7 @@ import GpsTracker from './components/GpsTracker';
 import PwaInstallDialog from './components/PwaInstallDialog';
 import CompassPermissionDialog from './components/CompassPermissionDialog';
 import { canInstallPWA, isFirefoxAndroid, isRunningAsPWA, promptPWAInstall } from './utils/pwa';
+import { DESKTOP_BREAKPOINT } from './utils/constants';
 
 function applyTheme(theme: string) {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -24,7 +26,23 @@ function applyTheme(theme: string) {
 
 function AppInner() {
   const [prefs] = usePrefs();
-  const { activeNav, bumpSavedVersion } = useUI();
+  const {
+    activeNav,
+    setActiveNav,
+    activeTool,
+    setActiveTool,
+    editingPin,
+    setEditingPin,
+    viewingPin,
+    setViewingPin,
+    markerPickerOpen,
+    setMarkerPickerOpen,
+    editingTrack,
+    setEditingTrack,
+    viewingTrack,
+    setViewingTrack,
+    bumpSavedVersion,
+  } = useUI();
   const [firefoxDialogOpen, setFirefoxDialogOpen] = createSignal(false);
   const [compassDialogOpen, setCompassDialogOpen] = createSignal(false);
 
@@ -86,6 +104,34 @@ function AppInner() {
       );
     }, 500);
   });
+
+  // ---------- Back-navigation via History API sentinel ----------
+  // Priority-ordered layers: index 0 is closed first on back press.
+  // To add a new interceptable overlay, append an entry here.
+  const isMobile = () => window.innerWidth < DESKTOP_BREAKPOINT;
+
+  createBackNav(
+    () => [
+      { isOpen: markerPickerOpen, close: () => setMarkerPickerOpen(false) },
+      { isOpen: () => !!viewingPin(), close: () => setViewingPin(null) },
+      { isOpen: () => !!editingPin(), close: () => setEditingPin(null) },
+      { isOpen: () => !!viewingTrack(), close: () => setViewingTrack(null) },
+      { isOpen: () => !!editingTrack(), close: () => setEditingTrack(null) },
+      { isOpen: compassDialogOpen, close: () => setCompassDialogOpen(false) },
+      { isOpen: firefoxDialogOpen, close: () => setFirefoxDialogOpen(false) },
+      // Mobile-only: tool panel → tools grid → map tab
+      {
+        isOpen: () => isMobile() && activeNav() === 'tools' && activeTool() !== null,
+        close: () => setActiveTool(null),
+      },
+      {
+        isOpen: () => isMobile() && (activeNav() === 'tools' || activeNav() === 'saved'),
+        close: () => setActiveNav('map'),
+      },
+    ],
+    { canClose: () => prefs.onboardingDone }
+  );
+  // ---------- End back-navigation ----------
 
   return (
     <>
