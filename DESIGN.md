@@ -1,6 +1,8 @@
-# Frontend Overhaul — Design Specification
+# Design Specification
 
 > **Scope:** Visual styles only. Do not change component logic, state, routing, or data structures.
+>
+> **Status:** This document reflects the current implemented design as of v1.0.4. All sections describe what is live in `src/` — treat them as ground truth, not aspirational targets.
 
 ---
 
@@ -8,88 +10,121 @@
 
 The UI adopts a **tactical HUD / military intel display** aesthetic — think radar operators' consoles, hardened field terminals, and heads-up overlays. Key principles:
 
-- Near-black field with phosphor-green primary text — high contrast, zero eye fatigue in low-light ops
-- Flat, panel-based layout with hard edges and no decorative rounding — zero tolerance for softness
-- Colour used as a **data channel**, not decoration — each hue carries a fixed tactical meaning
-- All text uppercase and monospace; information must be **scannable at a glance**
+- **CRT phosphor-green** primary text on a **deep green-tinted near-black** field — the backgrounds carry a faint phosphor wash so panels layer like a lit tube rather than dead void
+- Flat, panel-based layout with hard edges, **0px border-radius everywhere** — zero tolerance for softness
+- Colour used as a **data channel**, not decoration — full-brightness `#00ff41` is reserved exclusively for **active, selected, and interactive** states; structural lines use dim forest-green
+- All text **uppercase and monospace**; information must be **scannable at a glance**
 - Maximum information density — every pixel earns its place
-- HUD dressing (corner brackets, rule dividers, status bars) reinforces the hardened-terminal feel
-- Snap transitions (50–100 ms, no easing curves) — instant-cut discipline; no spring or ease animations
+- HUD dressing (corner brackets, rule dividers) reinforces the hardened-terminal feel
+- **Snap transitions (75ms linear only)** — no easing curves, no spring, no slide animations
 - Map tiles are left unstyled; the intel aesthetic lives entirely in the UI chrome
 
 ---
 
 ## 2. Typography
 
-| Property       | Value                                                                             |
-| -------------- | --------------------------------------------------------------------------------- |
-| Font family    | `'Share Tech Mono', monospace`                                                    |
-| Import         | `https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap`           |
-| Weight         | 400 (only weight available)                                                       |
-| Letter-spacing | `0.06em` on all labels and values                                                 |
-| Case           | **ALL UPPERCASE** everywhere — labels, headings, buttons, placeholders, body text |
-| Minimum sizes  | Labels: `11px` · Values: `13px` · Body/inputs: `14px`                             |
+| Property        | Value                                                                              |
+| --------------- | ---------------------------------------------------------------------------------- |
+| Font family     | `'IBM Plex Mono', monospace`                                                       |
+| Import          | `https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap` |
+| Weights in use  | `400` (labels, body) · `500` (data values, names, titles)                          |
+| Global tracking | `letter-spacing: 0.02em` on `:root`                                                |
+| Case            | **ALL UPPERCASE** everywhere — labels, headings, buttons, placeholders             |
 
-Replace `'Geist Mono'` with `'Share Tech Mono'` everywhere — update `--font-mono` token in `src/styles/theme.css` and the `<link>` in `src/index.html`.
+IBM Plex Mono was chosen for its angular, mechanically precise letterforms and IBM/government-computing heritage — it reads as instrument output, not retro gaming.
+
+### 2.1 Three-tier emphasis system
+
+Every surface applies the same hierarchy. Never invert it.
+
+| Tier                | Role                                                    | Size      | Weight | Colour                   |
+| ------------------- | ------------------------------------------------------- | --------- | ------ | ------------------------ |
+| **Data value**      | The thing being read — coordinates, names, measurements | `14–16px` | `500`  | `--color-text`           |
+| **Context label**   | What names or describes the data                        | `10–12px` | `400`  | `--color-text-secondary` |
+| **Metadata / hint** | Group tags, descriptions, calibration hints             | `10–11px` | `400`  | `--color-text-muted`     |
+
+Examples applied:
+
+- **PinCard**: name 14px/500, coordinate 12px/secondary, group 10px/muted
+- **PinInfo**: system label (WGS84, UTM…) 10px/muted above, coordinate value 14px/500
+- **SettingsPanel**: setting name 12px/secondary left, current value 14px/500 right
+- **GpsPanel**: data labels (AZIMUTH, PITCH, ROLL) 10px/muted; values 16px/500
+- **PlotControls**: system label 10px/muted; coordinate 15px/500
+- **Dialog title**: 15px/500
+
+### 2.2 Letter-spacing by context
+
+| Context                      | `letter-spacing`        |
+| ---------------------------- | ----------------------- |
+| Body / data values           | `0.02em` (root default) |
+| Buttons (action labels)      | `0.08em`                |
+| Field labels / panel headers | `0.08–0.10em`           |
+| Nav tab labels               | `0.10em`                |
 
 ---
 
 ## 3. Colour Tokens
 
-All tokens live in `src/styles/theme.css`. Retain existing CSS variable names. Replace all values.
+All tokens live in `src/styles/theme.css` under `@theme { }` (dark defaults) and `[data-theme='light'] { }` (DAY overrides).
 
-### 3.1 NIGHT theme (`data-theme="dark"`, default)
+### 3.1 NIGHT theme (default — `data-theme="dark"`)
+
+Backgrounds carry a faint phosphor-green CRT wash. Full-brightness `#00ff41` is the accent colour only — **not** used for structural borders.
 
 ```css
-[data-theme='dark'] {
-  --color-bg: #000000; /* true black — CRT off-state */
-  --color-bg-secondary: #0a0a0a; /* panel fill */
-  --color-bg-tertiary: #111111; /* input / inset fill */
-  --color-text: #00ff41; /* phosphor green — primary readout */
-  --color-text-secondary: #00c032; /* dimmed phosphor — labels */
-  --color-text-muted: #006b1c; /* very dim — separators, placeholders */
-  --color-border: #00ff41; /* full-brightness border */
-  --color-border-subtle: #004d13; /* low-intensity structural line */
-  --color-accent: #00ff41; /* same as text — accent = phosphor */
-  --color-accent-bg: rgba(0, 255, 65, 0.08);
-  --color-accent-border: rgba(0, 255, 65, 0.45);
-  --color-danger: #ff2020; /* hostile red */
-  --color-overlay: rgba(0, 0, 0, 0.88);
-}
+/* Backgrounds — three levels of CRT-green depth */
+--color-bg: #020e05; /* base canvas */
+--color-bg-secondary: #071a0b; /* panel fill */
+--color-bg-tertiary: #0c2114; /* input / inset fill */
+
+/* Text — phosphor hierarchy */
+--color-text: #00ff41; /* primary phosphor — data values */
+--color-text-secondary: #00c032; /* ~75% phosphor — labels */
+--color-text-muted: #2d6e42; /* ~35% — placeholders, hints */
+
+/* Borders — dim forest-green; bright accent reserved for active/selected */
+--color-border: #1e5c30; /* structural panel/card edges */
+--color-border-subtle: #133d1e; /* dividers, input default borders */
+
+/* Accent — full phosphor, interactive/active states only */
+--color-accent: #00ff41;
+--color-accent-bg: rgba(0, 255, 65, 0.1);
+--color-accent-border: rgba(0, 255, 65, 0.4);
+
+--color-danger: #ff2020; /* hostile red */
+--color-overlay: rgba(0, 8, 2, 0.9); /* green-tinted modal scrim */
 ```
 
 ### 3.2 DAY theme (`data-theme="light"`)
 
-The DAY theme uses a paper-map palette — aged cream stock with dark olive ink and amber accent. The intel structure (grids, uppercase, mono) is preserved; only luminosity inverts.
+Paper-map palette — aged cream stock with dark olive ink and amber accent. Intel structure (grids, uppercase, mono) is preserved; only luminosity inverts.
 
 ```css
-[data-theme='light'] {
-  --color-bg: #f0ead6; /* aged field-paper cream */
-  --color-bg-secondary: #e8e0c8;
-  --color-bg-tertiary: #ddd5b8;
-  --color-text: #1a1a0a; /* dark olive ink */
-  --color-text-secondary: #3a3820;
-  --color-text-muted: #706b4a;
-  --color-border: #4a4628; /* dark olive border */
-  --color-border-subtle: #a09870;
-  --color-accent: #8b6000; /* dark amber ink */
-  --color-accent-bg: rgba(139, 96, 0, 0.1);
-  --color-accent-border: rgba(139, 96, 0, 0.4);
-  --color-danger: #b01010;
-  --color-overlay: rgba(0, 0, 0, 0.6);
-}
+--color-bg: #f0ead6; /* aged field-paper cream */
+--color-bg-secondary: #e8e0c8;
+--color-bg-tertiary: #ddd5b8;
+--color-text: #1a1a0a; /* dark olive ink */
+--color-text-secondary: #3a3820;
+--color-text-muted: #706b4a;
+--color-border: #4a4628; /* dark olive border */
+--color-border-subtle: #a09870;
+--color-accent: #8b6000; /* dark amber ink */
+--color-accent-bg: rgba(139, 96, 0, 0.1);
+--color-accent-border: rgba(139, 96, 0, 0.4);
+--color-danger: #b01010;
+--color-overlay: rgba(0, 0, 0, 0.6);
 ```
 
 ### 3.3 Entity / data colours (both themes)
 
-These map to NATO-inspired tactical signal meanings. CSS variable names are unchanged.
+NATO-inspired tactical signal meanings. Never change these variable names.
 
 ```css
---color-red: #ff2020; /* HOSTILE   */
---color-orange: #ff8c00; /* UNKNOWN   */
---color-green: #00ff41; /* FRIENDLY  — matches NIGHT phosphor */
---color-azure: #00bfff; /* NEUTRAL   */
---color-violet: #bf5fff; /* SPECIAL   */
+--color-red: #ff2020; /* HOSTILE  */
+--color-orange: #ff8c00; /* UNKNOWN  */
+--color-green: #00ff41; /* FRIENDLY — matches NIGHT phosphor */
+--color-azure: #00bfff; /* NEUTRAL  */
+--color-violet: #bf5fff; /* SPECIAL  */
 ```
 
 ### 3.4 Contrast requirements (WCAG 2.1 AA)
@@ -101,7 +136,7 @@ These map to NATO-inspired tactical signal meanings. CSS variable names are unch
 | `--color-accent` on `--color-bg-secondary`   | ≥ 3 : 1   |
 | Entity colours used as icon/chip fills on bg | ≥ 3 : 1   |
 
-Verify with a contrast checker after implementation. Adjust lightness only if a pair fails.
+`#00ff41` on `#020e05` exceeds 8 : 1. Verify with a contrast checker if tokens change.
 
 ---
 
@@ -113,23 +148,9 @@ Verify with a contrast checker after implementation. Adjust lightness only if a 
 | Panel border  | `1px solid var(--color-border)`        |
 | Dividers      | `1px solid var(--color-border-subtle)` |
 
-### 4.1 Corner-bracket mark (active / selected / HUD panel state)
+### 4.1 Corner-bracket marks
 
-Full four-corner bracket dressing. Applied via `::before` + `::after` on the target; no extra DOM nodes.
-
-```
-┌──                    ──┐
-│                        │
-│                        │
-└──                    ──┘
-```
-
-Specification:
-
-- Arm length: `10px`
-- Thickness: `1px`
-- Colour: `var(--color-accent)`
-- Gap between corner arms and panel edge: `0px` (flush)
+**2-corner** (`.hud-bracketed` / `.bracket-selected`) — top-left + bottom-right. Applied to: active nav tab, selected card row.
 
 ```css
 .hud-bracketed {
@@ -148,35 +169,31 @@ Specification:
 .hud-bracketed::before {
   top: 0;
   left: 0;
-  border-width: 1px 0 0 1px; /* top-left */
+  border-width: 1px 0 0 1px;
 }
 .hud-bracketed::after {
   bottom: 0;
   right: 0;
-  border-width: 0 1px 1px 0; /* bottom-right */
+  border-width: 0 1px 1px 0;
 }
 ```
 
-For the remaining two corners, use a sibling pseudo-element pattern on a wrapper, or duplicate via a utility class `.hud-bracketed-full` that uses `box-shadow` insets:
+**4-corner** (`.hud-bracketed-full`) — all corners via `box-shadow`. Applied to: active desktop dialog, focused panel, selected toggle item, popovers.
 
 ```css
-/* All four corners via outline trick — use where DOM depth allows */
 .hud-bracketed-full {
   outline: 1px solid transparent;
   box-shadow:
     -10px -10px 0 -9px var(--color-accent),
-    /* top-left */ 10px -10px 0 -9px var(--color-accent),
-    /* top-right */ -10px 10px 0 -9px var(--color-accent),
-    /* bottom-left */ 10px 10px 0 -9px var(--color-accent); /* bottom-right */
+    10px -10px 0 -9px var(--color-accent),
+    -10px 10px 0 -9px var(--color-accent),
+    10px 10px 0 -9px var(--color-accent);
 }
 ```
 
-Apply `hud-bracketed` (2-corner) to: active nav tab, selected card row.  
-Apply `hud-bracketed-full` (4-corner) to: active dialog, focused panel, selected toggle item.
+### 4.2 Panel header accent stripe
 
-### 4.2 Panel header rule
-
-Every panel header carries a left accent stripe:
+Every panel section header carries a 3px left-border accent stripe via `.panel-header`:
 
 ```css
 .panel-header {
@@ -185,9 +202,9 @@ Every panel header carries a left accent stripe:
 }
 ```
 
-### 4.3 Scanline texture (optional overlay)
+Applied to: `GpsPanel` section headers, `RulerPanel` header, `SettingsPanel` group headers.
 
-For maximum terminal immersion, a scanline overlay can be applied to the root via a repeating gradient. Toggle with a class on `<html>`:
+### 4.3 Scanline texture (opt-in)
 
 ```css
 html.scanlines::after {
@@ -206,21 +223,13 @@ html.scanlines::after {
 }
 ```
 
-This is opt-in; do not enable by default.
+Not enabled by default. Add class `scanlines` to `<html>` to activate.
 
 ---
 
 ## 5. Touch Targets
 
-Every interactive element must meet **48 × 48px** minimum hit area on both mobile and desktop. Enforce with `min-width`/`min-height` or padding — visual size may be smaller. Affected elements:
-
-- All `<button>` and icon buttons
-- Nav tabs (bottom nav + desktop sidebar)
-- List/card rows (add `min-height: 48px`)
-- Select trigger and options
-- Toggle group items
-- Accordion triggers
-- Close icons in dialogs
+Every interactive element: **48 × 48px** minimum hit area. Enforce with `min-width`/`min-height` or padding — visual size may be smaller.
 
 ---
 
@@ -230,7 +239,7 @@ Every interactive element must meet **48 × 48px** minimum hit area on both mobi
 
 ```
 ╔═════════════════════════════╗
-║ ▌ SECTION HEADER            ║  ← 11px uppercase, accent left-stripe, 6px 12px padding, 1px border-bottom
+║ ▌ SECTION HEADER            ║  ← .panel-header, 11px/400/secondary, 6px padding, border-bottom
 ╠═════════════════════════════╣
 ║  content area               ║  ← --color-bg-secondary background
 ╚═════════════════════════════╝
@@ -239,12 +248,29 @@ Every interactive element must meet **48 × 48px** minimum hit area on both mobi
 - Background: `var(--color-bg-secondary)`
 - Border: `1px solid var(--color-border)`
 - Radius: `0px`
-- Header: `font-size: 11px`, `letter-spacing: 0.10em`, uppercase, `color: var(--color-text-secondary)`, `padding: 6px 12px`, `border-bottom: 1px solid var(--color-border)`, left accent stripe (§4.2)
-- **Selected state:** background → `var(--color-accent-bg)`, border → `1px solid var(--color-accent-border)`, add 2-corner bracket (§4.1)
+- Header: `font-size: 11px`, `letter-spacing: 0.10em`, uppercase, `color: var(--color-text-secondary)`, `padding: 6px 12px 6px 9px`, `border-bottom: 1px solid var(--color-border)`, `.panel-header` left stripe (§4.2)
+- **Selected state:** background → `var(--color-accent-bg)`, border → `1px solid var(--color-accent-border)`, add `.hud-bracketed` (§4.1)
 
-### 6.2 Button
+### 6.2 List Item / Card Row (PinCard, TrackCard)
 
-| Variant   | Background            | Text colour         | Border                          |
+Three-tier layout within each row:
+
+```
+[color chip]  ITEM NAME (14px/500/text)        [icon btn]
+              coordinate or stats (12px/400/secondary)
+              group tag (10px/400/muted)
+```
+
+- `min-height: 48px`, `padding: 12px 16px`
+- Color chip: `12×12px`, `border-radius: 0px` (square)
+- Name: `font-size: 14px`, `font-weight: 500`, uppercase
+- Secondary line: `font-size: 12px`, `color: var(--color-text-secondary)`
+- Metadata line: `font-size: 10px`, `color: var(--color-text-muted)`, uppercase, `letter-spacing: 0.06em`
+- **Selected:** `background: var(--color-accent-bg)`, `border: 1px solid var(--color-accent-border)`, `.hud-bracketed`
+
+### 6.3 Button
+
+| Variant   | Background            | Text                | Border                          |
 | --------- | --------------------- | ------------------- | ------------------------------- |
 | `primary` | `var(--color-accent)` | `#000000`           | none                            |
 | `ghost`   | transparent           | `var(--color-text)` | `1px solid var(--color-border)` |
@@ -253,124 +279,121 @@ Every interactive element must meet **48 × 48px** minimum hit area on both mobi
 
 All buttons:
 
-- Radius: `0px`
+- Radius: `0px`, min size: `48 × 48px`
 - Text: uppercase, `font-size: 13px`, `letter-spacing: 0.08em`
-- Min size: `48 × 48px` (use padding to reach this on small buttons)
 - Focus ring: `outline: 1px solid var(--color-accent); outline-offset: 3px`
-- Hover (`ghost`/`icon`): background → `var(--color-accent-bg)`, text → `var(--color-accent)`, transition `width 75ms steps(1)` (snap, no easing)
+- Hover (`ghost`/`icon`): `background: var(--color-accent-bg)`, `color: var(--color-accent)`, `75ms linear`
 - Active/pressed: `opacity: 0.75`
 - Disabled: `opacity: 0.3; pointer-events: none`
 - **No box-shadow anywhere**
 
-### 6.3 Dialog / Bottom Sheet
+### 6.4 Dialog / Bottom Sheet
 
 ```
 ╔══════════════════════════════╗
-║ ▌ DIALOG TITLE          [✕] ║  ← header: 1px border-bottom, padding 12px 16px, accent stripe
+║ ▌ DIALOG TITLE          [✕] ║  ← .panel-header stripe, 15px/500, border-bottom
 ╠══════════════════════════════╣
-║                              ║
-║  content                     ║
-║                              ║
+║  content                     ║  ← padding: 1.25rem 1rem 1.5rem
 ╚══════════════════════════════╝
 ```
 
 - Radius: `0px` everywhere — including mobile bottom sheet top corners
 - Overlay: `background: var(--color-overlay)`
-- Header: uppercase title (`font-size: 14px`, `letter-spacing: 0.08em`), accent left stripe (§4.2), close icon button (48×48px, `aria-label="Close"`)
-- Desktop: centred, `max-width: 480px`, `background: var(--color-bg-secondary)`, `border: 1px solid var(--color-border)`, 4-corner brackets (§4.1 `.hud-bracketed-full`)
-- Mobile (bottom sheet): full width, `max-height: 85dvh`, anchored to bottom, `background: var(--color-bg-secondary)`, `border-top: 1px solid var(--color-border)`
-- Open/close animation: `75ms` linear opacity fade — no slide or scale
+- Title: `font-size: 15px`, `font-weight: 500`, uppercase, `letter-spacing: 0.06em`, `.panel-header` left stripe, `border-bottom: 1px solid var(--color-border)`
+- Close button: 48×48px, `aria-label="Close"`, top-right absolute
+- **Desktop:** centred, `max-width: 480px`, `background: var(--color-bg-secondary)`, `border: 1px solid var(--color-border)`, `.hud-bracketed-full` 4-corner brackets, no box-shadow
+- **Mobile (bottom sheet):** full width, `max-height: 85dvh`, `border-top: 1px solid var(--color-border)`
+- Animation: `75ms linear` opacity fade — no slide, no scale
 
-### 6.4 Input / Textarea
+### 6.5 Input / Textarea
 
 - Background: `var(--color-bg-tertiary)`
-- Border: `1px solid var(--color-border-subtle)`
+- Border: `1px solid var(--color-border-subtle)` (default), `var(--color-accent)` + `border-left: 2px solid var(--color-accent)` on focus
 - Radius: `0px`
-- Text: `var(--color-text)`, `font-size: 14px`, `letter-spacing: 0.04em`
+- Text: `var(--color-text)`, `font-size: 14px`, `letter-spacing: 0.02em`
 - Placeholder: `var(--color-text-muted)`, uppercase
 - Label: `font-size: 11px`, `letter-spacing: 0.10em`, uppercase, `color: var(--color-text-secondary)`, `margin-bottom: 4px`
-- Focus: `border-color: var(--color-accent)` + left accent stripe `border-left: 2px solid var(--color-accent)` (no box-shadow)
 - Disabled: `opacity: 0.3`
 
-### 6.5 Select
+### 6.6 Select
 
-- Trigger: same as input (§6.4), chevron icon right-aligned, `color: var(--color-text-muted)`
-- Dropdown listbox: `background: var(--color-bg-tertiary)`, `border: 1px solid var(--color-border)`, `0px radius`
-- Option: `min-height: 48px`, `padding: 0 12px`, uppercase text
-- Selected option: `background: var(--color-accent-bg)`, left border `3px solid var(--color-accent)`
-- Focused option: `background: var(--color-accent-bg)`
+- Trigger: same as input (§6.5); chevron `color: var(--color-text-muted)`; `75ms linear` chevron rotation; focus/expanded adds accent left-border
+- Dropdown: `background: var(--color-bg-tertiary)`, `border: 1px solid var(--color-border)`, `0px radius`, no box-shadow, `75ms linear` fade
+- Option: `min-height: 48px`, `padding: 0 12px`, uppercase, `letter-spacing: 0.04em`
+- Selected: `background: var(--color-accent-bg)`, `border-left: 3px solid var(--color-accent)`
 
-### 6.6 Toggle Group
+### 6.7 Toggle Group
 
 - Container: `background: var(--color-bg-tertiary)`, `border: 1px solid var(--color-border)`, `0px radius`
-- Item: `min-height: 48px`, uppercase `font-size: 12px`, `letter-spacing: 0.08em`, `color: var(--color-text-secondary)`
-- Active item: `background: var(--color-accent-bg)`, `color: var(--color-accent)`, 4-corner brackets (§4.1 `.hud-bracketed-full`), `border: 1px solid var(--color-accent-border)`
+- Item: `min-height: 48px`, uppercase `font-size: 12px`, `letter-spacing: 0.08em`, `color: var(--color-text-secondary)`, `75ms linear`
+- Active item: `background: var(--color-accent-bg)`, `color: var(--color-accent)`, `border: 1px solid var(--color-accent-border)`, `.hud-bracketed-full` 4-corner brackets
 
-### 6.7 Accordion
+### 6.8 Accordion
 
 - Trigger: `min-height: 48px`, `padding: 0 12px`, uppercase `font-size: 12px`, `letter-spacing: 0.08em`, `border-bottom: 1px solid var(--color-border-subtle)`
-- Expanded trigger: `color: var(--color-accent)`, left accent stripe (§4.2)
-- Chevron: 18px, snaps `180deg` at `75ms linear` (no ease) when expanded
+- Expanded: `color: var(--color-accent)`, `.panel-header` left stripe (`border-left: 3px solid var(--color-accent); padding-left: 9px`)
+- Chevron: `18px`, snaps `180deg` at `75ms linear` when expanded — no ease
 - Content: `background: var(--color-bg)`, `padding: 12px`
 
-### 6.8 Popover
+### 6.9 Popover
 
-- Background: `var(--color-bg-secondary)`
-- Border: `1px solid var(--color-border)`
-- Radius: `0px`
-- Shadow: none — flat display discipline
-- 4-corner bracket dressing (§4.1 `.hud-bracketed-full`)
+- Background: `var(--color-bg-secondary)`, `border: 1px solid var(--color-border)`, `0px radius`
+- No box-shadow — flat display discipline
+- `.hud-bracketed-full` 4-corner bracket dressing
+- `75ms linear` opacity fade
 
-### 6.9 Toast
+### 6.10 Toast
 
-- Radius: `0px`
+- `0px radius`, `background: var(--color-bg-secondary)`, `border: 1px solid var(--color-border)`
 - Left border: `3px solid var(--color-accent)` (info/success) or `3px solid var(--color-danger)` (error)
-- Background: `var(--color-bg-secondary)`
-- Border: `1px solid var(--color-border)`
-- Message text: uppercase, `font-size: 13px`, `letter-spacing: 0.06em`
-- Position: anchored `72px` above bottom of viewport (above bottom nav)
-- Max 3 visible; appear/disappear at `75ms linear` opacity — no slide
+- Text: uppercase, `font-size: 13px`, `letter-spacing: 0.06em`
+- Position: `72px` above viewport bottom (above bottom nav), centred
+- Max 3 visible; `75ms linear` opacity — no slide
 
-### 6.10 Bottom Nav (mobile)
+### 6.11 Bottom Nav (mobile)
 
 ```
 ╔══════════╦══════════╦══════════╗
 ║  [icon]  ║  [icon]  ║  [icon]  ║
-║   MAP    ║   SAVED  ║   TOOLS  ║  ← 10px uppercase labels
+║   MAP    ║   SAVED  ║   TOOLS  ║  ← 10px/400 inactive, 10px/500 active
 ╚══════════╩══════════╩══════════╝
 ```
 
-- Background: `var(--color-bg-secondary)`
-- Top border: `1px solid var(--color-border)`
+- Background: `var(--color-bg-secondary)`, `border-top: 1px solid var(--color-border)`
 - Each tab: `min-height: 56px`, `min-width: 48px`, flex column, icon `24px`
-- Inactive: `color: var(--color-text-muted)`
-- Active: `color: var(--color-accent)` + 2-corner bracket above icon (§4.1 `.hud-bracketed`)
+- Inactive: `color: var(--color-text-muted)`, `font-weight: 400`
+- Active: `color: var(--color-accent)`, `font-weight: 500`, `.hud-bracketed` 2-corner bracket
 - Labels: `font-size: 10px`, uppercase, `letter-spacing: 0.10em`
 
-### 6.11 Desktop Sidebar Nav
+### 6.12 Desktop Sidebar Nav
 
-- Right border: `1px solid var(--color-border)`
-- Same tab rules as bottom nav, oriented vertically
-- Active tab gets a full-width left accent stripe `border-left: 3px solid var(--color-accent)`
+- Active tab: `border-left: 3px solid var(--color-accent)`, `background: var(--color-accent-bg)`, `color: var(--color-accent)`, `font-weight: 500`
+- Inactive: `color: var(--color-text-muted)`, `font-weight: 400`
+- Tab labels: `font-size: 10px`, `letter-spacing: 0.10em`, uppercase
+- `75ms linear` transitions on colour and background
 
 ---
 
 ## 7. Readout Panel Layout
 
-Used in: GpsPanel, RulerPanel, PinInfo coordinate list, any live-data display. This is the core intel-display component.
+Used in `GpsPanel`, `RulerPanel`, `TrackInfo` — any live-data display. Label above, value below (or grid layout for dense rows).
+
+### 7.1 Inline label-over-value (preferred for single values)
+
+```
+AZIMUTH          ← 10px/400/muted, uppercase, 0.08em tracking
+045.2°           ← 16px/500/text, 0.02em tracking
+```
+
+### 7.2 Grid layout (readout-grid class — for tabular data)
 
 ```
 ╔════════════════════════════════════╗
-║ ▌ GRID REF / POSITION              ║
+║ ▌ SECTION HEADER                   ║
 ╠════════════════════════════════════╣
-║  LAT      :  1.35210° N            ║
-║  LNG      :  103.81980° E          ║
-║  ALT      :  45 M                  ║
-║  ACCURACY :  ±8 M                  ║
+║  LABEL    :  VALUE                 ║
 ╚════════════════════════════════════╝
 ```
-
-CSS grid layout:
 
 ```css
 .readout-grid {
@@ -380,8 +403,9 @@ CSS grid layout:
 }
 .readout-label {
   font-size: 11px;
+  font-weight: 400;
   color: var(--color-text-secondary);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   line-height: 26px;
 }
@@ -393,48 +417,26 @@ CSS grid layout:
 }
 .readout-value {
   font-size: 13px;
+  font-weight: 500;
   color: var(--color-text);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.03em;
   line-height: 26px;
   text-align: right;
 }
 ```
 
-- Row `min-height: 26px`
-- Separator is a literal `:` character — not a border
-- Alternate rows may use `background: var(--color-bg-tertiary)` at `0.4` opacity for dense multi-row panels (banding)
+### 7.3 Settings-style label–value row
 
----
-
-## 8. Status Bar / HUD Header (optional persistent element)
-
-A 24px-tall bar pinned to the top of the viewport, dark background, containing app name left-aligned and a live UTC clock right-aligned. No interaction; display only.
+Used in `SettingsPanel` and similar list rows. The **current value** is always the dominant element.
 
 ```
-╔══════════════════════════════════════════════════════╗
-║  RECCE                              UTC 14:32:07Z   ║
-╚══════════════════════════════════════════════════════╝
-```
-
-```css
-.hud-statusbar {
-  height: 24px;
-  background: var(--color-bg);
-  border-bottom: 1px solid var(--color-border-subtle);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-}
+coordinate system  ← 12px/400/secondary, uppercase, 0.06em
+WGS84              ← 14px/500/text, uppercase, right-aligned
 ```
 
 ---
 
-## 9. Accessibility Checklist
+## 8. Accessibility Checklist
 
 All items must pass before a PR is merged.
 
@@ -448,39 +450,4 @@ All items must pass before a PR is merged.
 | WCAG 4.1.2  | All icon-only buttons have `aria-label`                                                                    |
 | WCAG 4.1.2  | Kobalte components retain correct `role`, `aria-expanded`, `aria-selected` after restyling                 |
 | Navigation  | Visible text labels on all nav items — do not remove labels to save space                                  |
-| Night mode  | Verify `#00FF41` on `#000000` passes at ≥ 4.5 : 1 (it does; ~8.9 : 1)                                      |
-
----
-
-## 10. Implementation Scope
-
-Work file-by-file in this order. Each file is **styles only** — no logic changes.
-
-| #   | File(s)                                        | Changes                                                                   |
-| --- | ---------------------------------------------- | ------------------------------------------------------------------------- |
-| 1   | `src/index.html`                               | Replace font `<link>` with Share Tech Mono; optionally add HUD status bar |
-| 2   | `src/styles/theme.css`                         | Replace all colour token values (§3); update `--font-mono`                |
-| 3   | `src/components/ui/Button.tsx`                 | Apply §6.2                                                                |
-| 4   | `src/components/ui/Dialog.tsx`                 | Apply §6.3; add 4-corner bracket on desktop dialog                        |
-| 5   | `src/components/ui/TextField.tsx`              | Apply §6.4                                                                |
-| 6   | `src/components/ui/Select.tsx`                 | Apply §6.5                                                                |
-| 7   | `src/components/ui/ToggleGroup.tsx`            | Apply §6.6                                                                |
-| 8   | `src/components/ui/Accordion.tsx`              | Apply §6.7                                                                |
-| 9   | `src/components/ui/Popover.tsx`                | Apply §6.8; add 4-corner brackets                                         |
-| 10  | `src/components/ui/Toast.tsx`                  | Apply §6.9                                                                |
-| 11  | `src/components/nav/BottomNav.tsx`             | Apply §6.10; 2-corner bracket on active tab                               |
-| 12  | `src/components/nav/DesktopToolsBar.tsx`       | Apply §6.11; left accent stripe on active tab                             |
-| 13  | `src/components/saved/PinCard.tsx`             | Panel pattern §6.1; 2-corner bracket on selected                          |
-| 14  | `src/components/saved/TrackCard.tsx`           | Panel pattern §6.1; 2-corner bracket on selected                          |
-| 15  | `src/components/tools/GpsPanel.tsx`            | Readout grid §7; panel header stripe §4.2                                 |
-| 16  | `src/components/tools/RulerPanel.tsx`          | Readout grid §7; panel header stripe §4.2                                 |
-| 17  | `src/components/settings/SettingsPanel.tsx`    | Panel pattern §6.1                                                        |
-| 18  | `src/components/onboarding/OnboardingFlow.tsx` | Dialog pattern §6.3; 4-corner brackets                                    |
-| 19  | `src/components/map/CompassButton.tsx`         | Icon button §6.2; 48px target                                             |
-| 20  | `src/components/map/LocationButton.tsx`        | Icon button §6.2; 48px target                                             |
-| 21  | `src/components/map/PlotControls.tsx`          | Panel §6.1; button §6.2                                                   |
-| 22  | `src/components/map/MapStyleToggle.tsx`        | Panel §6.1; 48px targets                                                  |
-| 23  | `src/components/pin/PinEditor.tsx`             | Dialog §6.3; input §6.4                                                   |
-| 24  | `src/components/pin/PinInfo.tsx`               | Dialog §6.3; readout grid §7                                              |
-| 25  | `src/components/track/TrackEditor.tsx`         | Dialog §6.3; input §6.4                                                   |
-| 26  | `src/components/track/TrackInfo.tsx`           | Dialog §6.3; readout grid §7                                              |
+| Night mode  | Verify `#00ff41` on `#020e05` passes ≥ 4.5 : 1 (it does; > 8 : 1)                                          |
