@@ -77,13 +77,13 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
             <span
               style={{
                 'font-size': '13px',
-
                 color: 'var(--color-text)',
                 'white-space': 'nowrap',
                 overflow: 'hidden',
                 width: props.bearing !== 0 ? '64px' : '0px',
                 'text-align': 'center',
-                transition: 'width 0.3s ease',
+                'padding-left': props.bearing !== 0 ? '8px' : '0px',
+                transition: 'width 0.3s ease, padding-left 0.3s ease',
               }}
             >
               {inverseBearing()}
