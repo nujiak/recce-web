@@ -187,6 +187,8 @@ App state is reactive and managed using SolidJS signals, contexts, and stores. D
 
 ### Back Navigation (mobile)
 
+> **IMPORTANT:** This section MUST be kept up to date whenever the back navigation implementation or overlay priority order changes.
+
 The app intercepts the Android back gesture / browser back button using a **History API sentinel** in `src/App.tsx` (`AppInner`). There is no router; a single dummy history entry `{ backNav: true }` is pushed onto the stack whenever any interceptable overlay is open, so the OS back action pops the sentinel rather than leaving the app.
 
 **How it works:**
