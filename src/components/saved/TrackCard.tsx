@@ -63,7 +63,7 @@ const TrackCard: Component<TrackCardProps> = (props) => {
           style={{
             width: '12px',
             height: '12px',
-            'border-radius': props.track.isCyclical ? '50%' : '2px',
+            'border-radius': '0px',
             background: PIN_COLOR_CSS[props.track.color] ?? 'var(--color-text-muted)',
           }}
         />
@@ -73,7 +73,7 @@ const TrackCard: Component<TrackCardProps> = (props) => {
         <div
           style={{
             'font-size': '0.875rem',
-
+            'text-transform': 'uppercase',
             overflow: 'hidden',
             'text-overflow': 'ellipsis',
             'white-space': 'nowrap',

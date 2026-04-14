@@ -108,12 +108,13 @@ const styles = `
 
 const SectionHeader: Component<{ label: string }> = (props) => (
   <div
+    class="panel-header"
     style={{
       'font-size': '11px',
-      'letter-spacing': '0.08em',
+      'letter-spacing': '0.10em',
       'text-transform': 'uppercase',
       color: 'var(--color-text-secondary)',
-      padding: '6px 12px',
+      padding: '6px 12px 6px 9px',
       'border-bottom': '1px solid var(--color-border)',
       'margin-bottom': '0',
       background: 'var(--color-bg-secondary)',

@@ -23,10 +23,10 @@ const Dialog_: Component<DialogProps> = (props) => {
             position: fixed;
             inset: 0;
             background: var(--color-overlay);
-            animation: ui-dialog-overlay-in 0.15s ease-out;
+            animation: ui-dialog-overlay-in 0.075s linear;
           }
           .ui-dialog-overlay[data-closed] {
-            animation: ui-dialog-overlay-out 0.15s ease-in;
+            animation: ui-dialog-overlay-out 0.075s linear;
           }
           .ui-dialog-content {
             position: fixed;
@@ -35,36 +35,42 @@ const Dialog_: Component<DialogProps> = (props) => {
             align-items: center;
             justify-content: center;
             padding: 1rem;
-            animation: ui-dialog-content-in 0.15s ease-out;
+            animation: ui-dialog-content-in 0.075s linear;
           }
           .ui-dialog-content[data-closed] {
-            animation: ui-dialog-content-out 0.15s ease-in;
+            animation: ui-dialog-content-out 0.075s linear;
           }
           .ui-dialog-card {
             background: var(--color-bg-secondary);
             border: 1px solid var(--color-border);
             border-radius: 0px;
-            padding: 1.5rem;
+            padding: 0;
             max-width: 480px;
             min-width: 360px;
             width: 90%;
             position: relative;
             outline: none;
-            box-shadow: 0 4px 16px oklch(0 0 0 / 40%);
+            /* no box-shadow — flat display discipline */
+          }
+          .ui-dialog-card-body {
+            padding: 1.25rem 1rem 1.5rem;
           }
           .ui-dialog-title {
             color: var(--color-text);
             font-weight: 400;
             font-size: 14px;
             text-transform: uppercase;
-            letter-spacing: 0.04em;
+            letter-spacing: 0.08em;
+            padding: 12px 16px 12px;
             padding-right: 3.5rem;
-            padding-bottom: 12px;
             min-height: 48px;
             display: flex;
             align-items: center;
             border-bottom: 1px solid var(--color-border);
-            margin-bottom: 16px;
+            margin-bottom: 0;
+            /* accent left stripe */
+            border-left: 3px solid var(--color-accent);
+            padding-left: 13px;
           }
           .ui-dialog-close {
             position: absolute;
@@ -83,14 +89,26 @@ const Dialog_: Component<DialogProps> = (props) => {
             font-family: 'Material Symbols Outlined', sans-serif;
             font-size: 18px;
             outline: none;
+            transition: background 75ms linear, color 75ms linear;
           }
           .ui-dialog-close:hover {
             background: var(--color-accent-bg);
             color: var(--color-accent);
           }
           .ui-dialog-close:focus-visible {
-            outline: 2px solid var(--color-accent);
-            outline-offset: -2px;
+            outline: 1px solid var(--color-accent);
+            outline-offset: 3px;
+          }
+          @media (min-width: 768px) {
+            /* 4-corner bracket on desktop dialog */
+            .ui-dialog-card {
+              outline: 1px solid transparent;
+              box-shadow:
+                -10px -10px 0 -9px var(--color-accent),
+                10px -10px 0 -9px var(--color-accent),
+                -10px 10px 0 -9px var(--color-accent),
+                10px 10px 0 -9px var(--color-accent);
+            }
           }
           @media (max-width: 767px) {
             .ui-dialog-content {
@@ -102,10 +120,13 @@ const Dialog_: Component<DialogProps> = (props) => {
               max-width: 100%;
               min-width: 0;
               border-radius: 0px;
-              padding: 1.25rem 1rem;
               max-height: 85dvh;
               overflow-y: auto;
               scrollbar-gutter: stable;
+              border-top: 1px solid var(--color-border);
+              border-left: none;
+              border-right: none;
+              border-bottom: none;
             }
           }
           @keyframes ui-dialog-overlay-in {
@@ -117,12 +138,12 @@ const Dialog_: Component<DialogProps> = (props) => {
             to { opacity: 0; }
           }
           @keyframes ui-dialog-content-in {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from { opacity: 0; }
+            to { opacity: 1; }
           }
           @keyframes ui-dialog-content-out {
-            from { opacity: 1; transform: scale(1); }
-            to { opacity: 0; transform: scale(0.95); }
+            from { opacity: 1; }
+            to { opacity: 0; }
           }
         `}</style>
 
@@ -145,7 +166,7 @@ const Dialog_: Component<DialogProps> = (props) => {
                 close
               </Dialog.CloseButton>
             )}
-            {props.children}
+            <div class="ui-dialog-card-body">{props.children}</div>
           </div>
         </Dialog.Content>
       </Dialog.Portal>

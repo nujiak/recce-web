@@ -26,202 +26,228 @@ const RulerPanel: Component = () => {
   return (
     <div
       style={{
-        padding: '16px',
         display: 'flex',
         'flex-direction': 'column',
-        gap: '12px',
         height: '100%',
         'box-sizing': 'border-box',
-        'overflow-y': 'auto',
+        overflow: 'hidden',
       }}
     >
-      {/* Clear All button — header-level, only when there are points */}
-      <Show when={points().length > 0}>
-        <div style={{ display: 'flex', 'justify-content': 'flex-end' }}>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={clearRuler}
+      {/* Panel header */}
+      <div
+        class="panel-header"
+        style={{
+          'font-size': '11px',
+          'letter-spacing': '0.10em',
+          'text-transform': 'uppercase',
+          color: 'var(--color-text-secondary)',
+          padding: '6px 12px 6px 9px',
+          'border-bottom': '1px solid var(--color-border)',
+          background: 'var(--color-bg-secondary)',
+          'flex-shrink': '0',
+        }}
+      >
+        RULER
+      </div>
+      <div
+        style={{
+          padding: '16px',
+          display: 'flex',
+          'flex-direction': 'column',
+          gap: '12px',
+          flex: '1',
+          'box-sizing': 'border-box',
+          'overflow-y': 'auto',
+        }}
+      >
+        {/* Clear All button — header-level, only when there are points */}
+        <Show when={points().length > 0}>
+          <div style={{ display: 'flex', 'justify-content': 'flex-end' }}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={clearRuler}
+              style={{
+                border: '1px solid var(--color-danger)',
+                color: 'var(--color-danger)',
+              }}
+            >
+              Clear All
+            </Button>
+          </div>
+        </Show>
+
+        {/* Empty state */}
+        <Show when={points().length === 0}>
+          <div
             style={{
-              border: '1px solid var(--color-danger)',
-              color: 'var(--color-danger)',
+              display: 'flex',
+              'flex-direction': 'column',
+              'align-items': 'center',
+              'justify-content': 'center',
+              flex: 1,
+              color: 'var(--color-text-muted)',
+              gap: '8px',
             }}
           >
-            Clear All
-          </Button>
-        </div>
-      </Show>
+            <span class="material-symbols-outlined" style={{ 'font-size': '2rem' }}>
+              straighten
+            </span>
+            <span style={{ 'font-size': '0.875rem', 'text-transform': 'uppercase' }}>
+              No points yet
+            </span>
+            <span style={{ 'font-size': '0.75rem', 'text-align': 'center' }}>
+              Long-press items in Saved and tap "Add to Ruler"
+            </span>
+          </div>
+        </Show>
 
-      {/* Empty state */}
-      <Show when={points().length === 0}>
-        <div
-          style={{
-            display: 'flex',
-            'flex-direction': 'column',
-            'align-items': 'center',
-            'justify-content': 'center',
-            flex: 1,
-            color: 'var(--color-text-muted)',
-            gap: '8px',
-          }}
-        >
-          <span class="material-symbols-outlined" style={{ 'font-size': '2rem' }}>
-            straighten
-          </span>
-          <span style={{ 'font-size': '0.875rem', 'text-transform': 'uppercase' }}>
-            No points yet
-          </span>
-          <span style={{ 'font-size': '0.75rem', 'text-align': 'center' }}>
-            Long-press items in Saved and tap "Add to Ruler"
-          </span>
-        </div>
-      </Show>
-
-      {/* Points list */}
-      <Show when={points().length > 0}>
-        <div
-          style={{
-            flex: 1,
-            'overflow-y': 'auto',
-            'scrollbar-gutter': 'stable',
-            display: 'flex',
-            'flex-direction': 'column',
-            gap: '4px',
-          }}
-        >
-          <For each={points()}>
-            {(point, i) => (
-              <>
-                {/* Point row */}
-                <div
-                  style={{
-                    display: 'flex',
-                    'align-items': 'center',
-                    gap: '8px',
-                    padding: '8px',
-                    'min-height': '48px',
-                    background: 'var(--color-bg-secondary)',
-                    'border-radius': '0px',
-                    border: '1px solid var(--color-border)',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '20px',
-                      height: '20px',
-                      'border-radius': '0px',
-                      background: 'var(--color-accent)',
-                      display: 'flex',
-                      'align-items': 'center',
-                      'justify-content': 'center',
-                      'font-size': '11px',
-                      color: 'oklch(0.1 0 0)',
-
-                      'flex-shrink': '0',
-                    }}
-                  >
-                    {i() + 1}
-                  </div>
-                  <div style={{ flex: 1, 'min-width': '0' }}>
-                    <div
-                      style={{
-                        'font-size': '0.875rem',
-                        overflow: 'hidden',
-                        'text-overflow': 'ellipsis',
-                        'white-space': 'nowrap',
-                      }}
-                    >
-                      {point.name || `Point ${i() + 1}`}
-                    </div>
-                    <div
-                      style={{
-                        'font-size': '11px',
-                        color: 'var(--color-text-muted)',
-                        'font-variant-numeric': 'tabular-nums',
-                      }}
-                    >
-                      {point.lat.toFixed(5)}, {point.lng.toFixed(5)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Leg row (between consecutive points) */}
-                <Show when={i() < points().length - 1}>
+        {/* Points list */}
+        <Show when={points().length > 0}>
+          <div
+            style={{
+              flex: 1,
+              'overflow-y': 'auto',
+              'scrollbar-gutter': 'stable',
+              display: 'flex',
+              'flex-direction': 'column',
+              gap: '4px',
+            }}
+          >
+            <For each={points()}>
+              {(point, i) => (
+                <>
+                  {/* Point row */}
                   <div
                     style={{
                       display: 'flex',
                       'align-items': 'center',
                       gap: '8px',
-                      padding: '4px 8px 4px 28px',
-                      color: 'var(--color-text-muted)',
-                      'font-size': '0.75rem',
+                      padding: '8px',
+                      'min-height': '48px',
+                      background: 'var(--color-bg-secondary)',
+                      'border-radius': '0px',
+                      border: '1px solid var(--color-border)',
                     }}
                   >
-                    <span
-                      class="material-symbols-outlined"
-                      style={{ 'font-size': '14px', 'flex-shrink': '0' }}
+                    <div
+                      style={{
+                        width: '20px',
+                        height: '20px',
+                        'border-radius': '0px',
+                        background: 'var(--color-accent)',
+                        display: 'flex',
+                        'align-items': 'center',
+                        'justify-content': 'center',
+                        'font-size': '11px',
+                        color: 'oklch(0.1 0 0)',
+
+                        'flex-shrink': '0',
+                      }}
                     >
-                      arrow_downward
-                    </span>
-                    <span>
-                      {formatDistance(
-                        haversineDistance(
-                          point.lat,
-                          point.lng,
-                          points()[i() + 1].lat,
-                          points()[i() + 1].lng
-                        ),
-                        prefs.lengthUnit
-                      )}
-                      {' · '}
-                      {formatBearing(
-                        calculateBearing(
-                          point.lat,
-                          point.lng,
-                          points()[i() + 1].lat,
-                          points()[i() + 1].lng
-                        ),
-                        prefs.angleUnit
-                      )}
-                    </span>
+                      {i() + 1}
+                    </div>
+                    <div style={{ flex: 1, 'min-width': '0' }}>
+                      <div
+                        style={{
+                          'font-size': '0.875rem',
+                          overflow: 'hidden',
+                          'text-overflow': 'ellipsis',
+                          'white-space': 'nowrap',
+                        }}
+                      >
+                        {point.name || `Point ${i() + 1}`}
+                      </div>
+                      <div
+                        style={{
+                          'font-size': '11px',
+                          color: 'var(--color-text-muted)',
+                          'font-variant-numeric': 'tabular-nums',
+                        }}
+                      >
+                        {point.lat.toFixed(5)}, {point.lng.toFixed(5)}
+                      </div>
+                    </div>
                   </div>
-                </Show>
-              </>
-            )}
-          </For>
-        </div>
 
-        {/* Total */}
-        <div
-          style={{
-            'border-top': '1px solid var(--color-border)',
-            'padding-top': '12px',
-            display: 'flex',
-            'justify-content': 'space-between',
-            'align-items': 'center',
-          }}
-        >
-          <span
+                  {/* Leg row (between consecutive points) */}
+                  <Show when={i() < points().length - 1}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        'align-items': 'center',
+                        gap: '8px',
+                        padding: '4px 8px 4px 28px',
+                        color: 'var(--color-text-muted)',
+                        'font-size': '0.75rem',
+                      }}
+                    >
+                      <span
+                        class="material-symbols-outlined"
+                        style={{ 'font-size': '14px', 'flex-shrink': '0' }}
+                      >
+                        arrow_downward
+                      </span>
+                      <span>
+                        {formatDistance(
+                          haversineDistance(
+                            point.lat,
+                            point.lng,
+                            points()[i() + 1].lat,
+                            points()[i() + 1].lng
+                          ),
+                          prefs.lengthUnit
+                        )}
+                        {' · '}
+                        {formatBearing(
+                          calculateBearing(
+                            point.lat,
+                            point.lng,
+                            points()[i() + 1].lat,
+                            points()[i() + 1].lng
+                          ),
+                          prefs.angleUnit
+                        )}
+                      </span>
+                    </div>
+                  </Show>
+                </>
+              )}
+            </For>
+          </div>
+
+          {/* Total */}
+          <div
             style={{
-              'font-size': '11px',
-              'text-transform': 'uppercase',
-              'letter-spacing': '0.04em',
-              color: 'var(--color-text-secondary)',
+              'border-top': '1px solid var(--color-border)',
+              'padding-top': '12px',
+              display: 'flex',
+              'justify-content': 'space-between',
+              'align-items': 'center',
             }}
           >
-            Total distance
-          </span>
-          <span
-            style={{
-              'font-size': '0.875rem',
+            <span
+              style={{
+                'font-size': '11px',
+                'text-transform': 'uppercase',
+                'letter-spacing': '0.04em',
+                color: 'var(--color-text-secondary)',
+              }}
+            >
+              Total distance
+            </span>
+            <span
+              style={{
+                'font-size': '0.875rem',
 
-              'font-variant-numeric': 'tabular-nums',
-            }}
-          >
-            {formatDistance(totalDistance(), prefs.lengthUnit)}
-          </span>
-        </div>
-      </Show>
+                'font-variant-numeric': 'tabular-nums',
+              }}
+            >
+              {formatDistance(totalDistance(), prefs.lengthUnit)}
+            </span>
+          </div>
+        </Show>
+      </div>
     </div>
   );
 };

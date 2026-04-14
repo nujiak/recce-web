@@ -42,12 +42,12 @@ const PinCard: Component<PinCardProps> = (props) => {
         'user-select': 'none',
       }}
     >
-      {/* Color chip */}
+      {/* Color chip — square, no rounding */}
       <div
         style={{
           width: '12px',
           height: '12px',
-          'border-radius': '50%',
+          'border-radius': '0px',
           background: PIN_COLOR_CSS[props.pin.color] ?? 'var(--color-text-muted)',
           'flex-shrink': '0',
         }}
@@ -57,7 +57,7 @@ const PinCard: Component<PinCardProps> = (props) => {
         <div
           style={{
             'font-size': '0.875rem',
-
+            'text-transform': 'uppercase',
             overflow: 'hidden',
             'text-overflow': 'ellipsis',
             'white-space': 'nowrap',
