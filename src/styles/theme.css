@@ -41,7 +41,7 @@
   --header-height: 48px;
   --fab-size: 56px;
 
-  --font-mono: 'Share Tech Mono', monospace;
+  --font-mono: 'IBM Plex Mono', monospace;
 }
 
 @layer base {
@@ -50,7 +50,7 @@
     font-family: var(--font-mono);
     font-weight: 400;
     font-style: normal;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.02em;
   }
 
   /* DAY theme — paper-map palette */
@@ -190,7 +190,7 @@
   .readout-label {
     font-size: 11px;
     color: var(--color-text-secondary);
-    letter-spacing: 0.1em;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     line-height: 26px;
   }
@@ -202,8 +202,9 @@
   }
   .readout-value {
     font-size: 13px;
+    font-weight: 500;
     color: var(--color-text);
-    letter-spacing: 0.04em;
+    letter-spacing: 0.03em;
     line-height: 26px;
     text-align: right;
   }
