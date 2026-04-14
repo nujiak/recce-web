@@ -2,19 +2,22 @@
 
 @theme {
   /* NIGHT theme defaults (overridden by [data-theme='light'] below) */
-  --color-bg: #000000;
-  --color-bg-secondary: #0a0a0a;
-  --color-bg-tertiary: #111111;
+  /* Backgrounds carry a faint phosphor-green CRT wash — not pure black */
+  --color-bg: #020e05;
+  --color-bg-secondary: #071a0b;
+  --color-bg-tertiary: #0c2114;
+  /* Text: primary phosphor, secondary ~75%, muted ~35% */
   --color-text: #00ff41;
   --color-text-secondary: #00c032;
-  --color-text-muted: #006b1c;
-  --color-border: #00ff41;
-  --color-border-subtle: #004d13;
+  --color-text-muted: #2d6e42;
+  /* Borders: structural lines are dim forest-green; accent-bright reserved for active/selected */
+  --color-border: #1e5c30;
+  --color-border-subtle: #133d1e;
   --color-accent: #00ff41;
-  --color-accent-bg: rgba(0, 255, 65, 0.08);
-  --color-accent-border: rgba(0, 255, 65, 0.45);
+  --color-accent-bg: rgba(0, 255, 65, 0.1);
+  --color-accent-border: rgba(0, 255, 65, 0.4);
   --color-danger: #ff2020;
-  --color-overlay: rgba(0, 0, 0, 0.88);
+  --color-overlay: rgba(0, 8, 2, 0.9);
 
   /* Entity / data colours — NATO tactical signal meanings */
   --color-red: #ff2020;
