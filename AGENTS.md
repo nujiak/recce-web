@@ -191,11 +191,13 @@ The app intercepts the Android back gesture / browser back button using a **Hist
 
 **How it works:**
 
-- `backNavOpen()` — reactive function in `AppInner` that returns `true` when at least one overlay is open. All signals it reads must be tracked by a `createEffect`.
-- `closeTopmost()` — closes the single highest-priority open overlay and returns.
-- A `createEffect` watches `backNavOpen()` and calls `pushSentinel()` / `popSentinel()` to keep the history entry in sync when overlays open or close programmatically.
-- A `popstate` listener (registered in `onMount`) fires when the user presses back. It calls `closeTopmost()`, then re-pushes the sentinel if further overlays remain. Onboarding re-pushes immediately without closing anything.
-- `ignoreNextPopstate` flag suppresses the listener for the one `history.back()` call made by `popSentinel()` to avoid a feedback loop.
+The sentinel lifecycle is fully encapsulated in `src/utils/backNav.ts` via `createBackNav(layers, options)`:
+
+- `layers` — a reactive accessor returning a priority-ordered array of `{ isOpen: () => boolean, close: () => void }` entries. The first truthy entry is the one closed on back press.
+- A `createEffect` inside `createBackNav` pushes the sentinel whenever any layer is open and removes it when all are closed (programmatic-close path).
+- A `popstate` listener (registered in `onMount`) fires when the user presses back. It calls `close()` on the topmost open layer, then re-pushes the sentinel if further layers remain.
+- `canClose` option (passed as `() => prefs.onboardingDone`) blocks dismissal during onboarding — the sentinel is re-pushed immediately without closing anything.
+- `ignoreNextPopstate` flag suppresses the listener for the one `history.back()` call made internally to remove a stale sentinel.
 - On mount, `history.replaceState(null, '')` neutralises any stale sentinel left by a previous session.
 
 **Overlay priority order** (highest = closed first):
@@ -217,9 +219,8 @@ Desktop is unaffected — `isMobile()` (`window.innerWidth < DESKTOP_BREAKPOINT`
 **Adding a new interceptable overlay:**
 
 1. If the controlling signal is local to a child component, lift it into `UIContext` (follow the `markerPickerOpen` pattern).
-2. Add a condition to `backNavOpen()` in `AppInner` at the correct priority position.
-3. Add the matching `closeTopmost()` branch in the same position.
-4. If the signal must reset when a parent overlay closes, add `setYourSignal(false/null)` to the parent's cleanup path (e.g. in the existing `else` branch of its `createEffect`).
+2. Add a `{ isOpen: () => boolean, close: () => void }` entry to the `layers` array in the `createBackNav()` call in `AppInner`, at the correct priority position (lower index = closed first).
+3. If the signal must reset when a parent overlay closes, add `setYourSignal(false/null)` to the parent's cleanup path (e.g. in the existing `else` branch of its `createEffect`).
 
 ---
 
