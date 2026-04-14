@@ -150,7 +150,9 @@ const RulerPanel: Component = () => {
                     <div style={{ flex: 1, 'min-width': '0' }}>
                       <div
                         style={{
-                          'font-size': '0.875rem',
+                          'font-size': '14px',
+                          'font-weight': '500',
+                          'text-transform': 'uppercase',
                           overflow: 'hidden',
                           'text-overflow': 'ellipsis',
                           'white-space': 'nowrap',
@@ -163,6 +165,7 @@ const RulerPanel: Component = () => {
                           'font-size': '11px',
                           color: 'var(--color-text-muted)',
                           'font-variant-numeric': 'tabular-nums',
+                          'margin-top': '2px',
                         }}
                       >
                         {point.lat.toFixed(5)}, {point.lng.toFixed(5)}
@@ -228,19 +231,20 @@ const RulerPanel: Component = () => {
           >
             <span
               style={{
-                'font-size': '11px',
+                'font-size': '10px',
                 'text-transform': 'uppercase',
-                'letter-spacing': '0.04em',
-                color: 'var(--color-text-secondary)',
+                'letter-spacing': '0.08em',
+                color: 'var(--color-text-muted)',
               }}
             >
               Total distance
             </span>
             <span
               style={{
-                'font-size': '0.875rem',
-
+                'font-size': '16px',
+                'font-weight': '500',
                 'font-variant-numeric': 'tabular-nums',
+                'letter-spacing': '0.02em',
               }}
             >
               {formatDistance(totalDistance(), prefs.lengthUnit)}

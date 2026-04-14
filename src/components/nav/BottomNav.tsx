@@ -45,6 +45,7 @@ const BottomNav: Component = () => {
               cursor: 'pointer',
               color: activeNav() === tab.key ? 'var(--color-accent)' : 'var(--color-text-muted)',
               'font-size': '10px',
+              'font-weight': activeNav() === tab.key ? '500' : '400',
               'letter-spacing': '0.10em',
               'font-family': 'inherit',
               position: 'relative',

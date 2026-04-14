@@ -86,14 +86,15 @@ const GpsPanel: Component = () => {
                   <div>
                     <div
                       style={{
-                        'font-size': '11px',
+                        'font-size': '10px',
+                        'font-weight': '400',
                         color: 'var(--color-text-muted)',
-                        'margin-bottom': '2px',
+                        'margin-bottom': '4px',
                         'text-transform': 'uppercase',
-                        'letter-spacing': '0.04em',
+                        'letter-spacing': '0.08em',
                       }}
                     >
-                      Coordinates ({SYSTEM_NAMES[prefs.coordinateSystem]})
+                      {SYSTEM_NAMES[prefs.coordinateSystem]}
                     </div>
                     <Button
                       variant="ghost"
@@ -101,12 +102,15 @@ const GpsPanel: Component = () => {
                       aria-label="Copy coordinates"
                       onClick={() => copyToClipboard(coordStr())}
                       style={{
-                        'font-size': '0.875rem',
+                        'font-size': '15px',
+                        'font-weight': '500',
+                        'letter-spacing': '0.02em',
                         'font-variant-numeric': 'tabular-nums',
                         border: 'none',
                         'border-radius': '0',
                         padding: '0',
                         'justify-content': 'flex-start',
+                        'min-height': 'unset',
                       }}
                     >
                       {coordStr()}
@@ -184,12 +188,12 @@ const GpsPanel: Component = () => {
                   'text-align': 'center',
                 }}
               >
-                <div style={{ display: 'flex', 'flex-direction': 'column', gap: '2px' }}>
+                <div style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
                   <span
                     style={{
-                      'font-size': '0.75rem',
+                      'font-size': '10px',
                       'text-transform': 'uppercase',
-                      'letter-spacing': '0.06em',
+                      'letter-spacing': '0.08em',
                       color: 'var(--color-text-muted)',
                     }}
                   >
@@ -197,19 +201,21 @@ const GpsPanel: Component = () => {
                   </span>
                   <span
                     style={{
-                      'font-size': '1.1rem',
+                      'font-size': '16px',
+                      'font-weight': '500',
                       'font-variant-numeric': 'tabular-nums',
+                      'letter-spacing': '0.02em',
                     }}
                   >
                     {gpsHeading() !== null ? formatBearing(gpsHeading()!, prefs.angleUnit) : '--'}
                   </span>
                 </div>
-                <div style={{ display: 'flex', 'flex-direction': 'column', gap: '2px' }}>
+                <div style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
                   <span
                     style={{
-                      'font-size': '0.75rem',
+                      'font-size': '10px',
                       'text-transform': 'uppercase',
-                      'letter-spacing': '0.06em',
+                      'letter-spacing': '0.08em',
                       color: 'var(--color-text-muted)',
                     }}
                   >
@@ -217,19 +223,21 @@ const GpsPanel: Component = () => {
                   </span>
                   <span
                     style={{
-                      'font-size': '1.1rem',
+                      'font-size': '16px',
+                      'font-weight': '500',
                       'font-variant-numeric': 'tabular-nums',
+                      'letter-spacing': '0.02em',
                     }}
                   >
                     {gpsPitch() !== null ? `${gpsPitch()!.toFixed(1)}°` : '--'}
                   </span>
                 </div>
-                <div style={{ display: 'flex', 'flex-direction': 'column', gap: '2px' }}>
+                <div style={{ display: 'flex', 'flex-direction': 'column', gap: '4px' }}>
                   <span
                     style={{
-                      'font-size': '0.75rem',
+                      'font-size': '10px',
                       'text-transform': 'uppercase',
-                      'letter-spacing': '0.06em',
+                      'letter-spacing': '0.08em',
                       color: 'var(--color-text-muted)',
                     }}
                   >
@@ -237,8 +245,10 @@ const GpsPanel: Component = () => {
                   </span>
                   <span
                     style={{
-                      'font-size': '1.1rem',
+                      'font-size': '16px',
+                      'font-weight': '500',
                       'font-variant-numeric': 'tabular-nums',
+                      'letter-spacing': '0.02em',
                     }}
                   >
                     {gpsRoll() !== null ? `${gpsRoll()!.toFixed(1)}°` : '--'}

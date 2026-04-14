@@ -72,7 +72,8 @@ const TrackCard: Component<TrackCardProps> = (props) => {
       <div style={{ flex: 1, 'min-width': 0 }}>
         <div
           style={{
-            'font-size': '0.875rem',
+            'font-size': '14px',
+            'font-weight': '500',
             'text-transform': 'uppercase',
             overflow: 'hidden',
             'text-overflow': 'ellipsis',
@@ -83,9 +84,9 @@ const TrackCard: Component<TrackCardProps> = (props) => {
         </div>
         <div
           style={{
-            'font-size': '0.75rem',
+            'font-size': '12px',
             color: 'var(--color-text-secondary)',
-            'margin-top': '2px',
+            'margin-top': '3px',
           }}
         >
           {props.track.nodes.length} pts · {formatDistance(totalDistance(), prefs.lengthUnit)}

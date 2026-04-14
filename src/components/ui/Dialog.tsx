@@ -57,10 +57,10 @@ const Dialog_: Component<DialogProps> = (props) => {
           }
           .ui-dialog-title {
             color: var(--color-text);
-            font-weight: 400;
-            font-size: 14px;
+            font-weight: 500;
+            font-size: 15px;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.06em;
             padding: 12px 16px 12px;
             padding-right: 3.5rem;
             min-height: 48px;
