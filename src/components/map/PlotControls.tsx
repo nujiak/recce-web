@@ -272,276 +272,450 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
           left: '16px',
           right: '16px',
           'z-index': '10',
-          background: 'var(--color-bg-secondary)',
-          border: '1px solid var(--color-border)',
+          display: 'flex',
+          'flex-direction': 'row',
+          gap: '8px',
+          'align-items': 'flex-end',
         }}
       >
-        {/* Plot row — only visible when plotting */}
-        <Show when={props.isPlotting}>
+        {/* Main panel */}
+        <div
+          style={{
+            flex: '1',
+            'min-width': '0',
+            background: 'var(--color-bg-secondary)',
+            border: '1px solid var(--color-border)',
+          }}
+        >
+          {/* Plot row — only visible when plotting */}
+          <Show when={props.isPlotting}>
+            <div
+              style={{
+                display: 'flex',
+                'align-items': 'stretch',
+                'border-bottom': '1px solid var(--color-border)',
+                opacity: '1',
+                transition: 'opacity 75ms linear',
+              }}
+            >
+              <Show
+                when={!confirmingCancel()}
+                fallback={
+                  /* Discard confirmation inline */
+                  <div
+                    style={{
+                      display: 'flex',
+                      'align-items': 'center',
+                      'justify-content': 'center',
+                      flex: '1',
+                      gap: '0',
+                    }}
+                  >
+                    <span
+                      style={{
+                        flex: '1',
+                        'text-align': 'center',
+                        'font-size': '10px',
+                        color: 'var(--color-text-muted)',
+                        'letter-spacing': '0.08em',
+                        'text-transform': 'uppercase',
+                        padding: '0 12px',
+                      }}
+                    >
+                      DISCARD TRACK?
+                    </span>
+                    <button
+                      style={{
+                        ...ghostBase,
+                        color: 'var(--color-danger)',
+                        'border-left': '1px solid var(--color-border)',
+                      }}
+                      onClick={() => {
+                        setConfirmingCancel(false);
+                        props.onCancel();
+                      }}
+                    >
+                      DISCARD
+                    </button>
+                    <button
+                      style={{
+                        ...ghostBase,
+                        'border-left': '1px solid var(--color-border)',
+                      }}
+                      onClick={() => setConfirmingCancel(false)}
+                    >
+                      KEEP
+                    </button>
+                  </div>
+                }
+              >
+                {/* Normal plot row */}
+                <button
+                  aria-label="Undo last node"
+                  style={{
+                    ...ghostBase,
+                    opacity: props.plotNodes.length === 0 ? '0.3' : '1',
+                    'pointer-events': props.plotNodes.length === 0 ? 'none' : 'auto',
+                  }}
+                  onClick={props.onUndo}
+                >
+                  <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+                    undo
+                  </span>
+                  UNDO
+                </button>
+
+                <span
+                  style={{
+                    flex: '1',
+                    'text-align': 'center',
+                    'font-size': '10px',
+                    color: 'var(--color-text-muted)',
+                    'letter-spacing': '0.08em',
+                    'text-transform': 'uppercase',
+                    display: 'flex',
+                    'align-items': 'center',
+                    'justify-content': 'center',
+                  }}
+                >
+                  {props.plotNodes.length} NODE{props.plotNodes.length !== 1 ? 'S' : ''}
+                </span>
+
+                <button
+                  aria-label="Add node at crosshair"
+                  style={{
+                    ...ghostBase,
+                    'border-left': '1px solid var(--color-border)',
+                  }}
+                  onClick={props.onAddNode}
+                >
+                  <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+                    add
+                  </span>
+                  NODE
+                </button>
+
+                <button
+                  aria-label="Save track"
+                  style={{
+                    ...ghostBase,
+                    'border-left': '1px solid var(--color-border)',
+                    opacity: props.plotNodes.length < 2 ? '0.3' : '1',
+                    'pointer-events': props.plotNodes.length < 2 ? 'none' : 'auto',
+                  }}
+                  onClick={props.onSave}
+                >
+                  <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+                    check
+                  </span>
+                  SAVE
+                </button>
+
+                <button
+                  aria-label="Cancel plotting"
+                  style={{
+                    ...ghostBase,
+                    'border-left': '1px solid var(--color-border)',
+                    color: 'var(--color-danger)',
+                  }}
+                  onClick={handleCancel}
+                >
+                  <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+                    close
+                  </span>
+                  CANCEL
+                </button>
+              </Show>
+            </div>
+          </Show>
+
+          {/* Top row — always visible */}
           <div
             style={{
               display: 'flex',
               'align-items': 'stretch',
               'border-bottom': '1px solid var(--color-border)',
-              opacity: '1',
-              transition: 'opacity 75ms linear',
             }}
           >
-            <Show
-              when={!confirmingCancel()}
-              fallback={
-                /* Discard confirmation inline */
-                <div
-                  style={{
-                    display: 'flex',
-                    'align-items': 'center',
-                    'justify-content': 'center',
-                    flex: '1',
-                    gap: '0',
-                  }}
-                >
-                  <span
-                    style={{
-                      flex: '1',
-                      'text-align': 'center',
-                      'font-size': '10px',
-                      color: 'var(--color-text-muted)',
-                      'letter-spacing': '0.08em',
-                      'text-transform': 'uppercase',
-                      padding: '0 12px',
-                    }}
-                  >
-                    DISCARD TRACK?
-                  </span>
-                  <button
-                    style={{
-                      ...ghostBase,
-                      color: 'var(--color-danger)',
-                      'border-left': '1px solid var(--color-border)',
-                    }}
-                    onClick={() => {
-                      setConfirmingCancel(false);
-                      props.onCancel();
-                    }}
-                  >
-                    DISCARD
-                  </button>
-                  <button
-                    style={{
-                      ...ghostBase,
-                      'border-left': '1px solid var(--color-border)',
-                    }}
-                    onClick={() => setConfirmingCancel(false)}
-                  >
-                    KEEP
-                  </button>
-                </div>
-              }
+            {/* Left: coordinate display */}
+            <button
+              aria-label="Copy coordinates"
+              onClick={copyCoord}
+              style={{
+                flex: '1',
+                'min-width': '0',
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '8px 12px',
+                'text-align': 'left',
+                'font-family': 'inherit',
+                transition: 'background 75ms linear',
+                display: 'flex',
+                'flex-direction': 'column',
+                gap: '2px',
+                'justify-content': 'center',
+              }}
             >
-              {/* Normal plot row */}
-              <button
-                aria-label="Undo last node"
-                style={{
-                  ...ghostBase,
-                  opacity: props.plotNodes.length === 0 ? '0.3' : '1',
-                  'pointer-events': props.plotNodes.length === 0 ? 'none' : 'auto',
-                }}
-                onClick={props.onUndo}
-              >
-                <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
-                  undo
-                </span>
-                UNDO
-              </button>
-
               <span
                 style={{
-                  flex: '1',
-                  'text-align': 'center',
                   'font-size': '10px',
                   color: 'var(--color-text-muted)',
                   'letter-spacing': '0.08em',
                   'text-transform': 'uppercase',
-                  display: 'flex',
-                  'align-items': 'center',
-                  'justify-content': 'center',
+                  'white-space': 'nowrap',
                 }}
               >
-                {props.plotNodes.length} NODE{props.plotNodes.length !== 1 ? 'S' : ''}
+                {SYSTEM_NAMES[prefs.coordinateSystem]}
               </span>
-
-              <button
-                aria-label="Add node at crosshair"
+              <span
                 style={{
-                  ...ghostBase,
-                  'border-left': '1px solid var(--color-border)',
+                  'font-size': '15px',
+                  'font-weight': '500',
+                  color: 'var(--color-text)',
+                  'letter-spacing': '0.02em',
+                  'white-space': 'nowrap',
+                  overflow: 'hidden',
+                  'text-overflow': 'ellipsis',
                 }}
-                onClick={props.onAddNode}
               >
-                <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
-                  add
-                </span>
-                NODE
-              </button>
+                {coordDisplay()}
+              </span>
+            </button>
 
-              <button
-                aria-label="Save track"
-                style={{
-                  ...ghostBase,
-                  'border-left': '1px solid var(--color-border)',
-                  opacity: props.plotNodes.length < 2 ? '0.3' : '1',
-                  'pointer-events': props.plotNodes.length < 2 ? 'none' : 'auto',
-                }}
-                onClick={props.onSave}
-              >
-                <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
-                  check
-                </span>
-                SAVE
-              </button>
-
-              <button
-                aria-label="Cancel plotting"
-                style={{
-                  ...ghostBase,
-                  'border-left': '1px solid var(--color-border)',
-                  color: 'var(--color-danger)',
-                }}
-                onClick={handleCancel}
-              >
-                <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
-                  close
-                </span>
-                CANCEL
-              </button>
-            </Show>
+            {/* Right: GO TO, + PIN, TRACK buttons */}
+            <Popover_
+              open={showGoto()}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setShowGoto(false);
+                } else {
+                  const [lng, lat] = props.center;
+                  const coordStr =
+                    CoordinateTransformer.toDisplay(lat, lng, prefs.coordinateSystem) ?? '';
+                  setGotoInput(coordStr);
+                  setShowGoto(true);
+                }
+              }}
+              trigger={
+                <button
+                  aria-label="Go to coordinate"
+                  style={{
+                    ...ghostBase,
+                    'border-left': '1px solid var(--color-border)',
+                    'flex-shrink': '0',
+                    padding: '0',
+                  }}
+                >
+                  <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
+                    near_me
+                  </span>
+                </button>
+              }
+              placement="top-end"
+            >
+              <div style={{ display: 'flex', gap: '8px', 'min-width': '280px' }}>
+                <div style={{ flex: 1 }}>
+                  <TextField
+                    value={gotoInput()}
+                    onChange={(val) => {
+                      setGotoInput(val);
+                      setGotoError(false);
+                    }}
+                    placeholder={`${prefs.coordinateSystem} coordinate`}
+                    class={gotoError() ? 'goto-tf-error' : ''}
+                  />
+                </div>
+                <Button
+                  variant="primary"
+                  onClick={handleGotoSubmit}
+                  size="sm"
+                  style={{ 'align-self': 'center' }}
+                >
+                  Go
+                </Button>
+                <Button
+                  variant="icon"
+                  onClick={() => setShowGoto(false)}
+                  size="sm"
+                  style={{ color: 'var(--color-text-secondary)' }}
+                >
+                  <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+                    close
+                  </span>
+                </Button>
+              </div>
+            </Popover_>
           </div>
-        </Show>
 
-        {/* Top row — always visible */}
+          {/* Bottom row — always visible */}
+          <div
+            class="bottom-row"
+            style={{
+              display: 'grid',
+              'grid-template-columns': '1fr 1fr 1fr',
+              'align-items': 'stretch',
+            }}
+          >
+            {/* MAP STYLE */}
+            <button
+              aria-label={props.isSatellite ? 'Satellite map active' : 'Default map active'}
+              style={{
+                ...ghostBase,
+                flex: '1 1 0',
+                'min-width': '0',
+                overflow: 'hidden',
+                'flex-direction': 'column',
+                gap: '2px',
+                padding: '8px 4px',
+                ...(props.isSatellite
+                  ? { background: 'var(--color-accent-bg)', color: 'var(--color-accent)' }
+                  : {}),
+              }}
+              onClick={props.onToggleMapStyle}
+            >
+              <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+                {props.isSatellite ? 'satellite_alt' : 'map'}
+              </span>
+              <span style={{ 'font-size': '10px', 'letter-spacing': '0.08em' }}>
+                {props.isSatellite ? 'SATELLITE' : 'DEFAULT'}
+              </span>
+            </button>
+
+            {/* NORTH / compass */}
+            <div
+              class="bottom-row-compass"
+              style={{
+                flex: '1 1 0',
+                'min-width': '0',
+                display: 'flex',
+                'border-left': '1px solid var(--color-border)',
+              }}
+            >
+              <Popover_
+                open={showCompass()}
+                onOpenChange={handleCompassOpenChange}
+                trigger={
+                  <button
+                    aria-label={
+                      normalizedBearing() >= 0.05
+                        ? `Bearing ${bearingLabel()}, click to reset north`
+                        : 'Set map bearing'
+                    }
+                    style={{
+                      ...ghostBase,
+                      flex: '1 1 0',
+                      width: '100%',
+                      'min-width': '0',
+                      overflow: 'hidden',
+                      'flex-direction': 'column',
+                      gap: '2px',
+                      padding: '8px 4px',
+                      ...(normalizedBearing() >= 0.05 ? { color: 'var(--color-accent)' } : {}),
+                    }}
+                  >
+                    <Needle
+                      showLabel={false}
+                      style={{
+                        height: '20px',
+                        'aspect-ratio': '1 / 1',
+                        transform: `rotate(${-props.bearing}deg)`,
+                      }}
+                    />
+                    <span
+                      style={{
+                        'font-size': '10px',
+                        'letter-spacing': '0.08em',
+                        'white-space': 'nowrap',
+                        overflow: 'hidden',
+                        'text-overflow': 'ellipsis',
+                        'max-width': '100%',
+                      }}
+                    >
+                      {bearingLabel()}
+                    </span>
+                  </button>
+                }
+                placement="top"
+              >
+                <form
+                  onSubmit={handleCompassSubmit}
+                  style={{ display: 'flex', gap: '8px', 'align-items': 'center' }}
+                >
+                  <TextField
+                    value={compassInput()}
+                    onChange={(v) => {
+                      setCompassInput(v);
+                      setCompassError(false);
+                    }}
+                    placeholder={`Bearing (${prefs.angleUnit === 'mils' ? '0–6400' : '0–360'})`}
+                    class={compassError() ? 'compass-input-error' : ''}
+                  />
+                  <Button type="submit" size="sm">
+                    Go
+                  </Button>
+                  <Button
+                    variant="icon"
+                    size="sm"
+                    onClick={() => setShowCompass(false)}
+                    aria-label="Close"
+                  >
+                    ✕
+                  </Button>
+                </form>
+              </Popover_>
+            </div>
+
+            {/* LOCATION */}
+            <button
+              aria-label="Center on GPS location"
+              style={{
+                ...ghostBase,
+                flex: '1 1 0',
+                'min-width': '0',
+                overflow: 'hidden',
+                'flex-direction': 'column',
+                gap: '2px',
+                padding: '8px 4px',
+                'border-left': '1px solid var(--color-border)',
+                ...(props.locationMode === 'unavailable'
+                  ? { opacity: '0.3', 'pointer-events': 'none' }
+                  : {}),
+                ...(isFollowing()
+                  ? { background: 'var(--color-accent-bg)', color: 'var(--color-accent)' }
+                  : {}),
+              }}
+              onClick={props.onLocate}
+            >
+              <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+                {props.locationMode === 'following-bearing' ? 'explore' : 'my_location'}
+              </span>
+              <span style={{ 'font-size': '10px', 'letter-spacing': '0.08em' }}>
+                {props.locationMode === 'following-bearing'
+                  ? 'HEADING'
+                  : props.locationMode === 'following'
+                    ? 'FOLLOW'
+                    : 'LOCATION'}
+              </span>
+            </button>
+          </div>
+        </div>
+        {/* End main panel */}
+
+        {/* Creation panel — add pin + add track */}
         <div
           style={{
+            background: 'var(--color-bg-secondary)',
+            border: '1px solid var(--color-border)',
             display: 'flex',
-            'align-items': 'stretch',
-            'border-bottom': '1px solid var(--color-border)',
+            'flex-direction': 'column',
+            'flex-shrink': '0',
           }}
         >
-          {/* Left: coordinate display */}
-          <button
-            aria-label="Copy coordinates"
-            onClick={copyCoord}
-            style={{
-              flex: '1',
-              'min-width': '0',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '8px 12px',
-              'text-align': 'left',
-              'font-family': 'inherit',
-              transition: 'background 75ms linear',
-              display: 'flex',
-              'flex-direction': 'column',
-              gap: '2px',
-              'justify-content': 'center',
-            }}
-          >
-            <span
-              style={{
-                'font-size': '10px',
-                color: 'var(--color-text-muted)',
-                'letter-spacing': '0.08em',
-                'text-transform': 'uppercase',
-                'white-space': 'nowrap',
-              }}
-            >
-              {SYSTEM_NAMES[prefs.coordinateSystem]}
-            </span>
-            <span
-              style={{
-                'font-size': '15px',
-                'font-weight': '500',
-                color: 'var(--color-text)',
-                'letter-spacing': '0.02em',
-                'white-space': 'nowrap',
-                overflow: 'hidden',
-                'text-overflow': 'ellipsis',
-              }}
-            >
-              {coordDisplay()}
-            </span>
-          </button>
-
-          {/* Right: GO TO, + PIN, TRACK buttons */}
-          <Popover_
-            open={showGoto()}
-            onOpenChange={(open) => {
-              if (!open) {
-                setShowGoto(false);
-              } else {
-                const [lng, lat] = props.center;
-                const coordStr =
-                  CoordinateTransformer.toDisplay(lat, lng, prefs.coordinateSystem) ?? '';
-                setGotoInput(coordStr);
-                setShowGoto(true);
-              }
-            }}
-            trigger={
-              <button
-                aria-label="Go to coordinate"
-                style={{
-                  ...ghostBase,
-                  'border-left': '1px solid var(--color-border)',
-                  'flex-shrink': '0',
-                  padding: '0',
-                }}
-              >
-                <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
-                  near_me
-                </span>
-              </button>
-            }
-            placement="top-end"
-          >
-            <div style={{ display: 'flex', gap: '8px', 'min-width': '280px' }}>
-              <div style={{ flex: 1 }}>
-                <TextField
-                  value={gotoInput()}
-                  onChange={(val) => {
-                    setGotoInput(val);
-                    setGotoError(false);
-                  }}
-                  placeholder={`${prefs.coordinateSystem} coordinate`}
-                  class={gotoError() ? 'goto-tf-error' : ''}
-                />
-              </div>
-              <Button
-                variant="primary"
-                onClick={handleGotoSubmit}
-                size="sm"
-                style={{ 'align-self': 'center' }}
-              >
-                Go
-              </Button>
-              <Button
-                variant="icon"
-                onClick={() => setShowGoto(false)}
-                size="sm"
-                style={{ color: 'var(--color-text-secondary)' }}
-              >
-                <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
-                  close
-                </span>
-              </Button>
-            </div>
-          </Popover_>
-
           <button
             aria-label="Add pin at crosshair"
             style={{
               ...ghostBase,
-              'border-left': '1px solid var(--color-border)',
-              'flex-shrink': '0',
               padding: '0',
               opacity: props.isPlotting ? '0.3' : '1',
               'pointer-events': props.isPlotting ? 'none' : 'auto',
@@ -552,13 +726,11 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               add_location
             </span>
           </button>
-
           <button
             aria-label="Start track plotting"
             style={{
               ...ghostBase,
-              'border-left': '1px solid var(--color-border)',
-              'flex-shrink': '0',
+              'border-top': '1px solid var(--color-border)',
               padding: '0',
               opacity: props.isPlotting ? '0.3' : '1',
               'pointer-events': props.isPlotting ? 'none' : 'auto',
@@ -570,158 +742,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
             </span>
           </button>
         </div>
-
-        {/* Bottom row — always visible */}
-        <div
-          class="bottom-row"
-          style={{
-            display: 'grid',
-            'grid-template-columns': '1fr 1fr 1fr',
-            'align-items': 'stretch',
-          }}
-        >
-          {/* MAP STYLE */}
-          <button
-            aria-label={props.isSatellite ? 'Satellite map active' : 'Default map active'}
-            style={{
-              ...ghostBase,
-              flex: '1 1 0',
-              'min-width': '0',
-              overflow: 'hidden',
-              'flex-direction': 'column',
-              gap: '2px',
-              padding: '8px 4px',
-              ...(props.isSatellite
-                ? { background: 'var(--color-accent-bg)', color: 'var(--color-accent)' }
-                : {}),
-            }}
-            onClick={props.onToggleMapStyle}
-          >
-            <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
-              {props.isSatellite ? 'satellite_alt' : 'map'}
-            </span>
-            <span style={{ 'font-size': '10px', 'letter-spacing': '0.08em' }}>
-              {props.isSatellite ? 'SATELLITE' : 'DEFAULT'}
-            </span>
-          </button>
-
-          {/* NORTH / compass */}
-          <div
-            class="bottom-row-compass"
-            style={{
-              flex: '1 1 0',
-              'min-width': '0',
-              display: 'flex',
-              'border-left': '1px solid var(--color-border)',
-            }}
-          >
-            <Popover_
-              open={showCompass()}
-              onOpenChange={handleCompassOpenChange}
-              trigger={
-                <button
-                  aria-label={
-                    normalizedBearing() >= 0.05
-                      ? `Bearing ${bearingLabel()}, click to reset north`
-                      : 'Set map bearing'
-                  }
-                  style={{
-                    ...ghostBase,
-                    flex: '1 1 0',
-                    width: '100%',
-                    'min-width': '0',
-                    overflow: 'hidden',
-                    'flex-direction': 'column',
-                    gap: '2px',
-                    padding: '8px 4px',
-                    ...(normalizedBearing() >= 0.05 ? { color: 'var(--color-accent)' } : {}),
-                  }}
-                >
-                  <Needle
-                    showLabel={false}
-                    style={{
-                      height: '20px',
-                      'aspect-ratio': '1 / 1',
-                      transform: `rotate(${-props.bearing}deg)`,
-                    }}
-                  />
-                  <span
-                    style={{
-                      'font-size': '10px',
-                      'letter-spacing': '0.08em',
-                      'white-space': 'nowrap',
-                      overflow: 'hidden',
-                      'text-overflow': 'ellipsis',
-                      'max-width': '100%',
-                    }}
-                  >
-                    {bearingLabel()}
-                  </span>
-                </button>
-              }
-              placement="top"
-            >
-              <form
-                onSubmit={handleCompassSubmit}
-                style={{ display: 'flex', gap: '8px', 'align-items': 'center' }}
-              >
-                <TextField
-                  value={compassInput()}
-                  onChange={(v) => {
-                    setCompassInput(v);
-                    setCompassError(false);
-                  }}
-                  placeholder={`Bearing (${prefs.angleUnit === 'mils' ? '0–6400' : '0–360'})`}
-                  class={compassError() ? 'compass-input-error' : ''}
-                />
-                <Button type="submit" size="sm">
-                  Go
-                </Button>
-                <Button
-                  variant="icon"
-                  size="sm"
-                  onClick={() => setShowCompass(false)}
-                  aria-label="Close"
-                >
-                  ✕
-                </Button>
-              </form>
-            </Popover_>
-          </div>
-
-          {/* LOCATION */}
-          <button
-            aria-label="Center on GPS location"
-            style={{
-              ...ghostBase,
-              flex: '1 1 0',
-              'min-width': '0',
-              overflow: 'hidden',
-              'flex-direction': 'column',
-              gap: '2px',
-              padding: '8px 4px',
-              'border-left': '1px solid var(--color-border)',
-              ...(props.locationMode === 'unavailable'
-                ? { opacity: '0.3', 'pointer-events': 'none' }
-                : {}),
-              ...(isFollowing()
-                ? { background: 'var(--color-accent-bg)', color: 'var(--color-accent)' }
-                : {}),
-            }}
-            onClick={props.onLocate}
-          >
-            <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
-              {props.locationMode === 'following-bearing' ? 'explore' : 'my_location'}
-            </span>
-            <span style={{ 'font-size': '10px', 'letter-spacing': '0.08em' }}>
-              {props.locationMode === 'following-bearing'
-                ? 'HEADING'
-                : props.locationMode === 'following'
-                  ? 'FOLLOW'
-                  : 'LOCATION'}
-            </span>
-          </button>
-        </div>
+        {/* End outer wrapper */}
       </div>
 
       <style>{`
