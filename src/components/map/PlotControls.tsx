@@ -421,12 +421,13 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                   ...ghostBase,
                   'border-left': '1px solid var(--color-border)',
                   'flex-shrink': '0',
+                  'min-width': '48px',
+                  padding: '0',
                 }}
               >
-                <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+                <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
                   near_me
                 </span>
-                GO TO
               </button>
             }
             placement="top-end"
@@ -470,15 +471,16 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               ...ghostBase,
               'border-left': '1px solid var(--color-border)',
               'flex-shrink': '0',
+              'min-width': '48px',
+              padding: '0',
               opacity: props.isPlotting ? '0.3' : '1',
               'pointer-events': props.isPlotting ? 'none' : 'auto',
             }}
             onClick={handleAddPin}
           >
-            <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+            <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
               add_location
             </span>
-            + PIN
           </button>
 
           <button
@@ -487,15 +489,16 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               ...ghostBase,
               'border-left': '1px solid var(--color-border)',
               'flex-shrink': '0',
+              'min-width': '48px',
+              padding: '0',
               opacity: props.isPlotting ? '0.3' : '1',
               'pointer-events': props.isPlotting ? 'none' : 'auto',
             }}
             onClick={props.onStartPlot}
           >
-            <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
+            <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
               route
             </span>
-            TRACK
           </button>
         </div>
 
