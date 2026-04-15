@@ -63,10 +63,9 @@ const MapView: Component = () => {
     if (!details || !summary || details.dataset.recceBound === 'true') return;
 
     details.dataset.recceBound = 'true';
-    summary.addEventListener('pointerdown', (event) => {
+    summary.addEventListener('click', (event) => {
       event.preventDefault();
-      const nextOpen = !details.open;
-      details.open = nextOpen;
+      details.open = !details.open;
     });
   }
 
