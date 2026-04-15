@@ -280,6 +280,11 @@
   }
 }
 
+/* Lift MapLibre attribution control above the PlotControls instrument bar */
+.maplibregl-ctrl-bottom-right {
+  bottom: 130px !important;
+}
+
 @layer components {
   .popover-content {
     background: var(--color-bg-secondary);
