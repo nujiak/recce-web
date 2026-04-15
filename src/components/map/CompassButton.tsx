@@ -61,7 +61,8 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
           <div
             style={{
               'box-sizing': 'border-box',
-              width: props.bearing !== 0 ? '112px' : '48px',
+              'font-size': '13px',
+              width: props.bearing !== 0 ? 'calc(9ch + 64px)' : '48px',
               height: '48px',
               background: 'var(--color-bg-secondary)',
               border: '1px solid var(--color-border)',
@@ -77,11 +78,10 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
             <span
               style={{
                 'font-size': '13px',
-
                 color: 'var(--color-text)',
                 'white-space': 'nowrap',
                 overflow: 'hidden',
-                width: props.bearing !== 0 ? '64px' : '0px',
+                width: props.bearing !== 0 ? 'calc(9ch + 16px)' : '0ch',
                 'text-align': 'center',
                 transition: 'width 0.3s ease',
               }}
