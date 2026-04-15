@@ -12,7 +12,7 @@ All planned features and refactors live here. Each plan is self-contained — an
 
 ## Plan: Map Controls Overhaul
 
-**Status:** Ready  
+**Status:** Done  
 **Branch:** `refactor/map-controls-overhaul`
 
 ### Goal
