@@ -18,17 +18,14 @@ import Crosshair from './Crosshair';
 import PinMarkers from './PinMarkers';
 import TrackLayers from './TrackLayers';
 import PlotControls from './PlotControls';
-import CompassButton from './CompassButton';
-import LocationButton, { type LocationMode } from './LocationButton';
 import UserLocationMarker from './UserLocationMarker';
-import MapStyleToggle from './MapStyleToggle';
 import { usePrefs } from '../../context/PrefsContext';
-import type { TrackNode, PinColor, MapStyle } from '../../types';
+import type { TrackNode, PinColor, MapStyle, LocationMode } from '../../types';
 import { PIN_COLOR_HEX } from '../../utils/colors';
 import { DEFAULT_MAP_CENTER, DEFAULT_MAP_ZOOM } from '../../utils/constants';
 import { getMapStyle } from './mapStyles';
 
-const ATTRIBUTION_SELECTOR = '.maplibregl-ctrl-top-right > .maplibregl-ctrl-attrib';
+const ATTRIBUTION_SELECTOR = '.maplibregl-ctrl-bottom-right > .maplibregl-ctrl-attrib';
 
 function createNewTrack(nodes: TrackNode[]) {
   return {
@@ -66,10 +63,9 @@ const MapView: Component = () => {
     if (!details || !summary || details.dataset.recceBound === 'true') return;
 
     details.dataset.recceBound = 'true';
-    summary.addEventListener('pointerdown', (event) => {
+    summary.addEventListener('click', (event) => {
       event.preventDefault();
-      const nextOpen = !details.open;
-      details.open = nextOpen;
+      details.open = !details.open;
     });
   }
 
@@ -104,7 +100,7 @@ const MapView: Component = () => {
       attributionControl: false,
     });
 
-    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'top-right');
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
     map.on('styledata', collapseAttributionControl);
     map.on('styledata', bindAttributionToggle);
     requestAnimationFrame(() => {
@@ -377,56 +373,6 @@ const MapView: Component = () => {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <style>{`
-        .maplibregl-ctrl-top-right {
-          top: 64px;
-          left: 16px;
-          right: auto;
-          max-width: calc(100% - 16px);
-        }
-
-        .maplibregl-ctrl-top-right .maplibregl-ctrl {
-          margin: 0;
-          float: left;
-        }
-
-        .maplibregl-ctrl-attrib {
-          max-width: min(360px, calc(100vw - 16px));
-          margin: 0;
-        }
-
-        .maplibregl-ctrl-attrib.maplibregl-compact {
-          display: inline-flex;
-          flex-direction: row;
-          align-items: flex-start;
-          padding: 0;
-        }
-
-        .maplibregl-ctrl-attrib-button {
-          order: -1;
-          flex: 0 0 auto;
-          margin-left: 0;
-          margin-right: 0;
-          position: static;
-        }
-
-        .maplibregl-ctrl-attrib-inner {
-          order: 1;
-          margin-left: 0;
-          display: block;
-          padding-left: 8px;
-          padding-right: 8px;
-        }
-
-        .maplibregl-ctrl.maplibregl-ctrl-attrib {
-          padding: 0;
-        }
-
-        .maplibregl-ctrl-attrib-inner {
-          max-width: 100%;
-          white-space: normal;
-        }
-      `}</style>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
 
       <Show when={mapInstance()}>
@@ -441,10 +387,6 @@ const MapView: Component = () => {
               plotColor={plotState.color}
             />
             <Crosshair center={center()} />
-            <MapStyleToggle
-              isSatellite={prefs.mapStyle === 'satellite'}
-              onToggle={handleToggleMapStyle}
-            />
             <PlotControls
               center={center()}
               plotNodes={plotState.nodes}
@@ -455,13 +397,13 @@ const MapView: Component = () => {
               onUndo={handleUndo}
               onSave={handleSave}
               onCancel={handleCancel}
-            />
-            <CompassButton
+              onLocate={handleLocate}
               bearing={bearing()}
-              onReset={() => map().resetNorth()}
+              onResetNorth={() => map().resetNorth()}
               onRotateTo={(deg) => map().easeTo({ bearing: deg, duration: 1000 })}
+              isSatellite={prefs.mapStyle === 'satellite'}
+              onToggleMapStyle={handleToggleMapStyle}
             />
-            <LocationButton mode={locationMode()} onLocate={handleLocate} />
           </MapContext.Provider>
         )}
       </Show>

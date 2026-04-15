@@ -358,6 +358,12 @@ All UI-related changes and integration tests must be verified using Chrome MCP t
 
 ---
 
+## Implementation Plans
+
+All feature implementation plans live in [PLANS.md](./PLANS.md). Before starting any planned feature, read the relevant plan in full. When a plan is completed, mark it `Status: Done` in PLANS.md — do not delete it.
+
+---
+
 ## SVG Icon Resources
 
 Custom SVG icons are located in `public/icons/`. Most general icons have been replaced by Material Symbols (`https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined`).

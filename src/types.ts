@@ -58,3 +58,5 @@ export interface CoordResult {
 }
 
 export type ToastType = 'success' | 'error' | 'info';
+
+export type LocationMode = 'unavailable' | 'available' | 'following' | 'following-bearing';
