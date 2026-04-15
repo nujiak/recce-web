@@ -503,13 +503,22 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
         </div>
 
         {/* Bottom row — always visible */}
-        <div style={{ display: 'flex', 'align-items': 'stretch' }}>
+        <div
+          class="bottom-row"
+          style={{
+            display: 'grid',
+            'grid-template-columns': '1fr 1fr 1fr',
+            'align-items': 'stretch',
+          }}
+        >
           {/* MAP STYLE */}
           <button
             aria-label={props.isSatellite ? 'Satellite map active' : 'Default map active'}
             style={{
               ...ghostBase,
-              flex: '1',
+              flex: '1 1 0',
+              'min-width': '0',
+              overflow: 'hidden',
               'flex-direction': 'column',
               gap: '2px',
               padding: '8px 4px',
@@ -528,74 +537,97 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
           </button>
 
           {/* NORTH / compass */}
-          <Popover_
-            open={showCompass()}
-            onOpenChange={handleCompassOpenChange}
-            trigger={
-              <button
-                aria-label={
-                  normalizedBearing() >= 0.05
-                    ? `Bearing ${bearingLabel()}, click to reset north`
-                    : 'Set map bearing'
-                }
-                style={{
-                  ...ghostBase,
-                  flex: '1',
-                  'flex-direction': 'column',
-                  gap: '2px',
-                  padding: '8px 4px',
-                  'border-left': '1px solid var(--color-border)',
-                  ...(normalizedBearing() >= 0.05 ? { color: 'var(--color-accent)' } : {}),
-                }}
-              >
-                <Needle
-                  showLabel={false}
-                  style={{
-                    height: '20px',
-                    'aspect-ratio': '1 / 1',
-                    transform: `rotate(${-props.bearing}deg)`,
-                  }}
-                />
-                <span style={{ 'font-size': '10px', 'letter-spacing': '0.08em' }}>
-                  {bearingLabel()}
-                </span>
-              </button>
-            }
-            placement="top"
+          <div
+            class="bottom-row-compass"
+            style={{
+              flex: '1 1 0',
+              'min-width': '0',
+              display: 'flex',
+              'border-left': '1px solid var(--color-border)',
+            }}
           >
-            <form
-              onSubmit={handleCompassSubmit}
-              style={{ display: 'flex', gap: '8px', 'align-items': 'center' }}
+            <Popover_
+              open={showCompass()}
+              onOpenChange={handleCompassOpenChange}
+              trigger={
+                <button
+                  aria-label={
+                    normalizedBearing() >= 0.05
+                      ? `Bearing ${bearingLabel()}, click to reset north`
+                      : 'Set map bearing'
+                  }
+                  style={{
+                    ...ghostBase,
+                    flex: '1 1 0',
+                    width: '100%',
+                    'min-width': '0',
+                    overflow: 'hidden',
+                    'flex-direction': 'column',
+                    gap: '2px',
+                    padding: '8px 4px',
+                    ...(normalizedBearing() >= 0.05 ? { color: 'var(--color-accent)' } : {}),
+                  }}
+                >
+                  <Needle
+                    showLabel={false}
+                    style={{
+                      height: '20px',
+                      'aspect-ratio': '1 / 1',
+                      transform: `rotate(${-props.bearing}deg)`,
+                    }}
+                  />
+                  <span
+                    style={{
+                      'font-size': '10px',
+                      'letter-spacing': '0.08em',
+                      'white-space': 'nowrap',
+                      overflow: 'hidden',
+                      'text-overflow': 'ellipsis',
+                      'max-width': '100%',
+                    }}
+                  >
+                    {bearingLabel()}
+                  </span>
+                </button>
+              }
+              placement="top"
             >
-              <TextField
-                value={compassInput()}
-                onChange={(v) => {
-                  setCompassInput(v);
-                  setCompassError(false);
-                }}
-                placeholder={`Bearing (${prefs.angleUnit === 'mils' ? '0–6400' : '0–360'})`}
-                class={compassError() ? 'compass-input-error' : ''}
-              />
-              <Button type="submit" size="sm">
-                Go
-              </Button>
-              <Button
-                variant="icon"
-                size="sm"
-                onClick={() => setShowCompass(false)}
-                aria-label="Close"
+              <form
+                onSubmit={handleCompassSubmit}
+                style={{ display: 'flex', gap: '8px', 'align-items': 'center' }}
               >
-                ✕
-              </Button>
-            </form>
-          </Popover_>
+                <TextField
+                  value={compassInput()}
+                  onChange={(v) => {
+                    setCompassInput(v);
+                    setCompassError(false);
+                  }}
+                  placeholder={`Bearing (${prefs.angleUnit === 'mils' ? '0–6400' : '0–360'})`}
+                  class={compassError() ? 'compass-input-error' : ''}
+                />
+                <Button type="submit" size="sm">
+                  Go
+                </Button>
+                <Button
+                  variant="icon"
+                  size="sm"
+                  onClick={() => setShowCompass(false)}
+                  aria-label="Close"
+                >
+                  ✕
+                </Button>
+              </form>
+            </Popover_>
+          </div>
 
           {/* LOCATION */}
           <button
             aria-label="Center on GPS location"
             style={{
               ...ghostBase,
-              flex: '1',
+              flex: '1 1 0',
+              'min-width': '0',
+              overflow: 'hidden',
               'flex-direction': 'column',
               gap: '2px',
               padding: '8px 4px',
@@ -624,6 +656,13 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
       </div>
 
       <style>{`
+        .bottom-row-compass > .ui-popover-trigger {
+          width: 100%;
+        }
+        /* Equal-width bottom row: border-box so 1px borders don't shrink flex items */
+        .bottom-row > * {
+          box-sizing: border-box;
+        }
         .goto-tf-error .ui-tf-input {
           background: rgba(255,0,0,0.1);
           border-color: var(--color-danger);
