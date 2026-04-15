@@ -211,6 +211,9 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                   'font-weight': '500',
                   color: 'var(--color-text)',
                   'letter-spacing': '0.04em',
+                  display: 'inline-block',
+                  'min-width': '8ch',
+                  'text-align': 'right',
                 }}
               >
                 {overlay().distance}
@@ -240,6 +243,9 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                   'font-weight': '500',
                   color: 'var(--color-text)',
                   'letter-spacing': '0.04em',
+                  display: 'inline-block',
+                  'min-width': '7ch',
+                  'text-align': 'right',
                 }}
               >
                 {overlay().bearing}
