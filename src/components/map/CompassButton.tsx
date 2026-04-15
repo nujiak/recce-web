@@ -61,6 +61,7 @@ const CompassButton: Component<CompassButtonProps> = (props) => {
           <div
             style={{
               'box-sizing': 'border-box',
+              'font-size': '13px',
               width: props.bearing !== 0 ? 'calc(9ch + 64px)' : '48px',
               height: '48px',
               background: 'var(--color-bg-secondary)',
