@@ -174,7 +174,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
 
   return (
     <>
-      {/* GPS distance/bearing panel — top-centre, visible only when relevant */}
+      {/* GPS distance/bearing panel — full width, top of map */}
       <Show when={gpsOverlay()}>
         {(overlay) => (
           <Show when={overlay().rawDistance >= 0.1}>
@@ -182,74 +182,83 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               style={{
                 position: 'absolute',
                 top: '16px',
-                left: '50%',
-                transform: 'translateX(-50%)',
+                left: '16px',
+                right: '16px',
                 'z-index': '10',
                 background: 'var(--color-bg-secondary)',
                 border: '1px solid var(--color-border)',
-                padding: '6px 14px',
-                display: 'flex',
-                gap: '12px',
-                'align-items': 'center',
-                'white-space': 'nowrap',
+                display: 'grid',
+                'grid-template-columns': '1fr 1fr',
                 'pointer-events': 'none',
               }}
             >
-              <span
+              {/* Distance cell */}
+              <div
                 style={{
-                  'font-size': '10px',
-                  color: 'var(--color-text-muted)',
-                  'letter-spacing': '0.08em',
-                  'text-transform': 'uppercase',
+                  display: 'flex',
+                  'align-items': 'center',
+                  'justify-content': 'space-between',
+                  padding: '6px 12px',
+                  gap: '8px',
                 }}
               >
-                DIST
-              </span>
-              <span
+                <span
+                  style={{
+                    'font-size': '10px',
+                    color: 'var(--color-text-muted)',
+                    'letter-spacing': '0.08em',
+                    'text-transform': 'uppercase',
+                    'flex-shrink': '0',
+                  }}
+                >
+                  DIST
+                </span>
+                <span
+                  style={{
+                    'font-size': '13px',
+                    'font-weight': '500',
+                    color: 'var(--color-text)',
+                    'letter-spacing': '0.04em',
+                    'text-align': 'right',
+                  }}
+                >
+                  {overlay().distance}
+                </span>
+              </div>
+              {/* Bearing cell */}
+              <div
                 style={{
-                  'font-size': '13px',
-                  'font-weight': '500',
-                  color: 'var(--color-text)',
-                  'letter-spacing': '0.04em',
-                  display: 'inline-block',
-                  'min-width': '8ch',
-                  'text-align': 'right',
+                  display: 'flex',
+                  'align-items': 'center',
+                  'justify-content': 'space-between',
+                  padding: '6px 12px',
+                  gap: '8px',
+                  'border-left': '1px solid var(--color-border)',
                 }}
               >
-                {overlay().distance}
-              </span>
-              <span
-                style={{
-                  'font-size': '10px',
-                  color: 'var(--color-border)',
-                  'letter-spacing': '0.08em',
-                }}
-              >
-                ·
-              </span>
-              <span
-                style={{
-                  'font-size': '10px',
-                  color: 'var(--color-text-muted)',
-                  'letter-spacing': '0.08em',
-                  'text-transform': 'uppercase',
-                }}
-              >
-                BRG
-              </span>
-              <span
-                style={{
-                  'font-size': '13px',
-                  'font-weight': '500',
-                  color: 'var(--color-text)',
-                  'letter-spacing': '0.04em',
-                  display: 'inline-block',
-                  'min-width': '7ch',
-                  'text-align': 'right',
-                }}
-              >
-                {overlay().bearing}
-              </span>
+                <span
+                  style={{
+                    'font-size': '10px',
+                    color: 'var(--color-text-muted)',
+                    'letter-spacing': '0.08em',
+                    'text-transform': 'uppercase',
+                    'flex-shrink': '0',
+                  }}
+                >
+                  BRG
+                </span>
+                <span
+                  style={{
+                    'font-size': '13px',
+                    'font-weight': '500',
+                    color: 'var(--color-text)',
+                    'letter-spacing': '0.04em',
+                    'text-align': 'right',
+                  }}
+                >
+                  {overlay().bearing}
+                </span>
+              </div>
             </div>
           </Show>
         )}
