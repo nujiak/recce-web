@@ -41,8 +41,8 @@ const ghostBase = {
   background: 'transparent',
   color: 'var(--color-text)',
   border: 'none',
-  'min-height': '48px',
-  'min-width': '48px',
+  'min-height': '52px',
+  'min-width': '52px',
   'font-size': '13px',
   'font-weight': '400',
   'letter-spacing': '0.08em',
@@ -493,11 +493,10 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                   ...ghostBase,
                   'border-left': '1px solid var(--color-border)',
                   'flex-shrink': '0',
-                  'min-width': '48px',
                   padding: '0',
                 }}
               >
-                <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+                <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
                   near_me
                 </span>
               </button>
@@ -543,14 +542,13 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               ...ghostBase,
               'border-left': '1px solid var(--color-border)',
               'flex-shrink': '0',
-              'min-width': '48px',
               padding: '0',
               opacity: props.isPlotting ? '0.3' : '1',
               'pointer-events': props.isPlotting ? 'none' : 'auto',
             }}
             onClick={handleAddPin}
           >
-            <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+            <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
               add_location
             </span>
           </button>
@@ -561,14 +559,13 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               ...ghostBase,
               'border-left': '1px solid var(--color-border)',
               'flex-shrink': '0',
-              'min-width': '48px',
               padding: '0',
               opacity: props.isPlotting ? '0.3' : '1',
               'pointer-events': props.isPlotting ? 'none' : 'auto',
             }}
             onClick={props.onStartPlot}
           >
-            <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
+            <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
               route
             </span>
           </button>
