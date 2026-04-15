@@ -435,6 +435,8 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               display: 'flex',
               'align-items': 'stretch',
               'border-bottom': '1px solid var(--color-border)',
+              height: '64px',
+              'box-sizing': 'border-box',
             }}
           >
             {/* Left: coordinate display */}
@@ -555,6 +557,8 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               display: 'grid',
               'grid-template-columns': '1fr 1fr 1fr',
               'align-items': 'stretch',
+              height: '64px',
+              'box-sizing': 'border-box',
             }}
           >
             {/* MAP STYLE */}
@@ -717,12 +721,16 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
             style={{
               ...ghostBase,
               padding: '0',
+              width: '64px',
+              height: '64px',
+              'min-width': '64px',
+              'min-height': '64px',
               opacity: props.isPlotting ? '0.3' : '1',
               'pointer-events': props.isPlotting ? 'none' : 'auto',
             }}
             onClick={handleAddPin}
           >
-            <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
+            <span class="material-symbols-outlined" style={{ 'font-size': '28px' }}>
               add_location
             </span>
           </button>
@@ -732,12 +740,16 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               ...ghostBase,
               'border-top': '1px solid var(--color-border)',
               padding: '0',
+              width: '64px',
+              height: '64px',
+              'min-width': '64px',
+              'min-height': '64px',
               opacity: props.isPlotting ? '0.3' : '1',
               'pointer-events': props.isPlotting ? 'none' : 'auto',
             }}
             onClick={props.onStartPlot}
           >
-            <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
+            <span class="material-symbols-outlined" style={{ 'font-size': '28px' }}>
               route
             </span>
           </button>
