@@ -174,6 +174,81 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
 
   return (
     <>
+      {/* GPS distance/bearing panel — top-centre, visible only when relevant */}
+      <Show when={gpsOverlay()}>
+        {(overlay) => (
+          <Show when={overlay().rawDistance >= 0.1}>
+            <div
+              style={{
+                position: 'absolute',
+                top: '16px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                'z-index': '10',
+                background: 'var(--color-bg-secondary)',
+                border: '1px solid var(--color-border)',
+                padding: '6px 14px',
+                display: 'flex',
+                gap: '12px',
+                'align-items': 'center',
+                'white-space': 'nowrap',
+                'pointer-events': 'none',
+              }}
+            >
+              <span
+                style={{
+                  'font-size': '10px',
+                  color: 'var(--color-text-muted)',
+                  'letter-spacing': '0.08em',
+                  'text-transform': 'uppercase',
+                }}
+              >
+                DIST
+              </span>
+              <span
+                style={{
+                  'font-size': '13px',
+                  'font-weight': '500',
+                  color: 'var(--color-text)',
+                  'letter-spacing': '0.04em',
+                }}
+              >
+                {overlay().distance}
+              </span>
+              <span
+                style={{
+                  'font-size': '10px',
+                  color: 'var(--color-border)',
+                  'letter-spacing': '0.08em',
+                }}
+              >
+                ·
+              </span>
+              <span
+                style={{
+                  'font-size': '10px',
+                  color: 'var(--color-text-muted)',
+                  'letter-spacing': '0.08em',
+                  'text-transform': 'uppercase',
+                }}
+              >
+                BRG
+              </span>
+              <span
+                style={{
+                  'font-size': '13px',
+                  'font-weight': '500',
+                  color: 'var(--color-text)',
+                  'letter-spacing': '0.04em',
+                }}
+              >
+                {overlay().bearing}
+              </span>
+            </div>
+          </Show>
+        )}
+      </Show>
+
       {/* Two-row instrument bar anchored to map bottom */}
       <div
         style={{
@@ -356,24 +431,6 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               'justify-content': 'center',
             }}
           >
-            <Show when={gpsOverlay()}>
-              {(overlay) => (
-                <Show when={overlay().rawDistance >= 0.1}>
-                  <span
-                    style={{
-                      'font-size': '10px',
-                      color: 'var(--color-text-muted)',
-                      'letter-spacing': '0.08em',
-                      'text-transform': 'uppercase',
-                      'white-space': 'nowrap',
-                    }}
-                    class="hide-below-360"
-                  >
-                    {overlay().distance} · {overlay().bearing}
-                  </span>
-                </Show>
-              )}
-            </Show>
             <span
               style={{
                 'font-size': '10px',
@@ -671,11 +728,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
           background: rgba(255,0,0,0.1);
           border-color: var(--color-danger);
         }
-        @media (max-width: 360px) {
-          .hide-below-360 {
-            display: none;
-          }
-        }
+
       `}</style>
     </>
   );
