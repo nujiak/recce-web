@@ -44,6 +44,7 @@ const Icon: Component<IconProps> = (props) => (
   <svg
     class={`recce-icon${props.class ? ` ${props.class}` : ''}`}
     aria-hidden="true"
+    fill="currentColor"
     style={{
       width: `${props.size ?? 24}px`,
       height: `${props.size ?? 24}px`,
