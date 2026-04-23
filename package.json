@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@kobalte/core": "^0.13.11",
-    "@material-symbols/svg-400": "^0.44.4",
     "@turf/circle": "^7.3.4",
     "dexie": "^4.0.7",
     "maplibre-gl": "^4.1.3",
