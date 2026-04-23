@@ -1,6 +1,8 @@
 import { Component } from 'solid-js';
 import Dialog from './ui/Dialog';
 import Button from './ui/Button';
+import Icon from './ui/Icon';
+import type { IconName } from './ui/Icon';
 import { requestCompassPermission } from './GpsTracker';
 
 interface Props {
@@ -30,12 +32,7 @@ const CompassPermissionDialog: Component<Props> = (props) => {
             margin: '0 auto',
           }}
         >
-          <span
-            class="material-symbols-outlined"
-            style={{ 'font-size': '28px', color: 'var(--color-accent)' }}
-          >
-            explore
-          </span>
+          <Icon name="explore" size={28} style={{ color: 'var(--color-accent)' }} />
         </div>
 
         <p style={{ 'font-size': '0.875rem', color: 'var(--color-text-secondary)', margin: '0' }}>
@@ -57,20 +54,14 @@ const CompassPermissionDialog: Component<Props> = (props) => {
               ['near_me', 'Rotating the map to match your heading'],
               ['explore', 'Showing live azimuth, pitch, and roll in the GPS panel'],
               ['location_on', 'Orienting the directional arc on your location marker'],
-            ] as [string, string][]
+            ] as [IconName, string][]
           ).map(([icon, text]) => (
             <li style={{ display: 'flex', 'align-items': 'flex-start', gap: '10px' }}>
-              <span
-                class="material-symbols-outlined"
-                style={{
-                  'font-size': '18px',
-                  color: 'var(--color-accent)',
-                  'flex-shrink': '0',
-                  'margin-top': '1px',
-                }}
-              >
-                {icon}
-              </span>
+              <Icon
+                name={icon}
+                size={18}
+                style={{ color: 'var(--color-accent)', 'margin-top': '1px' }}
+              />
               <span style={{ 'font-size': '0.875rem', color: 'var(--color-text)' }}>{text}</span>
             </li>
           ))}

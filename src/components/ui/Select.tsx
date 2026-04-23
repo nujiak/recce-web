@@ -1,5 +1,6 @@
 import { type Component, type JSX, Show, createMemo } from 'solid-js';
 import { Select } from '@kobalte/core/select';
+import Icon from './Icon';
 
 interface SelectOption {
   value: string;
@@ -74,8 +75,6 @@ const Select_: Component<SelectProps> = (props) => {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-family: 'Material Symbols Outlined', sans-serif;
-          font-size: 20px;
           color: var(--color-text-muted);
           margin-left: 0.5rem;
           flex-shrink: 0;
@@ -159,7 +158,9 @@ const Select_: Component<SelectProps> = (props) => {
           <Select.Value<SelectOption> class="ui-select-value">
             {(state) => state.selectedOption().label}
           </Select.Value>
-          <Select.Icon class="ui-select-icon">expand_more</Select.Icon>
+          <Select.Icon class="ui-select-icon">
+            <Icon name="expand_more" size={20} />
+          </Select.Icon>
         </Select.Trigger>
 
         <Select.Portal>

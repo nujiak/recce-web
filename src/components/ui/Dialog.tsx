@@ -1,5 +1,6 @@
 import type { Component, JSX } from 'solid-js';
 import { Dialog } from '@kobalte/core/dialog';
+import Icon from './Icon';
 
 interface DialogProps {
   open: boolean;
@@ -86,8 +87,6 @@ const Dialog_: Component<DialogProps> = (props) => {
             align-items: center;
             justify-content: center;
             border-radius: 0px;
-            font-family: 'Material Symbols Outlined', sans-serif;
-            font-size: 18px;
             outline: none;
             transition: background 75ms linear, color 75ms linear;
           }
@@ -163,7 +162,7 @@ const Dialog_: Component<DialogProps> = (props) => {
             <Dialog.Title class="ui-dialog-title">{props.title}</Dialog.Title>
             {!props.preventClose && (
               <Dialog.CloseButton class="ui-dialog-close" aria-label="Close">
-                close
+                <Icon name="close" size={18} />
               </Dialog.CloseButton>
             )}
             <div class="ui-dialog-card-body">{props.children}</div>

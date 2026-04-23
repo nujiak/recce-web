@@ -5,6 +5,7 @@ import { calculateTotalDistance, formatDistance } from '../../utils/geo';
 import type { Track } from '../../types';
 import { PIN_COLOR_CSS } from '../../utils/colors';
 import Button from '../ui/Button';
+import Icon from '../ui/Icon';
 
 interface TrackCardProps {
   track: Track;
@@ -118,9 +119,7 @@ const TrackCard: Component<TrackCardProps> = (props) => {
         }}
         style={{ color: 'var(--color-text-secondary)', 'flex-shrink': '0' }}
       >
-        <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
-          edit
-        </span>
+        <Icon name="edit" size={16} />
       </Button>
     </div>
   );

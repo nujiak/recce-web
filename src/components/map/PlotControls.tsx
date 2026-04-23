@@ -1,5 +1,6 @@
 import { Component, Show, createSignal } from 'solid-js';
 import { useUI } from '../../context/UIContext';
+import Icon from '../ui/Icon';
 import { usePrefs } from '../../context/PrefsContext';
 import { CoordinateTransformer, SYSTEM_NAMES } from '../../coords/index';
 import { showToast } from '../ui/Toast';
@@ -359,9 +360,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                   }}
                   onClick={props.onUndo}
                 >
-                  <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
-                    undo
-                  </span>
+                  <Icon name="undo" size={16} />
                   UNDO
                 </button>
 
@@ -389,9 +388,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                   }}
                   onClick={props.onAddNode}
                 >
-                  <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
-                    add
-                  </span>
+                  <Icon name="add" size={16} />
                   NODE
                 </button>
 
@@ -405,9 +402,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                   }}
                   onClick={props.onSave}
                 >
-                  <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
-                    check
-                  </span>
+                  <Icon name="check" size={16} />
                   SAVE
                 </button>
 
@@ -420,9 +415,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                   }}
                   onClick={handleCancel}
                 >
-                  <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
-                    close
-                  </span>
+                  <Icon name="close" size={16} />
                   CANCEL
                 </button>
               </Show>
@@ -509,9 +502,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                     padding: '0',
                   }}
                 >
-                  <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
-                    near_me
-                  </span>
+                  <Icon name="near_me" />
                 </button>
               }
               placement="top-end"
@@ -542,9 +533,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                   size="sm"
                   style={{ color: 'var(--color-text-secondary)' }}
                 >
-                  <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
-                    close
-                  </span>
+                  <Icon name="close" size={16} />
                 </Button>
               </div>
             </Popover_>
@@ -578,9 +567,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               }}
               onClick={props.onToggleMapStyle}
             >
-              <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
-                {props.isSatellite ? 'satellite_alt' : 'map'}
-              </span>
+              <Icon name={props.isSatellite ? 'satellite_alt' : 'map'} size={18} />
               <span style={{ 'font-size': '10px', 'letter-spacing': '0.08em' }}>
                 {props.isSatellite ? 'SATELLITE' : 'DEFAULT'}
               </span>
@@ -691,9 +678,10 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
               }}
               onClick={props.onLocate}
             >
-              <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
-                {props.locationMode === 'following-bearing' ? 'explore' : 'my_location'}
-              </span>
+              <Icon
+                name={props.locationMode === 'following-bearing' ? 'explore' : 'my_location'}
+                size={18}
+              />
               <span style={{ 'font-size': '10px', 'letter-spacing': '0.08em' }}>
                 {props.locationMode === 'following-bearing'
                   ? 'HEADING'
@@ -730,9 +718,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
             }}
             onClick={handleAddPin}
           >
-            <span class="material-symbols-outlined" style={{ 'font-size': '28px' }}>
-              add_location
-            </span>
+            <Icon name="add_location" size={28} />
           </button>
           <button
             aria-label="Start track plotting"
@@ -749,9 +735,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
             }}
             onClick={props.onStartPlot}
           >
-            <span class="material-symbols-outlined" style={{ 'font-size': '28px' }}>
-              route
-            </span>
+            <Icon name="route" size={28} />
           </button>
         </div>
         {/* End outer wrapper */}

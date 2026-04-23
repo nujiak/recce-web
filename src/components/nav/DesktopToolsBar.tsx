@@ -1,6 +1,8 @@
 import { For, createEffect, createSignal, onCleanup, type Component } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import type { DesktopSection } from '../../context/UIContext';
+import Icon from '../ui/Icon';
+import type { IconName } from '../ui/Icon';
 import SettingsPanel from '../settings/SettingsPanel';
 import GpsPanel from '../tools/GpsPanel';
 import RulerPanel from '../tools/RulerPanel';
@@ -8,7 +10,7 @@ import SavedScreen from '../saved/SavedScreen';
 
 type ToolId = 'saved' | 'gps' | 'ruler' | 'settings';
 
-const TOOLS: { id: ToolId; label: string; icon: string }[] = [
+const TOOLS: { id: ToolId; label: string; icon: IconName }[] = [
   { id: 'saved', label: 'Saved', icon: 'bookmarks' },
   { id: 'gps', label: 'GPS', icon: 'satellite_alt' },
   { id: 'ruler', label: 'Ruler', icon: 'straighten' },
@@ -181,8 +183,6 @@ const DesktopToolsBar: Component = () => {
           border-left-color: var(--color-accent);
         }
         .dtb-tab-icon {
-          font-family: 'Material Symbols Outlined', sans-serif;
-          font-size: 20px;
           line-height: 1;
         }
         .dtb-tab-label {
@@ -227,7 +227,7 @@ const DesktopToolsBar: Component = () => {
                 setDesktopSection((active() === tool.id ? null : tool.id) as DesktopSection)
               }
             >
-              <span class="dtb-tab-icon material-symbols-outlined">{tool.icon}</span>
+              <Icon name={tool.icon} class="dtb-tab-icon" size={20} />
               <span class="dtb-tab-label">{tool.label}</span>
             </button>
           )}
