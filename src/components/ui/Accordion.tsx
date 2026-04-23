@@ -1,5 +1,6 @@
 import { For, type Component, type JSX } from 'solid-js';
 import { Accordion } from '@kobalte/core/accordion';
+import Icon from './Icon';
 
 interface AccordionItem {
   value: string;
@@ -65,8 +66,6 @@ const Accordion_: Component<AccordionProps> = (props) => {
           outline-offset: 3px;
         }
         .ui-accordion-chevron {
-          font-family: 'Material Symbols Outlined', sans-serif;
-          font-size: 18px;
           color: var(--color-text-secondary);
           transition: transform 75ms linear;
           flex-shrink: 0;
@@ -98,9 +97,7 @@ const Accordion_: Component<AccordionProps> = (props) => {
             <Accordion.Header>
               <Accordion.Trigger class="ui-accordion-trigger">
                 <span style={{ flex: '1', 'text-align': 'left' }}>{item.trigger}</span>
-                <span class="ui-accordion-chevron" aria-hidden="true">
-                  expand_more
-                </span>
+                <Icon name="expand_more" class="ui-accordion-chevron" size={18} />
               </Accordion.Trigger>
             </Accordion.Header>
             <Accordion.Content class="ui-accordion-content">

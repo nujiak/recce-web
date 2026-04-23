@@ -360,10 +360,23 @@ All UI-related changes and integration tests must be verified using Chrome MCP t
 
 ## Implementation Plans
 
-All feature implementation plans live in [PLANS.md](./PLANS.md). Before starting any planned feature, read the relevant plan in full. When a plan is completed, mark it `Status: Done` in PLANS.md — do not delete it.
+All feature implementation plans live in [PLANS.md](./PLANS.md). Before starting any planned feature, read the relevant plan in full.
 
 ---
 
 ## SVG Icon Resources
 
-Custom SVG icons are located in `public/icons/`. Most general icons have been replaced by Material Symbols (`https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined`).
+Custom SVG icons are located in `public/icons/`.
+
+All UI icons currently use Material Symbols Outlined, loaded as a Google Fonts web font. **A migration to self-hosted, bundled SVG icons is planned** — see [PLANS.md](./PLANS.md).
+
+Once that plan is implemented, the canonical way to render any icon is:
+
+```tsx
+import Icon from '../ui/Icon';
+// …
+<Icon name="settings" />          // default 24 px
+<Icon name="close" size={18} />   // explicit size in px
+```
+
+**Do not add new `<span class="material-symbols-outlined">` usages** after the plan is executed. If the icon migration is still pending when you need a new icon, use the existing font span pattern for now — but add the new icon name to the `IconName` union and the `icons` map in `src/components/ui/Icon.tsx` so the subset stays current.

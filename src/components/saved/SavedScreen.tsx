@@ -10,6 +10,8 @@ import type { Pin, Track } from '../../types';
 import { DropdownMenu } from '@kobalte/core/dropdown-menu';
 import TextField from '../ui/TextField';
 import Button from '../ui/Button';
+import Icon from '../ui/Icon';
+import type { IconName } from '../ui/Icon';
 
 type SortMode = 'name-asc' | 'name-desc' | 'date-new' | 'date-old' | 'color';
 
@@ -21,7 +23,7 @@ const sortOptions = [
   { value: 'color', label: 'Color' },
 ] as const;
 
-const sortIcons: Record<SortMode, string> = {
+const sortIcons: Record<SortMode, IconName> = {
   'date-new': 'schedule',
   'date-old': 'history',
   'name-asc': 'sort_by_alpha',
@@ -223,15 +225,7 @@ const SavedScreen: Component = () => {
             aria-label="Import share code"
             onClick={() => setShowImport((v) => !v)}
           >
-            <span
-              style={{
-                'font-family': "'Material Symbols Outlined', sans-serif",
-                'font-size': '20px',
-                'line-height': '1',
-              }}
-            >
-              download
-            </span>
+            <Icon name="download" size={20} />
           </Button>
           <div style={{ display: 'flex', 'align-items': 'center' }}>
             <style>{`
@@ -267,8 +261,6 @@ const SavedScreen: Component = () => {
               color: var(--color-accent);
             }
             .sort-menu-trigger-icon {
-              font-family: 'Material Symbols Outlined', sans-serif;
-              font-size: 20px;
               line-height: 1;
               user-select: none;
             }
@@ -295,8 +287,6 @@ const SavedScreen: Component = () => {
               color: var(--color-accent);
             }
             .sort-menu-item-icon {
-              font-family: 'Material Symbols Outlined', sans-serif;
-              font-size: 16px;
               line-height: 1;
               color: var(--color-text-secondary);
               flex-shrink: 0;
@@ -305,8 +295,6 @@ const SavedScreen: Component = () => {
               color: var(--color-accent);
             }
             .sort-menu-item-indicator {
-              font-family: 'Material Symbols Outlined', sans-serif;
-              font-size: 14px;
               color: var(--color-accent);
               visibility: hidden;
               margin-left: auto;
@@ -320,7 +308,9 @@ const SavedScreen: Component = () => {
                 class="sort-menu-trigger"
                 aria-label={`Sort: ${sortOptions.find((o) => o.value === sortMode())?.label}`}
               >
-                <span class="sort-menu-trigger-icon">{sortIcons[sortMode()]}</span>
+                <span class="sort-menu-trigger-icon">
+                  <Icon name={sortIcons[sortMode()]} size={20} />
+                </span>
               </DropdownMenu.Trigger>
               <DropdownMenu.Portal>
                 <DropdownMenu.Content class="sort-menu-content popover-content">
@@ -332,11 +322,11 @@ const SavedScreen: Component = () => {
                       {(option) => (
                         <DropdownMenu.RadioItem class="sort-menu-item" value={option.value}>
                           <span class="sort-menu-item-icon">
-                            {sortIcons[option.value as SortMode]}
+                            <Icon name={sortIcons[option.value as SortMode]} size={16} />
                           </span>
                           {option.label}
                           <DropdownMenu.ItemIndicator class="sort-menu-item-indicator" forceMount>
-                            check
+                            <Icon name="check" size={14} />
                           </DropdownMenu.ItemIndicator>
                         </DropdownMenu.RadioItem>
                       )}
@@ -385,22 +375,13 @@ const SavedScreen: Component = () => {
               {selected().size} selected
             </span>
             <Button variant="icon" size="sm" aria-label="Share selected" onClick={shareSelected}>
-              <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
-                share
-              </span>
+              <Icon name="share" size={18} />
             </Button>
             <Button variant="icon" size="sm" aria-label="Add to ruler" onClick={addSelectedToRuler}>
-              <span class="material-symbols-outlined" style={{ 'font-size': '18px' }}>
-                straighten
-              </span>
+              <Icon name="straighten" size={18} />
             </Button>
             <Button variant="icon" size="sm" aria-label="Delete selected" onClick={bulkDelete}>
-              <span
-                class="material-symbols-outlined"
-                style={{ 'font-size': '18px', color: 'var(--color-danger)' }}
-              >
-                delete
-              </span>
+              <Icon name="delete" size={18} style={{ color: 'var(--color-danger)' }} />
             </Button>
             <Button
               variant="icon"
@@ -411,12 +392,7 @@ const SavedScreen: Component = () => {
                 setMultiSelect(false);
               }}
             >
-              <span
-                class="material-symbols-outlined"
-                style={{ 'font-size': '18px', color: 'var(--color-text-secondary)' }}
-              >
-                close
-              </span>
+              <Icon name="close" size={18} style={{ color: 'var(--color-text-secondary)' }} />
             </Button>
           </div>
         </div>

@@ -2,6 +2,8 @@ import { type Component, type JSX, createMemo } from 'solid-js';
 import { Select } from '@kobalte/core/select';
 import { usePrefs } from '../../context/PrefsContext';
 import { SYSTEM_NAMES } from '../../coords/index';
+import Icon from '../ui/Icon';
+import type { IconName } from '../ui/Icon';
 import type { CoordinateSystem, AngleUnit, LengthUnit, Theme } from '../../types';
 import { ANGLE_UNIT_OPTIONS } from '../../types';
 
@@ -52,8 +54,6 @@ const styles = `
     color: var(--color-text-muted);
   }
   .sp-select-chevron {
-    font-family: 'Material Symbols Outlined', sans-serif;
-    font-size: 16px;
     color: var(--color-text-muted);
     flex-shrink: 0;
     transition: transform 0.15s ease;
@@ -99,8 +99,6 @@ const styles = `
     opacity: 1;
   }
   .sp-item-check {
-    font-family: 'Material Symbols Outlined', sans-serif;
-    font-size: 16px;
     color: var(--color-accent);
     opacity: 0;
     flex-shrink: 0;
@@ -183,7 +181,9 @@ const SettingSelectRow: Component<SettingSelectRowProps> = (props) => {
       itemComponent={(itemProps) => (
         <Select.Item class="sp-select-item" item={itemProps.item}>
           <Select.ItemLabel>{itemProps.item.rawValue.label}</Select.ItemLabel>
-          <span class="sp-item-check">check</span>
+          <span class="sp-item-check">
+            <Icon name="check" size={16} />
+          </span>
         </Select.Item>
       )}
     >
@@ -192,7 +192,9 @@ const SettingSelectRow: Component<SettingSelectRowProps> = (props) => {
         <Select.Value<SelectOption> class="sp-select-value">
           {(state) => state.selectedOption().label}
         </Select.Value>
-        <span class="sp-select-chevron">expand_more</span>
+        <span class="sp-select-chevron">
+          <Icon name="expand_more" size={16} />
+        </span>
       </Select.Trigger>
 
       <Select.Portal>
@@ -266,18 +268,14 @@ const SettingToggleRow: Component<SettingToggleRowProps> = (props) => (
         </span>
       )}
     </span>
-    <span
-      class="material-symbols-outlined"
+    <Icon
+      name={props.value ? 'toggle_on' : 'toggle_off'}
+      size={28}
       style={{
-        'font-size': '28px',
         color: props.value ? 'var(--color-accent)' : 'var(--color-text-muted)',
         transition: 'color 0.15s ease',
-        'flex-shrink': '0',
-        'line-height': '1',
       }}
-    >
-      {props.value ? 'toggle_on' : 'toggle_off'}
-    </span>
+    />
   </button>
 );
 
@@ -329,9 +327,7 @@ const SettingLinkRow: Component<SettingLinkRowProps> = (props) => (
       }}
     >
       {props.value}
-      <span class="material-symbols-outlined" style={{ 'font-size': '14px', 'line-height': '1' }}>
-        open_in_new
-      </span>
+      <Icon name="open_in_new" size={14} />
     </span>
   </a>
 );

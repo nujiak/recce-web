@@ -1,5 +1,13 @@
 import { Component, For } from 'solid-js';
 import { useUI } from '../../context/UIContext';
+import Icon from '../ui/Icon';
+import type { IconName } from '../ui/Icon';
+
+const tabs: { key: string; label: string; icon: IconName }[] = [
+  { key: 'map', label: 'MAP', icon: 'map' },
+  { key: 'saved', label: 'SAVED', icon: 'bookmarks' },
+  { key: 'tools', label: 'TOOLS', icon: 'construction' },
+];
 
 const BottomNav: Component = () => {
   const { activeNav, setActiveNav, setActiveTool } = useUI();
@@ -15,13 +23,7 @@ const BottomNav: Component = () => {
         'border-top': '1px solid var(--color-border)',
       }}
     >
-      <For
-        each={[
-          { key: 'map', label: 'MAP', icon: 'map' },
-          { key: 'saved', label: 'SAVED', icon: 'bookmarks' },
-          { key: 'tools', label: 'TOOLS', icon: 'construction' },
-        ]}
-      >
+      <For each={tabs}>
         {(tab) => (
           <button
             class={`bottom-nav__tab${activeNav() === tab.key ? ' bracket-selected' : ''}`}
@@ -53,9 +55,7 @@ const BottomNav: Component = () => {
               transition: 'color 75ms linear, background 75ms linear',
             }}
           >
-            <span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
-              {tab.icon}
-            </span>
+            <Icon name={tab.icon} />
             {tab.label}
           </button>
         )}

@@ -1,6 +1,8 @@
 import { Component, Show, For } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import Button from '../ui/Button';
+import Icon from '../ui/Icon';
+import type { IconName } from '../ui/Icon';
 import SettingsPanel from '../settings/SettingsPanel';
 import GpsPanel from '../tools/GpsPanel';
 import RulerPanel from '../tools/RulerPanel';
@@ -8,7 +10,7 @@ import RulerPanel from '../tools/RulerPanel';
 interface ToolCard {
   id: string;
   label: string;
-  icon: string;
+  icon: IconName;
 }
 
 const TOOL_CARDS: ToolCard[] = [
@@ -49,9 +51,7 @@ const ToolboxModal: Component = () => {
               }}
             >
               <Button variant="icon" aria-label="Back" onClick={() => setActiveTool(null)}>
-                <span class="material-symbols-outlined" style={{ 'font-size': '20px' }}>
-                  arrow_back
-                </span>
+                <Icon name="arrow_back" size={20} />
               </Button>
               <span style={{ 'font-size': '0.875rem' }}>
                 {TOOL_CARDS.find((t) => t.id === activeTool())?.label ?? activeTool()}
@@ -97,9 +97,7 @@ const ToolboxModal: Component = () => {
                       'font-size': '0.75rem',
                     }}
                   >
-                    <span class="material-symbols-outlined" style={{ 'font-size': '1.5rem' }}>
-                      {tool.icon}
-                    </span>
+                    <Icon name={tool.icon} />
                     {tool.label}
                   </Button>
                 )}

@@ -5,6 +5,7 @@ import { showToast } from '../ui/Toast';
 import { copyToClipboard } from '../../utils/clipboard';
 import Dialog from '../ui/Dialog';
 import Button from '../ui/Button';
+import Icon from '../ui/Icon';
 import type { CoordinateSystem } from '../../types';
 
 const PinInfo: Component = () => {
@@ -99,9 +100,7 @@ const PinInfo: Component = () => {
                     }}
                     style={{ flex: 'none' }}
                   >
-                    <span class="material-symbols-outlined" style={{ 'font-size': '16px' }}>
-                      content_copy
-                    </span>
+                    <Icon name="content_copy" size={16} />
                   </Button>
                 </div>
               );

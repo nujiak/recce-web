@@ -8,6 +8,7 @@ import {
   formatBearing,
 } from '../../utils/geo';
 import Button from '../ui/Button';
+import Icon from '../ui/Icon';
 
 const RulerPanel: Component = () => {
   const [prefs] = usePrefs();
@@ -90,9 +91,7 @@ const RulerPanel: Component = () => {
               gap: '8px',
             }}
           >
-            <span class="material-symbols-outlined" style={{ 'font-size': '2rem' }}>
-              straighten
-            </span>
+            <Icon name="straighten" size={32} />
             <span style={{ 'font-size': '0.875rem', 'text-transform': 'uppercase' }}>
               No points yet
             </span>
@@ -185,12 +184,7 @@ const RulerPanel: Component = () => {
                         'font-size': '0.75rem',
                       }}
                     >
-                      <span
-                        class="material-symbols-outlined"
-                        style={{ 'font-size': '14px', 'flex-shrink': '0' }}
-                      >
-                        arrow_downward
-                      </span>
+                      <Icon name="arrow_downward" size={14} />
                       <span>
                         {formatDistance(
                           haversineDistance(

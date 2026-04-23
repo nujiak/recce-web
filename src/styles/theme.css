@@ -76,6 +76,24 @@
     padding: 0;
   }
 
+  .recce-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    user-select: none;
+    line-height: 0;
+  }
+
+  .recce-icon svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .recce-icon svg path {
+    fill: currentColor;
+  }
+
   html,
   body {
     height: 100%;
