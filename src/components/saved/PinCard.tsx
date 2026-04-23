@@ -1,4 +1,4 @@
-import { Component } from 'solid-js';
+import { Component, createResource } from 'solid-js';
 import { usePrefs } from '../../context/PrefsContext';
 import { CoordinateTransformer } from '../../coords/index';
 import type { Pin } from '../../types';
@@ -19,8 +19,10 @@ interface PinCardProps {
 
 const PinCard: Component<PinCardProps> = (props) => {
   const [prefs] = usePrefs();
-  const coordDisplay = () =>
-    CoordinateTransformer.toDisplay(props.pin.lat, props.pin.lng, prefs.coordinateSystem) ?? '';
+  const [coordDisplay] = createResource(
+    () => [props.pin.lat, props.pin.lng, prefs.coordinateSystem] as const,
+    async ([lat, lng, system]) => (await CoordinateTransformer.toDisplay(lat, lng, system)) ?? ''
+  );
 
   return (
     <div

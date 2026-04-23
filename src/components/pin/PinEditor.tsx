@@ -43,7 +43,6 @@ const PinEditor: Component<PinEditorProps> = (props) => {
     const p = pin();
     if (p) {
       setName(p.name);
-      setCoordInput(CoordinateTransformer.toDisplay(p.lat, p.lng, prefs.coordinateSystem) ?? '');
       setColor(p.color);
       setMarkerType(p.markerType ?? 'pin');
       setBearingInput(
@@ -53,6 +52,9 @@ const PinEditor: Component<PinEditorProps> = (props) => {
       );
       setGroup(p.group);
       setDescription(p.description);
+      CoordinateTransformer.toDisplay(p.lat, p.lng, prefs.coordinateSystem).then((display) => {
+        setCoordInput(display ?? '');
+      });
     } else {
       setName('');
       setCoordInput('');
@@ -66,13 +68,13 @@ const PinEditor: Component<PinEditorProps> = (props) => {
     }
   });
 
-  function validateCoord(): { lat: number; lng: number } | null {
+  async function validateCoord(): Promise<{ lat: number; lng: number } | null> {
     const raw = coordInput().trim();
     if (!raw) {
       setCoordError('Coordinate is required');
       return null;
     }
-    const result = CoordinateTransformer.parse(raw, prefs.coordinateSystem);
+    const result = await CoordinateTransformer.parse(raw, prefs.coordinateSystem);
     if (!result) {
       setCoordError(`Invalid ${SYSTEM_NAMES[prefs.coordinateSystem]} coordinate`);
       return null;
@@ -82,7 +84,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
   }
 
   async function handleSave() {
-    const coord = validateCoord();
+    const coord = await validateCoord();
     if (!coord) return;
     if (!name().trim()) {
       showToast('Name is required', 'error');

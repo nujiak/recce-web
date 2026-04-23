@@ -1,4 +1,4 @@
-import { Component, Show, createSignal } from 'solid-js';
+import { Component, Show, createSignal, createResource } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import Icon from '../ui/Icon';
 import { usePrefs } from '../../context/PrefsContext';
@@ -72,10 +72,10 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
   const [compassInput, setCompassInput] = createSignal('');
   const [compassError, setCompassError] = createSignal(false);
 
-  const coordDisplay = () => {
-    const [lng, lat] = props.center;
-    return CoordinateTransformer.toDisplay(lat, lng, prefs.coordinateSystem) ?? '';
-  };
+  const [coordDisplay] = createResource(
+    () => [props.center[1], props.center[0], prefs.coordinateSystem] as const,
+    async ([lat, lng, system]) => (await CoordinateTransformer.toDisplay(lat, lng, system)) ?? ''
+  );
 
   const gpsOverlay = () => {
     const pos = gpsPosition();
@@ -130,10 +130,10 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
     });
   }
 
-  function handleGotoSubmit() {
+  async function handleGotoSubmit() {
     const raw = gotoInput().trim();
     if (!raw) return;
-    const parsed = CoordinateTransformer.parse(raw, prefs.coordinateSystem);
+    const parsed = await CoordinateTransformer.parse(raw, prefs.coordinateSystem);
     if (!parsed) {
       setGotoError(true);
       setTimeout(() => setGotoError(false), 1000);
@@ -481,13 +481,13 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
             {/* Right: GO TO, + PIN, TRACK buttons */}
             <Popover_
               open={showGoto()}
-              onOpenChange={(open) => {
+              onOpenChange={async (open) => {
                 if (!open) {
                   setShowGoto(false);
                 } else {
                   const [lng, lat] = props.center;
                   const coordStr =
-                    CoordinateTransformer.toDisplay(lat, lng, prefs.coordinateSystem) ?? '';
+                    (await CoordinateTransformer.toDisplay(lat, lng, prefs.coordinateSystem)) ?? '';
                   setGotoInput(coordStr);
                   setShowGoto(true);
                 }
