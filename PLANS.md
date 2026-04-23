@@ -5,130 +5,452 @@ All planned features and refactors live here. Each plan is self-contained — an
 **Rules:**
 
 - Before starting a plan, read it in full.
-- When complete, mark it `Status: Done` — do not delete it.
+- When complete, mark it `Status: Done`, delete the plan body, and leave only the header.
 - One plan per section. Use `---` as a separator.
 
 ---
 
-## Plan: Map Controls Overhaul
+## Plan: SVG Icon Migration
 
-**Status:** Done  
-**Branch:** `refactor/map-controls-overhaul`
+**Status:** Pending
+**Branch:** `refactor/svg-icons`
 
 ### Goal
 
-Replace the current scattered map controls (floating `MapStyleToggle` top-left; orphaned `CompassButton` + `LocationButton` top-right; split coordinate pill + action buttons bottom-centre) with a single unified **two-row instrument bar** anchored to the bottom of the map canvas. This removes all floating elements from the map surface and consolidates everything into one bordered HUD panel consistent with DESIGN.md.
+Replace the Google Fonts Material Symbols Outlined web font with self-hosted, bundled SVG icons. The font currently causes a flash of unstyled text (FOUT) on slow networks — icon ligature strings such as `settings` and `arrow_downward` render as raw text before the font loads, stretching layouts and degrading UX for first-time visitors. Bundling the icons as SVGs eliminates the external CDN dependency, makes every icon available from the first paint, and adds compile-time type safety.
 
-### Final Layout
+### Architecture
 
+**Single `Icon` component** at `src/components/ui/Icon.tsx`:
+
+- Statically imports exactly the 31 icons used in the app as raw SVG strings via Vite's `?raw` suffix. No dynamic imports, no lazy loading — 31 small SVGs inline in the bundle is the correct trade-off (~10 KB total, unnoticeable).
+- Exports `IconName` — a string union of all 31 valid names — used to type icon fields in config arrays and dynamic patterns.
+- Exports a single `Icon` component with props `name: IconName`, `size?: number` (pixels, default `24`), `class?: string`, `style?: JSX.CSSProperties`.
+- Renders a `<span class="recce-icon">` with `innerHTML` set to the SVG string. The wrapper span carries `aria-hidden="true"` — all icons in this codebase are decorative; accessible labels belong on the parent interactive elements.
+- `width` and `height` are set on the wrapper via the `size` prop; global CSS ensures the inner `<svg>` fills the wrapper.
+
+**Anti-patterns deliberately avoided:**
+
+- No per-icon component files (avoids 31-file proliferation with identical boilerplate).
+- No global string-keyed icon registry with dynamic lookup (would defeat tree-shaking and lose type safety).
+- No SVG transform plugin (e.g. `vite-plugin-solid-svg`) — the `?raw` import is a built-in Vite feature and sufficient here.
+- No runtime `fetch` or dynamic `import()` — every icon must be available synchronously on first paint.
+
+### Step 1 — Install the package
+
+```bash
+npm install @material-symbols/svg-200
 ```
-╔══════════════════════════════════════════════════════════════╗  ← plot row (isPlotting only)
-║  [↩ UNDO]   3 NODES   [+ NODE]         [✓ SAVE]  [✕ CANCEL] ║
-╠══════════════════════════════════════════════════════════════╣  ← top row (always)
-║  1.37600° N 103.79500° E      [→ GO]   [+ PIN]   [⌇ TRACK]  ║
-╠══════════════════════════════════════════════════════════════╣  ← bottom row (always)
-║       [⊞ DEFAULT]           [↑ NORTH]           [⊕ LOC]     ║
-╚══════════════════════════════════════════════════════════════╝
+
+After installing, verify the file naming convention the package uses:
+
+```bash
+ls node_modules/@material-symbols/svg-200/outlined/ | head -30
 ```
 
-The whole assembly: `position: absolute; bottom: 16px; left: 16px; right: 16px; z-index: 10` on the map canvas.
+The import paths below assume **underscores** (e.g. `add_location.svg`). If the package uses hyphens (e.g. `add-location.svg`), adjust every import path accordingly. The icon names in `IconName` and the `icons` map keys always use underscores regardless of file naming.
 
-### Files to touch
+Also inspect one SVG to confirm the fill strategy:
 
-- `src/components/map/PlotControls.tsx` — primary rewrite; absorbs logic from the three files below
-- `src/components/map/CompassButton.tsx` — logic migrated into PlotControls bottom row; standalone render removed from MapView
-- `src/components/map/LocationButton.tsx` — logic migrated into PlotControls bottom row; standalone render removed from MapView
-- `src/components/map/MapStyleToggle.tsx` — logic migrated into PlotControls bottom row; standalone render removed from MapView
-- `src/components/map/MapView.tsx` — remove `<MapStyleToggle>`, `<CompassButton>`, `<LocationButton>` renders; remove injected attribution CSS override
+```bash
+cat node_modules/@material-symbols/svg-200/outlined/settings.svg
+```
 
-### Row-by-row specification
+If paths use `fill="currentColor"` (expected), the global CSS rule below is sufficient. If paths use a hardcoded colour, add `fill: currentColor` to `.recce-icon svg path` as noted in Step 4.
 
-#### Plot row (`isPlotting === true` only)
+### Step 2 — Add `*.svg?raw` TypeScript declaration
 
-- Rendered above the top row; snaps in/out with `75ms linear` opacity (`opacity: 0` → `1` on mount, `0` on unmount). No slide, no scale — per DESIGN.md §4.
-- Button order left-to-right: `UNDO` · `[N NODES label]` · `+ NODE` · `SAVE` · `CANCEL`.
-- `UNDO`: disabled (`opacity: 0.3; pointer-events: none`) when node count === 0. On click: remove last node from `plotState.nodes`.
-- `N NODES`: not a button — a muted static label, `font-size: 10px; color: var(--color-text-muted); letter-spacing: 0.08em; text-transform: uppercase`. Shows e.g. `3 NODES`. Positioned between UNDO and +NODE, centered in the available space.
-- `+ NODE`: always enabled. On click: append current crosshair `{ lat, lng }` to `plotState.nodes`.
-- `SAVE`: disabled when node count < 2. On click: open `TrackEditor` pre-filled with plotted nodes (existing behaviour).
-- `CANCEL`: always enabled. Existing cancel flow preserved — if node count ≥ 3 show inline discard confirmation (`DISCARD` / `KEEP` buttons replacing the row content); if < 3 exit plot mode immediately.
-- All four buttons: `ghost` variant (see Styling rules below).
+In `src/vite-env.d.ts`, add the following declaration **after** the existing lines:
 
-#### Top row (always visible)
+```ts
+declare module '*.svg?raw' {
+  const content: string;
+  export default content;
+}
+```
 
-Left section (`flex: 1`, min-width 0):
+### Step 3 — Create `src/components/ui/Icon.tsx`
 
-- Coordinate display — same data as current: system label (`font-size: 10px; color: var(--color-text-muted); letter-spacing: 0.08em; uppercase`) on one line, coordinate value (`font-size: 15px; font-weight: 500; color: var(--color-text); letter-spacing: 0.02em`) on the next. Truncate with `text-overflow: ellipsis; overflow: hidden; white-space: nowrap` on the value line.
-- On click: copy coordinate string to clipboard and show existing toast.
-- Not a `ghost` button — use `background: transparent; cursor: pointer`. Hover: `background: var(--color-accent-bg)` at `75ms linear`.
-- GPS distance/bearing label: when GPS is active and crosshair is not near the user position, show a small muted `DIST · BRG` readout as a single line inside this section, above the system label. Hide entirely (do not reflow) on viewports < 360px wide.
+Create the file with the following content (all 31 imports, the `IconName` union, the `icons` map, and the component):
 
-Right section (fixed width, no shrink):
+```tsx
+import type { Component, JSX } from 'solid-js';
 
-- Three `ghost` buttons in order: `GO TO` · `+ PIN` · `TRACK`.
-- `GO TO`: opens existing coordinate-input `<Popover>` (behaviour unchanged). Always enabled.
-- `+ PIN`: opens `PinEditor` pre-filled with crosshair coordinates (behaviour unchanged). **Disabled** when `isPlotting === true`.
-- `TRACK`: sets `plotState({ active: true })` (behaviour unchanged). **Disabled** when `isPlotting === true`.
-- Column separators: `border-left: 1px solid var(--color-border)` on each button.
+import addSvg from '@material-symbols/svg-200/outlined/add.svg?raw';
+import addLocationSvg from '@material-symbols/svg-200/outlined/add_location.svg?raw';
+import arrowBackSvg from '@material-symbols/svg-200/outlined/arrow_back.svg?raw';
+import arrowDownwardSvg from '@material-symbols/svg-200/outlined/arrow_downward.svg?raw';
+import bookmarksSvg from '@material-symbols/svg-200/outlined/bookmarks.svg?raw';
+import checkSvg from '@material-symbols/svg-200/outlined/check.svg?raw';
+import closeSvg from '@material-symbols/svg-200/outlined/close.svg?raw';
+import constructionSvg from '@material-symbols/svg-200/outlined/construction.svg?raw';
+import contentCopySvg from '@material-symbols/svg-200/outlined/content_copy.svg?raw';
+import deleteSvg from '@material-symbols/svg-200/outlined/delete.svg?raw';
+import downloadSvg from '@material-symbols/svg-200/outlined/download.svg?raw';
+import editSvg from '@material-symbols/svg-200/outlined/edit.svg?raw';
+import expandMoreSvg from '@material-symbols/svg-200/outlined/expand_more.svg?raw';
+import exploreSvg from '@material-symbols/svg-200/outlined/explore.svg?raw';
+import historySvg from '@material-symbols/svg-200/outlined/history.svg?raw';
+import locationOnSvg from '@material-symbols/svg-200/outlined/location_on.svg?raw';
+import mapSvg from '@material-symbols/svg-200/outlined/map.svg?raw';
+import myLocationSvg from '@material-symbols/svg-200/outlined/my_location.svg?raw';
+import nearMeSvg from '@material-symbols/svg-200/outlined/near_me.svg?raw';
+import openInNewSvg from '@material-symbols/svg-200/outlined/open_in_new.svg?raw';
+import paletteSvg from '@material-symbols/svg-200/outlined/palette.svg?raw';
+import routeSvg from '@material-symbols/svg-200/outlined/route.svg?raw';
+import satelliteAltSvg from '@material-symbols/svg-200/outlined/satellite_alt.svg?raw';
+import scheduleSvg from '@material-symbols/svg-200/outlined/schedule.svg?raw';
+import settingsSvg from '@material-symbols/svg-200/outlined/settings.svg?raw';
+import shareSvg from '@material-symbols/svg-200/outlined/share.svg?raw';
+import sortByAlphaSvg from '@material-symbols/svg-200/outlined/sort_by_alpha.svg?raw';
+import straightenSvg from '@material-symbols/svg-200/outlined/straighten.svg?raw';
+import toggleOffSvg from '@material-symbols/svg-200/outlined/toggle_off.svg?raw';
+import toggleOnSvg from '@material-symbols/svg-200/outlined/toggle_on.svg?raw';
+import undoSvg from '@material-symbols/svg-200/outlined/undo.svg?raw';
 
-#### Bottom row (always visible)
+export type IconName =
+  | 'add'
+  | 'add_location'
+  | 'arrow_back'
+  | 'arrow_downward'
+  | 'bookmarks'
+  | 'check'
+  | 'close'
+  | 'construction'
+  | 'content_copy'
+  | 'delete'
+  | 'download'
+  | 'edit'
+  | 'expand_more'
+  | 'explore'
+  | 'history'
+  | 'location_on'
+  | 'map'
+  | 'my_location'
+  | 'near_me'
+  | 'open_in_new'
+  | 'palette'
+  | 'route'
+  | 'satellite_alt'
+  | 'schedule'
+  | 'settings'
+  | 'share'
+  | 'sort_by_alpha'
+  | 'straighten'
+  | 'toggle_off'
+  | 'toggle_on'
+  | 'undo';
 
-Three equal-width `ghost` buttons (`flex: 1` each):
+const icons: Record<IconName, string> = {
+  add: addSvg,
+  add_location: addLocationSvg,
+  arrow_back: arrowBackSvg,
+  arrow_downward: arrowDownwardSvg,
+  bookmarks: bookmarksSvg,
+  check: checkSvg,
+  close: closeSvg,
+  construction: constructionSvg,
+  content_copy: contentCopySvg,
+  delete: deleteSvg,
+  download: downloadSvg,
+  edit: editSvg,
+  expand_more: expandMoreSvg,
+  explore: exploreSvg,
+  history: historySvg,
+  location_on: locationOnSvg,
+  map: mapSvg,
+  my_location: myLocationSvg,
+  near_me: nearMeSvg,
+  open_in_new: openInNewSvg,
+  palette: paletteSvg,
+  route: routeSvg,
+  satellite_alt: satelliteAltSvg,
+  schedule: scheduleSvg,
+  settings: settingsSvg,
+  share: shareSvg,
+  sort_by_alpha: sortByAlphaSvg,
+  straighten: straightenSvg,
+  toggle_off: toggleOffSvg,
+  toggle_on: toggleOnSvg,
+  undo: undoSvg,
+};
 
-- `MAP STYLE`: icon (`map` or `satellite_alt`) + text label (`DEFAULT` or `SATELLITE`). On click: toggle map style (existing `handleToggleMapStyle` logic). Active state (satellite): `background: var(--color-accent-bg); color: var(--color-accent)`.
-- `NORTH`: renders the existing `<Needle>` SVG component (counter-rotates with map bearing). Label: `NORTH` when bearing === 0, or formatted bearing value (e.g. `045.2°` or in mils per prefs) when bearing ≠ 0. On click when bearing ≠ 0: `map.resetNorth()`. On click when bearing === 0: open bearing-input `<Popover>` (existing behaviour). Active state (bearing ≠ 0): `color: var(--color-accent)`.
-- `LOCATION`: icon `my_location`. Cycles through GPS states as before (`unavailable` → `available` → `following` → `following-bearing`). `unavailable`: `opacity: 0.5; pointer-events: none`. `following` / `following-bearing`: `background: var(--color-accent-bg); color: var(--color-accent)`.
-- Column separators: `border-left: 1px solid var(--color-border)` on the middle and right buttons.
+export interface IconProps {
+  name: IconName;
+  size?: number;
+  class?: string;
+  style?: JSX.CSSProperties;
+}
 
-### What to remove / migrate
+const Icon: Component<IconProps> = (props) => (
+  <span
+    class={`recce-icon${props.class ? ` ${props.class}` : ''}`}
+    aria-hidden="true"
+    style={{
+      width: `${props.size ?? 24}px`,
+      height: `${props.size ?? 24}px`,
+      ...(props.style ?? {}),
+    }}
+    innerHTML={icons[props.name]}
+  />
+);
 
-1. **`MapView.tsx`**:
-   - Remove `<MapStyleToggle ... />` JSX.
-   - Remove `<CompassButton ... />` JSX.
-   - Remove `<LocationButton ... />` JSX.
-   - Remove the injected `<style>` block (or inline CSS string) that overrides `.maplibregl-ctrl-top-right` positioning. Restore MapLibre attribution to its default bottom-right position by removing the override; do not add a replacement.
-   - Keep all props/state that were passed to those components — they now live in `PlotControls`.
+export default Icon;
+```
 
-2. **`CompassButton.tsx`**, **`LocationButton.tsx`**, **`MapStyleToggle.tsx`**:
-   - Do not delete the files immediately (avoids import errors during migration).
-   - After their logic is fully absorbed into `PlotControls.tsx`, delete all three files and remove their imports from `MapView.tsx`.
+### Step 4 — Add global CSS for `.recce-icon`
 
-### Styling rules (DESIGN.md compliance)
+In `src/styles/theme.css`, add the following rules inside the existing `@layer base` block (after the `*` reset block is a suitable location):
 
-- **Outer container**: `background: var(--color-bg-secondary); border: 1px solid var(--color-border)`. No `border-radius` anywhere.
-- **Row dividers**: `border-top: 1px solid var(--color-border)` on the top row and bottom row (i.e. the plot row has no top border of its own — the container top border suffices when it is the topmost row).
-- **Ghost button** (all interactive controls in this bar):
-  - Default: `background: transparent; color: var(--color-text); border: none; min-height: 48px; min-width: 48px; font-size: 13px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 0; cursor: pointer; transition: background 75ms linear, color 75ms linear`.
-  - Hover: `background: var(--color-accent-bg); color: var(--color-accent)`.
-  - Active/pressed: `opacity: 0.75`.
-  - Disabled: `opacity: 0.3; pointer-events: none`.
-  - Focus ring: `outline: 1px solid var(--color-accent); outline-offset: 3px`.
-- **No box-shadow anywhere** (DESIGN.md §6.3).
-- **Active state** (map mode active, GPS following, satellite style): `background: var(--color-accent-bg); color: var(--color-accent)`.
+```css
+.recce-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  user-select: none;
+  line-height: 0;
+}
 
-### Responsive behaviour
+.recce-icon svg {
+  width: 100%;
+  height: 100%;
+}
+```
 
-- **Mobile (< 768px)**: bar sits `16px` above the bottom nav. `left: 16px; right: 16px`. Coordinate value truncates with ellipsis — never wraps. GPS distance/bearing label hidden below 360px.
-- **Desktop (≥ 768px)**: bar sits `16px` above the map pane bottom edge. `left: 16px; right: 16px`. Same structure — no layout changes between mobile and desktop for this component.
-- Bottom-row buttons always `flex: 1` (equal width).
-- Top-row action buttons (`GO TO`, `+ PIN`, `TRACK`) have `min-width: 48px; flex-shrink: 0`. Coordinate area gets all remaining space.
+If the SVG inspection in Step 1 revealed hardcoded fill colours (not `currentColor`), also add:
 
-### Verification checklist
+```css
+.recce-icon svg path {
+  fill: currentColor;
+}
+```
 
-After implementation, verify with Chrome MCP tools (`npm run dev` must be running at `http://localhost:5173`):
+### Step 5 — Migrate each file
 
-1. **Mobile screenshot** (viewport ≤ 767px): two-row bar visible at bottom, no floating controls anywhere on the map.
-2. **Desktop screenshot** (viewport ≥ 768px): two-row bar visible, no overlap with right sidebar.
-3. **Plot mode**: tap `TRACK` → plot row snaps in above top row; `+ PIN` and `TRACK` are visually disabled (opacity 0.3).
-4. **Plot row UNDO**: disabled at 0 nodes; enabled after first `+ NODE` tap.
-5. **Plot row SAVE**: disabled at 0–1 nodes; enabled at 2+ nodes.
-6. **Plot row CANCEL < 3 nodes**: exits plot mode immediately.
-7. **Plot row CANCEL ≥ 3 nodes**: shows `DISCARD` / `KEEP` inline confirmation.
-8. **NORTH button**: label shows bearing when rotated; click resets north; bearing returns to 0 and label returns to `NORTH`.
-9. **NORTH popover**: click when north-up opens bearing input; submitting flies map to entered bearing.
-10. **LOCATION button**: cycles states correctly; accent-coloured when following.
-11. **MAP STYLE button**: toggles label and map tiles correctly; accent-coloured on satellite.
-12. **GO TO popover**: opens, accepts coordinate input, flies to location.
-13. **Coordinate display**: tapping copies to clipboard; toast appears.
-14. **`tsc --noEmit`**: zero type errors.
-15. **No regressions**: existing PinEditor, TrackEditor, and back-nav flows unaffected.
+The `size` prop value for each `Icon` call should match the original `font-size` used in the existing code:
+
+| Original `font-size` | `size` prop |
+| -------------------- | ----------- |
+| 24px (or omitted)    | omit prop   |
+| 20px                 | `20`        |
+| 18px                 | `18`        |
+| 16px                 | `16`        |
+
+Import `Icon` from `'../ui/Icon'` (adjust relative path per file). Import `IconName` from the same path wherever a config array or `Record` needs it typed.
+
+---
+
+#### `src/components/map/PlotControls.tsx`
+
+All icons are rendered as `<span class="material-symbols-outlined" style={{ 'font-size': '...' }}>name</span>`.
+
+Replace each with `<Icon name="..." />` (include `size` prop only when not 24). Icons: `undo`, `add`, `check`, `close`, `near_me`, `satellite_alt`, `map`, `explore`, `my_location`, `add_location`, `route`.
+
+---
+
+#### `src/components/nav/BottomNav.tsx`
+
+Change the config array's `icon` field type from inferred `string` to `IconName` by importing and annotating:
+
+```ts
+import type { IconName } from '../ui/Icon';
+// …
+const tabs: { key: string; label: string; icon: IconName }[] = [
+  { key: 'map',   label: 'MAP',   icon: 'map' },
+  { key: 'saved', label: 'SAVED', icon: 'bookmarks' },
+  { key: 'tools', label: 'TOOLS', icon: 'construction' },
+];
+```
+
+Render site:
+
+```tsx
+// Before
+<span class="material-symbols-outlined" style={{ 'font-size': '24px' }}>
+  {tab.icon}
+</span>
+// After
+<Icon name={tab.icon} />
+```
+
+---
+
+#### `src/components/nav/ToolboxModal.tsx`
+
+Same pattern. Import `IconName`, type the `TOOL_CARDS` array `icon` field as `IconName`. Replace rendered `{tool.icon}` string spans with `<Icon name={tool.icon} />`. Also replace the fixed `arrow_back` string span with `<Icon name="arrow_back" />`.
+
+---
+
+#### `src/components/nav/DesktopToolsBar.tsx`
+
+Import `IconName`, type the `TOOLS` array `icon` field as `IconName`. Replace `{tool.icon}` with `<Icon name={tool.icon} />`. Remove the `font-family: 'Material Symbols Outlined'` declaration from the `.dtb-tab-icon` CSS class (the class can stay for other styles it carries; only the font-family line is removed).
+
+---
+
+#### `src/components/saved/SavedScreen.tsx`
+
+Change `sortIcons` to use `IconName` values:
+
+```ts
+import type { IconName } from '../ui/Icon';
+
+const sortIcons: Record<SortMode, IconName> = {
+  'date-new': 'schedule',
+  'date-old': 'history',
+  'name-asc': 'sort_by_alpha',
+  'name-desc': 'sort_by_alpha',
+  color: 'palette',
+};
+```
+
+All render sites for sort icons change from string interpolation to `<Icon>`:
+
+```tsx
+// Before: {sortIcons[sortMode()]}
+// After:
+<Icon name={sortIcons[sortMode()]} />
+```
+
+All fixed icon strings rendered inline (`download`, `share`, `straighten`, `delete`, `close`, `check`) become `<Icon name="..." />` with appropriate `size` props matching the original `font-size`. Remove any inline `style={{ 'font-family': ... }}` wrappers.
+
+---
+
+#### `src/components/saved/PinCard.tsx`
+
+Replace the `edit` icon span with `<Icon name="edit" />`.
+
+---
+
+#### `src/components/saved/TrackCard.tsx`
+
+Replace the `edit` icon span with `<Icon name="edit" />`.
+
+---
+
+#### `src/components/pin/PinInfo.tsx`
+
+Replace the `content_copy` icon span with `<Icon name="content_copy" />`.
+
+---
+
+#### `src/components/tools/RulerPanel.tsx`
+
+Replace the `straighten` and `arrow_downward` icon spans with `<Icon name="straighten" />` and `<Icon name="arrow_downward" />`.
+
+---
+
+#### `src/components/settings/SettingsPanel.tsx`
+
+This file uses CSS `font-family: 'Material Symbols Outlined'` on classes `.sp-select-chevron` and `.sp-item-check`, with the icon text content passed as JSX children to Kobalte elements.
+
+For each such element, replace the text content with an `<Icon>` child and remove the `font-family` (and `font-size` if it is only sizing the icon) from the corresponding CSS class. Specifically:
+
+- `.sp-select-chevron` — carries `expand_more`; replace with `<Icon name="expand_more" size={16} />` (verify original `font-size` in the file).
+- `.sp-item-check` — carries `check`; replace with `<Icon name="check" />`.
+- `toggle_on` / `toggle_off` ternary — change the string ternary to `<Icon name={props.value ? 'toggle_on' : 'toggle_off'} />`.
+- `open_in_new` — replace the string span with `<Icon name="open_in_new" />`.
+
+Read the full file before editing to confirm all icon occurrences and their CSS classes.
+
+---
+
+#### `src/components/CompassPermissionDialog.tsx`
+
+The inline feature list uses an array of `[iconName, description]` pairs. Type the icon entries as `IconName`:
+
+```ts
+import type { IconName } from '../ui/Icon';
+
+const features: [IconName, string][] = [
+  ['near_me',     'Rotating the map to match your heading'],
+  ['explore',     'Showing live azimuth, pitch, and roll…'],
+  ['location_on', 'Orienting the directional arc…'],
+];
+```
+
+Replace `{icon}` rendered as text with `<Icon name={icon} />`. Replace the fixed `explore` span at the top with `<Icon name="explore" />`.
+
+---
+
+#### `src/components/ui/Select.tsx`
+
+- In the `.ui-select-icon` CSS block, remove `font-family: 'Material Symbols Outlined', sans-serif` and the `font-size` line (sizing is now controlled by the `Icon` `size` prop).
+- Change the Select.Icon content:
+
+```tsx
+// Before
+<Select.Icon class="ui-select-icon">expand_more</Select.Icon>
+// After
+<Select.Icon class="ui-select-icon"><Icon name="expand_more" size={20} /></Select.Icon>
+```
+
+---
+
+#### `src/components/ui/Dialog.tsx`
+
+- In the `.ui-dialog-close` CSS block, remove `font-family: 'Material Symbols Outlined', sans-serif` and the `font-size` line.
+- Change the close button content:
+
+```tsx
+// Before
+<Dialog.CloseButton class="ui-dialog-close" aria-label="Close">
+  close
+</Dialog.CloseButton>
+// After
+<Dialog.CloseButton class="ui-dialog-close" aria-label="Close">
+  <Icon name="close" size={18} />
+</Dialog.CloseButton>
+```
+
+---
+
+#### `src/components/ui/Accordion.tsx`
+
+- In the `.ui-accordion-chevron` CSS block, remove `font-family: 'Material Symbols Outlined', sans-serif` and the `font-size` line. The `transition: transform` and `color` rules must stay — they still apply to the `Icon` component's wrapper span.
+- Change the chevron span:
+
+```tsx
+// Before
+<span class="ui-accordion-chevron" aria-hidden="true">
+  expand_more
+</span>
+// After
+<Icon name="expand_more" class="ui-accordion-chevron" size={18} />
+```
+
+Note: `aria-hidden` is already handled by the `Icon` component internally, so it does not need to be added as a prop.
+
+---
+
+### Step 6 — Remove the icon font link from `src/index.html`
+
+Delete the `<!-- Icons -->` comment and its `<link>` tag:
+
+```html
+<!-- Icons -->
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+/>
+```
+
+Leave the `<link rel="preconnect">` tags and the IBM Plex Mono `<link>` tag intact — they are still needed for the app font.
+
+The Workbox runtime cache entries for `fonts.googleapis.com` and `fonts.gstatic.com` in `vite.config.ts` should also be kept — they still serve IBM Plex Mono.
+
+### Step 7 — Verify
+
+```bash
+npx tsc --noEmit   # zero type errors required
+npm run build      # production build must succeed
+```
+
+After `npm run dev`, use Chrome MCP tools to verify:
+
+1. Mobile screenshot (viewport < 768 px) — all icons render with correct shapes immediately on load; no raw text strings visible anywhere.
+2. Desktop screenshot (viewport ≥ 768 px) — same.
+3. Icons inherit colour correctly in all states: default, accent (active/selected), muted, disabled.
+4. CSS-animated chevrons (Select dropdown, Accordion) still rotate on open/close via the `transform` rule on their class.
+5. `tsc --noEmit` produces zero errors.
+6. `npm run build` succeeds with no warnings about unresolved SVG paths.
