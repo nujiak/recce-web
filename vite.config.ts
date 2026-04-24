@@ -9,6 +9,15 @@ export default defineConfig({
   build: {
     outDir: '../dist',
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (id.includes('maplibre-gl')) return 'maplibre';
+          if (id.includes('proj4') || id.includes('utm-latlng') || id.includes('@turf')) return 'coords';
+          if (id.includes('solid-js') || id.includes('@kobalte/core') || id.includes('dexie')) return 'vendor';
+        },
+      },
+    },
   },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version ?? '0.0.0'),

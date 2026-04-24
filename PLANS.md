@@ -14,3 +14,11 @@ All planned features and refactors live here. Each plan is self-contained — an
 
 **Status:** Done
 **Branch:** `refactor/svg-icons`
+
+---
+
+## Plan: Reduce First-Load Bundle Size and Latency
+
+**Status:** Done
+**Branch:** `perf/first-load`
+

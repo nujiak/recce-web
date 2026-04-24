@@ -1,4 +1,4 @@
-import { For, createEffect, createSignal, onCleanup, type Component } from 'solid-js';
+import { For, Suspense, createEffect, createSignal, onCleanup, lazy, type Component } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import type { DesktopSection } from '../../context/UIContext';
 import Icon from '../ui/Icon';
@@ -6,7 +6,8 @@ import type { IconName } from '../ui/Icon';
 import SettingsPanel from '../settings/SettingsPanel';
 import GpsPanel from '../tools/GpsPanel';
 import RulerPanel from '../tools/RulerPanel';
-import SavedScreen from '../saved/SavedScreen';
+
+const SavedScreen = lazy(() => import('../saved/SavedScreen'));
 
 type ToolId = 'saved' | 'gps' | 'ruler' | 'settings';
 
@@ -199,13 +200,15 @@ const DesktopToolsBar: Component = () => {
         <div class="dtb-resize-handle" onPointerDown={startResize} />
         <div class="dtb-panel">
           <div class="dtb-panel-inner">
-            <For each={TOOLS}>
-              {(tool) => (
-                <div class={`dtb-tool-pane${active() === tool.id ? ' is-active' : ''}`}>
-                  {panels[tool.id]()}
-                </div>
-              )}
-            </For>
+            <Suspense fallback={null}>
+              <For each={TOOLS}>
+                {(tool) => (
+                  <div class={`dtb-tool-pane${active() === tool.id ? ' is-active' : ''}`}>
+                    {panels[tool.id]()}
+                  </div>
+                )}
+              </For>
+            </Suspense>
           </div>
         </div>
       </div>

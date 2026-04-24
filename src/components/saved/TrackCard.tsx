@@ -1,4 +1,4 @@
-import { Component } from 'solid-js';
+import { Component, createResource } from 'solid-js';
 import { usePrefs } from '../../context/PrefsContext';
 import { CoordinateTransformer } from '../../coords/index';
 import { calculateTotalDistance, formatDistance } from '../../utils/geo';
@@ -23,11 +23,18 @@ const TrackCard: Component<TrackCardProps> = (props) => {
 
   const totalDistance = () => calculateTotalDistance(props.track.nodes, props.track.isCyclical);
 
-  const firstCoord = () => {
-    const n = props.track.nodes[0];
-    if (!n) return '';
-    return CoordinateTransformer.toDisplay(n.lat, n.lng, prefs.coordinateSystem) ?? '';
-  };
+  const [firstCoord] = createResource(
+    () => {
+      const n = props.track.nodes[0];
+      if (!n) return null;
+      return [n.lat, n.lng, prefs.coordinateSystem] as const;
+    },
+    async (args) => {
+      if (!args) return '';
+      const [lat, lng, system] = args;
+      return (await CoordinateTransformer.toDisplay(lat, lng, system)) ?? '';
+    }
+  );
 
   return (
     <div

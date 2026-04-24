@@ -1,4 +1,4 @@
-import { Component, For, Show } from 'solid-js';
+import { Component, For, Show, createResource } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import { CoordinateTransformer, SYSTEMS, SYSTEM_NAMES } from '../../coords/index';
 import { showToast } from '../ui/Toast';
@@ -10,6 +10,22 @@ import type { CoordinateSystem } from '../../types';
 
 const PinInfo: Component = () => {
   const { viewingPin, setViewingPin, setEditingPin, setActiveNav } = useUI();
+
+  const [displays] = createResource(
+    () => {
+      const p = viewingPin();
+      if (!p) return null;
+      return { lat: p.lat, lng: p.lng };
+    },
+    async ({ lat, lng }) => {
+      const map = new Map<CoordinateSystem, string>();
+      for (const sys of SYSTEMS) {
+        const display = await CoordinateTransformer.toDisplay(lat, lng, sys);
+        if (display) map.set(sys, display);
+      }
+      return map;
+    }
+  );
 
   function openInMaps() {
     const p = viewingPin();
@@ -47,9 +63,7 @@ const PinInfo: Component = () => {
         <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0' }}>
           <For each={SYSTEMS}>
             {(sys: CoordinateSystem) => {
-              const p = viewingPin();
-              if (!p) return null;
-              const display = CoordinateTransformer.toDisplay(p.lat, p.lng, sys);
+              const display = displays()?.get(sys);
               if (!display) return null;
               return (
                 <div

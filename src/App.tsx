@@ -1,22 +1,24 @@
-import { createEffect, createSignal, Show } from 'solid-js';
+import { createEffect, createSignal, lazy, Show, Suspense } from 'solid-js';
 import { PrefsProvider, usePrefs } from './context/PrefsContext';
 import { UIProvider, useUI } from './context/UIContext';
 import { createBackNav } from './utils/backNav';
 import AppShell from './components/layout/AppShell';
-import ToolboxModal from './components/nav/ToolboxModal';
-import OnboardingFlow from './components/onboarding/OnboardingFlow';
-import SavedScreen from './components/saved/SavedScreen';
-import MapView from './components/map/MapView';
-import PinEditor from './components/pin/PinEditor';
-import PinInfo from './components/pin/PinInfo';
-import TrackEditor from './components/track/TrackEditor';
-import TrackInfo from './components/track/TrackInfo';
 import { ToastRegion, showToastWithAction } from './components/ui/Toast';
 import GpsTracker from './components/GpsTracker';
 import PwaInstallDialog from './components/PwaInstallDialog';
 import CompassPermissionDialog from './components/CompassPermissionDialog';
+import LoadingFallback from './components/ui/LoadingFallback';
 import { canInstallPWA, isFirefoxAndroid, isRunningAsPWA, promptPWAInstall } from './utils/pwa';
 import { DESKTOP_BREAKPOINT } from './utils/constants';
+
+const MapView = lazy(() => import('./components/map/MapView'));
+const OnboardingFlow = lazy(() => import('./components/onboarding/OnboardingFlow'));
+const SavedScreen = lazy(() => import('./components/saved/SavedScreen'));
+const PinEditor = lazy(() => import('./components/pin/PinEditor'));
+const PinInfo = lazy(() => import('./components/pin/PinInfo'));
+const TrackEditor = lazy(() => import('./components/track/TrackEditor'));
+const TrackInfo = lazy(() => import('./components/track/TrackInfo'));
+const ToolboxModal = lazy(() => import('./components/nav/ToolboxModal'));
 
 function applyTheme(theme: string) {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -136,9 +138,11 @@ function AppInner() {
   return (
     <>
       <GpsTracker />
-      <Show when={!prefs.onboardingDone}>
-        <OnboardingFlow />
-      </Show>
+      <Suspense fallback={null}>
+        <Show when={!prefs.onboardingDone}>
+          <OnboardingFlow />
+        </Show>
+      </Suspense>
       <PwaInstallDialog open={firefoxDialogOpen()} onClose={() => setFirefoxDialogOpen(false)} />
       <CompassPermissionDialog
         open={compassDialogOpen()}
@@ -147,7 +151,9 @@ function AppInner() {
 
       <AppShell>
         {/* Map — always mounted to avoid reinitialisation on tab switch */}
-        <MapView />
+        <Suspense fallback={<LoadingFallback />}>
+          <MapView />
+        </Suspense>
 
         {/* Saved screen (mobile) — absolute overlay above map */}
         <Show when={activeNav() === 'saved'}>
@@ -160,19 +166,31 @@ function AppInner() {
               overflow: 'hidden',
             }}
           >
-            <SavedScreen />
+            <Suspense fallback={<LoadingFallback />}>
+              <SavedScreen />
+            </Suspense>
           </div>
         </Show>
 
         {/* Tools modal (mobile) */}
-        <ToolboxModal />
+        <Suspense fallback={null}>
+          <ToolboxModal />
+        </Suspense>
       </AppShell>
 
       {/* Pin / Track editors & info modals */}
-      <PinEditor onSaved={bumpSavedVersion} />
-      <PinInfo />
-      <TrackEditor onSaved={bumpSavedVersion} />
-      <TrackInfo />
+      <Suspense fallback={null}>
+        <PinEditor onSaved={bumpSavedVersion} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <PinInfo />
+      </Suspense>
+      <Suspense fallback={null}>
+        <TrackEditor onSaved={bumpSavedVersion} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <TrackInfo />
+      </Suspense>
 
       <ToastRegion />
     </>

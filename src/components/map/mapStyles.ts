@@ -2,7 +2,7 @@ import type maplibregl from 'maplibre-gl';
 import type { MapStyle } from '../../types';
 import { getEsriFallbackTileTemplate } from './esriTileFallback';
 
-export const OPEN_FREE_MAP_STYLE = 'https://tiles.openfreemap.org/styles/liberty';
+export const OPEN_FREE_MAP_STYLE = '/map-styles/liberty.json';
 
 const OPEN_FREE_MAP_SOURCE_ID = 'openmaptiles';
 const SATELLITE_SOURCE_ID = 'esriSatellite';

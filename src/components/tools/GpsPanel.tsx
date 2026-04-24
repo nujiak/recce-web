@@ -1,4 +1,4 @@
-import { Component, createSignal, onMount, Show } from 'solid-js';
+import { Component, createResource, createSignal, onMount, Show } from 'solid-js';
 import { gpsPosition, gpsHeading, gpsPitch, gpsRoll, orientationAbsolute } from '../../stores/gps';
 import { requestCompassPermission } from '../GpsTracker';
 import { usePrefs } from '../../context/PrefsContext';
@@ -8,7 +8,7 @@ import { copyToClipboard } from '../../utils/clipboard';
 import CompassNeedle from './CompassNeedle';
 import Button from '../ui/Button';
 
-const GpsPanel: Component = () => {
+  const GpsPanel: Component = () => {
   const [prefs] = usePrefs();
   const [iosPrompt, setIosPrompt] = createSignal(false);
 
@@ -25,6 +25,19 @@ const GpsPanel: Component = () => {
       setIosPrompt(false);
     }
   }
+
+  const [coordStr] = createResource(
+    () => {
+      const pos = gpsPosition();
+      if (!pos) return null;
+      return [pos.latitude, pos.longitude, prefs.coordinateSystem] as const;
+    },
+    async (args) => {
+      if (!args) return '';
+      const [lat, lng, system] = args;
+      return (await CoordinateTransformer.toDisplay(lat, lng, system)) ?? '';
+    }
+  );
 
   return (
     <div
@@ -73,14 +86,7 @@ const GpsPanel: Component = () => {
           </Show>
 
           <Show when={gpsPosition()}>
-            {(coords) => {
-              const coordStr = () =>
-                CoordinateTransformer.toDisplay(
-                  coords().latitude,
-                  coords().longitude,
-                  prefs.coordinateSystem
-                ) ?? '';
-              return (
+            {(coords) => (
                 <div style={{ display: 'flex', 'flex-direction': 'column', gap: '8px' }}>
                   {/* Coordinates */}
                   <div>
@@ -100,7 +106,10 @@ const GpsPanel: Component = () => {
                       variant="ghost"
                       size="sm"
                       aria-label="Copy coordinates"
-                      onClick={() => copyToClipboard(coordStr())}
+                      onClick={() => {
+                        const text = coordStr();
+                        if (text) copyToClipboard(text);
+                      }}
                       style={{
                         'font-size': '15px',
                         'font-weight': '500',
@@ -132,8 +141,7 @@ const GpsPanel: Component = () => {
                     </span>
                   </div>
                 </div>
-              );
-            }}
+            )}
           </Show>
         </div>
       </div>
