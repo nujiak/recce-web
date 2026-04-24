@@ -97,8 +97,8 @@ fix(gps): attach listeners after iOS compass permission grant
 | Database      | Dexie (IndexedDB)              | Typed, promise-based                           |
 | Coordinates   | proj4js + utm-latlng           | Handles all 6 coordinate systems               |
 | Compression   | pako (zlib)                    | Share-code compression                         |
-| Icons         | Material Symbols (CDN)         | Standardized SVG icons                         |
-| Font          | Share Tech Mono (Google Fonts) | Monospace MFD aesthetic for coordinate display |
+| Icons         | @material-symbols/svg-400      | Bundled inline SVG icons via Icon.tsx          |
+| Font          | IBM Plex Mono (Google Fonts)   | Monospace MFD aesthetic for coordinate display |
 
 ### File Layout
 
@@ -115,7 +115,8 @@ recce-web/
 │   ├── stores/             # SolidJS stores
 │   ├── utils/              # Generic utility functions
 │   ├── components/         # SolidJS Components
-│   │   ├── layout/         # Application shell and modals
+│   │   ├── ui/             # Reusable UI primitives (Dialog, Button, Icon, Toast, etc.)
+│   │   ├── layout/         # Application shell
 │   │   ├── map/            # MapLibre wrapper, controls, markers, tracks
 │   │   ├── nav/            # Bottom nav, toolbox modal
 │   │   ├── pin/            # Pin editor, pin info
@@ -145,6 +146,8 @@ App state is reactive and managed using SolidJS signals, contexts, and stores. D
   lat: number; // WGS84 decimal degrees
   lng: number; // WGS84 decimal degrees
   color: PinColor; // 'red' | 'orange' | 'green' | 'azure' | 'violet'
+  markerType: MarkerType; // 'pin' | 'arrow'
+  bearing: number; // degrees, meaningful when markerType === 'arrow'
   group: string; // empty string = ungrouped
   description: string;
 }
@@ -173,6 +176,8 @@ App state is reactive and managed using SolidJS signals, contexts, and stores. D
   angleUnit: AngleUnit;
   lengthUnit: LengthUnit;
   theme: Theme;
+  mapStyle: MapStyle; // 'default' | 'satellite'
+  followPitch: boolean; // tilt map to device pitch in follow-bearing mode
   onboardingDone: boolean;
 }
 ```
@@ -230,7 +235,7 @@ Desktop is unaffected — `isMobile()` (`window.innerWidth < DESKTOP_BREAKPOINT`
 
 ### Screens & Flows (Quick Context)
 
-- **Onboarding:** First launch 3-step modal sets coordinate system, units, theme; blocks map until completed; sets `onboardingDone`.
+- **Onboarding:** First launch 4-step modal sets coordinate system, distance units, angle units, and theme; blocks map until completed; sets `onboardingDone`.
 - **Map (default):** Full-screen on mobile, left pane on desktop. Crosshair shows centre; tapping/long-press can create a pin; GPS overlays accuracy circle and live readouts; compass/location controls live here.
 - **Pin Editor/Info:** Editor is a bottom sheet on mobile, dialog on desktop; Info modal lists all coordinate systems with actions (copy/open in Maps).
 - **Track Editor:** Plot mode from map; taps add nodes, ghost line previews next segment; undo/save in editor; `isCyclical` toggles path vs area.
@@ -278,7 +283,7 @@ Desktop is unaffected — `isMobile()` (`window.innerWidth < DESKTOP_BREAKPOINT`
 
 ### Onboarding Flow
 
-- Three-step modal on first launch to configure preferences before showing map.
+- Four-step modal on first launch to configure coordinate system, distance units, angle units, and theme before showing map.
 
 ### Share Code Format
 
@@ -295,14 +300,14 @@ All internal storage uses WGS84. Conversion occurs on display/input via `src/coo
 - **MGRS:** Format `48PWW 12345 67890`. Derived from UTM.
 - **BNG:** Format `TQ 12345 67890`. Uses proj4 with Airy ellipsoid.
 - **QTH:** Format `OK21ab12`. Maidenhead locator up to 8 characters.
-- **Kertau 1948:** Format `804670 149234`. SVY21 format for Malaysia & Singapore.
+- **Kertau 1948 (RSO Malaya / SVY21):** Format `804670 149234`. Malaysia & Singapore grid.
 
 ---
 
 ## CSS & Styling Conventions
 
 - Styled using Tailwind CSS v4.
-- CSS Custom properties still used for core theme colors where dynamic logic applies (`--color-bg`, `--color-primary`).
+- CSS Custom properties still used for core theme colors where dynamic logic applies (e.g. `--color-bg`, `--color-accent`).
 - Dark/light mode handled via `data-theme` on `<html lang="en">` (light, dark, system).
 - Mobile-first approach.
 
@@ -366,11 +371,9 @@ All feature implementation plans live in [PLANS.md](./PLANS.md). Before starting
 
 ## SVG Icon Resources
 
-Custom SVG icons are located in `public/icons/`.
+UI icons are rendered via `src/components/ui/Icon.tsx` using inline SVGs imported from the `@material-symbols/svg-400` package.
 
-All UI icons currently use Material Symbols Outlined, loaded as a Google Fonts web font. **A migration to self-hosted, bundled SVG icons is planned** — see [PLANS.md](./PLANS.md).
-
-Once that plan is implemented, the canonical way to render any icon is:
+The canonical way to render any icon is:
 
 ```tsx
 import Icon from '../ui/Icon';
@@ -379,4 +382,6 @@ import Icon from '../ui/Icon';
 <Icon name="close" size={18} />   // explicit size in px
 ```
 
-**Do not add new `<span class="material-symbols-outlined">` usages** after the plan is executed. If the icon migration is still pending when you need a new icon, use the existing font span pattern for now — but add the new icon name to the `IconName` union and the `icons` map in `src/components/ui/Icon.tsx` so the subset stays current.
+**Do not add new `<span class="material-symbols-outlined">` usages.** When you need a new icon, add the icon name to the `IconName` union and the `icons` map in `src/components/ui/Icon.tsx`.
+
+Custom illustration and marker assets (e.g. pin and arrow markers) are located in `public/icons/`.
