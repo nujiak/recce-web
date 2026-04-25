@@ -1,8 +1,11 @@
 name: Release
 
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -15,10 +18,35 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Check if already released
+        id: check_tag
+        run: |
+          TAG=$(git tag --points-at HEAD | grep '^v' | head -n 1)
+          if [ -n "$TAG" ]; then
+            echo "Commit already tagged with $TAG — skipping release."
+            echo "already_released=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already_released=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.check_tag.outputs.already_released == 'false'
         with:
           node-version: 22
-      - run: npm ci
-      - run: npx semantic-release
+
+      - name: Install dependencies
+        if: steps.check_tag.outputs.already_released == 'false'
+        run: npm ci
+
+      - name: Semantic Release
+        if: steps.check_tag.outputs.already_released == 'false'
+        run: npx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to Cloudflare
+        if: steps.check_tag.outputs.already_released == 'false'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npm run deploy
