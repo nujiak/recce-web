@@ -1,20 +1,18 @@
-import { For, createEffect, createSignal, onCleanup, type Component } from 'solid-js';
+import { For, Show, createEffect, createSignal, onCleanup, type Component } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import type { DesktopSection } from '../../context/UIContext';
 import Icon from '../ui/Icon';
 import type { IconName } from '../ui/Icon';
-import SettingsPanel from '../settings/SettingsPanel';
-import GpsPanel from '../tools/GpsPanel';
-import RulerPanel from '../tools/RulerPanel';
 import SavedScreen from '../saved/SavedScreen';
+import ToolPanelShell from '../tools/ToolPanelShell';
+import { TOOLS } from '../tools/toolRegistry';
+import { rulerPoints, clearRuler } from '../../stores/ruler';
 
-type ToolId = 'saved' | 'gps' | 'ruler' | 'settings';
+type TabId = 'saved' | 'gps' | 'ruler' | 'settings';
 
-const TOOLS: { id: ToolId; label: string; icon: IconName }[] = [
+const TABS: { id: TabId; label: string; icon: IconName }[] = [
   { id: 'saved', label: 'Saved', icon: 'bookmarks' },
-  { id: 'gps', label: 'GPS', icon: 'satellite_alt' },
-  { id: 'ruler', label: 'Ruler', icon: 'straighten' },
-  { id: 'settings', label: 'Settings', icon: 'settings' },
+  ...TOOLS.map((t) => ({ id: t.id as TabId, label: t.label, icon: t.icon })),
 ];
 
 const MIN_WIDTH = 200;
@@ -33,14 +31,16 @@ const DesktopToolsBar: Component = () => {
 
   // Sync activeTool → desktopSection
   createEffect(() => {
-    const tool = activeTool() as ToolId | null;
+    const tool = activeTool() as TabId | null;
     if (tool === 'gps' || tool === 'ruler' || tool === 'settings') {
       setDesktopSection(tool);
     }
   });
 
-  const active = (): ToolId | null => desktopSection() as ToolId | null;
+  const active = (): TabId | null => desktopSection() as TabId | null;
   const isOpen = () => active() !== null;
+
+  const activeToolDef = () => TOOLS.find((t) => t.id === active());
 
   // Drag-to-resize: dragging the left edge of the panel
   function startResize(e: PointerEvent) {
@@ -64,14 +64,6 @@ const DesktopToolsBar: Component = () => {
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
   }
-
-  // Keep all panels mounted so switching is instant; hide inactive ones with display:none
-  const panels: Record<ToolId, () => ReturnType<typeof SavedScreen>> = {
-    saved: () => <SavedScreen />,
-    gps: () => <GpsPanel />,
-    ruler: () => <RulerPanel />,
-    settings: () => <SettingsPanel />,
-  };
 
   return (
     <div class="desktop-tools-bar" style={{ display: 'contents' }}>
@@ -116,27 +108,6 @@ const DesktopToolsBar: Component = () => {
           display: flex;
           flex-direction: column;
           background: var(--color-bg);
-        }
-        .dtb-panel-inner {
-          /* Each tool panel fills the wrapper; only active is visible */
-          position: relative;
-          flex: 1;
-          min-height: 0;
-          overflow: hidden;
-        }
-        .dtb-tool-pane {
-          position: absolute;
-          inset: 0;
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.15s ease;
-        }
-        .dtb-tool-pane.is-active {
-          opacity: 1;
-          pointer-events: auto;
         }
         .dtb-tabs {
           display: flex;
@@ -198,15 +169,42 @@ const DesktopToolsBar: Component = () => {
       <div class="dtb-panel-wrap" style={{ width: isOpen() ? `${panelWidth()}px` : '0px' }}>
         <div class="dtb-resize-handle" onPointerDown={startResize} />
         <div class="dtb-panel">
-          <div class="dtb-panel-inner">
-            <For each={TOOLS}>
-              {(tool) => (
-                <div class={`dtb-tool-pane${active() === tool.id ? ' is-active' : ''}`}>
-                  {panels[tool.id]()}
-                </div>
-              )}
-            </For>
-          </div>
+          <Show when={active() === 'saved'}>
+            <SavedScreen />
+          </Show>
+          <Show when={active() !== 'saved' && active() !== null && activeToolDef()}>
+            {(() => {
+              const def = activeToolDef()!;
+              const Panel = def.panel;
+              return (
+                <ToolPanelShell
+                  title={def.label}
+                  icon={def.icon}
+                  actions={
+                    def.id === 'ruler' && rulerPoints().length > 0 ? (
+                      <button
+                        onClick={clearRuler}
+                        style={{
+                          background: 'transparent',
+                          border: '1px solid var(--color-danger)',
+                          color: 'var(--color-danger)',
+                          padding: '4px 10px',
+                          'font-size': '11px',
+                          'text-transform': 'uppercase',
+                          cursor: 'pointer',
+                          'font-family': 'inherit',
+                        }}
+                      >
+                        Clear All
+                      </button>
+                    ) : undefined
+                  }
+                >
+                  <Panel />
+                </ToolPanelShell>
+              );
+            })()}
+          </Show>
         </div>
       </div>
 
@@ -215,20 +213,20 @@ const DesktopToolsBar: Component = () => {
 
       {/* Vertical icon tab strip */}
       <div class="dtb-tabs" role="tablist" aria-label="Tools">
-        <For each={TOOLS}>
-          {(tool) => (
+        <For each={TABS}>
+          {(tab) => (
             <button
               role="tab"
-              class={`dtb-tab${active() === tool.id ? ' is-active bracket-selected' : ''}`}
-              aria-selected={active() === tool.id}
-              aria-label={tool.label}
-              title={tool.label}
+              class={`dtb-tab${active() === tab.id ? ' is-active bracket-selected' : ''}`}
+              aria-selected={active() === tab.id}
+              aria-label={tab.label}
+              title={tab.label}
               onClick={() =>
-                setDesktopSection((active() === tool.id ? null : tool.id) as DesktopSection)
+                setDesktopSection((active() === tab.id ? null : tab.id) as DesktopSection)
               }
             >
-              <Icon name={tool.icon} class="dtb-tab-icon" size={20} />
-              <span class="dtb-tab-label">{tool.label}</span>
+              <Icon name={tab.icon} class="dtb-tab-icon" size={20} />
+              <span class="dtb-tab-label">{tab.label}</span>
             </button>
           )}
         </For>
