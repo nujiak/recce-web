@@ -229,7 +229,12 @@ Not enabled by default. Add class `scanlines` to `<html>` to activate.
 
 ## 5. Touch Targets
 
-Every interactive element: **48 × 48px** minimum hit area. Enforce with `min-width`/`min-height` or padding — visual size may be smaller.
+Every interactive element: **48 × 48 px** minimum hit area. Enforce with `min-width`/`min-height` or padding — visual size may be smaller **only** when padding or a transparent overlay brings the total interactive area to 48 × 48 px.
+
+- **Inputs, dropdown triggers, and dropdown items** must all respect this minimum.
+- **Primary field controls** (map buttons, bottom-nav tabs, dialog CTAs) should target **56 × 56 px** where space allows — the 48 px rule is the absolute floor, not the comfort target.
+- **Desktop resize handles** must be at least **24 px** wide with extra padding so the grab zone is still 48 px.
+- **Map marker hit targets** (pins, arrows, track lines) are not exempt: use invisible padding layers or enlarged symbol sizes to meet the minimum.
 
 ---
 
@@ -261,8 +266,8 @@ Three-tier layout within each row:
               group tag (10px/400/muted)
 ```
 
-- `min-height: 48px`, `padding: 12px 16px`
-- Color chip: `12×12px`, `border-radius: 0px` (square)
+- `min-height: 56px`, `padding: 12px 16px`
+- Color chip: `12×12px`, `border-radius: 0px` (square) — non-interactive
 - Name: `font-size: 14px`, `font-weight: 500`, uppercase
 - Secondary line: `font-size: 12px`, `color: var(--color-text-secondary)`
 - Metadata line: `font-size: 10px`, `color: var(--color-text-muted)`, uppercase, `letter-spacing: 0.06em`
@@ -279,7 +284,7 @@ Three-tier layout within each row:
 
 All buttons:
 
-- Radius: `0px`, min size: `48 × 48px`
+- Radius: `0px`, min size: `48 × 48px` (both `md` and `sm` size variants)
 - Text: uppercase, `font-size: 13px`, `letter-spacing: 0.08em`
 - Focus ring: `outline: 1px solid var(--color-accent); outline-offset: 3px`
 - Hover (`ghost`/`icon`): `background: var(--color-accent-bg)`, `color: var(--color-accent)`, `75ms linear`
@@ -313,13 +318,16 @@ All buttons:
 - Text: `var(--color-text)`, `font-size: 14px`, `letter-spacing: 0.02em`
 - Placeholder: `var(--color-text-muted)`, uppercase
 - Label: `font-size: 11px`, `letter-spacing: 0.10em`, uppercase, `color: var(--color-text-secondary)`, `margin-bottom: 4px`
+- **Input `min-height: 48px`** (never smaller)
+- **Textarea `min-height: 80px`**
+- `box-sizing: border-box` so padding does not collapse height below minimum
 - Disabled: `opacity: 0.3`
 
 ### 6.6 Select
 
 - Trigger: same as input (§6.5); chevron `color: var(--color-text-muted)`; `75ms linear` chevron rotation; focus/expanded adds accent left-border
 - Dropdown: `background: var(--color-bg-tertiary)`, `border: 1px solid var(--color-border)`, `0px radius`, no box-shadow, `75ms linear` fade
-- Option: `min-height: 48px`, `padding: 0 12px`, uppercase, `letter-spacing: 0.04em`
+- Option: `min-height: 48px`, `padding: 12px`, uppercase, `letter-spacing: 0.04em`
 - Selected: `background: var(--color-accent-bg)`, `border-left: 3px solid var(--color-accent)`
 
 ### 6.7 Toggle Group
@@ -347,6 +355,7 @@ All buttons:
 - `0px radius`, `background: var(--color-bg-secondary)`, `border: 1px solid var(--color-border)`
 - Left border: `3px solid var(--color-accent)` (info/success) or `3px solid var(--color-danger)` (error)
 - Text: uppercase, `font-size: 13px`, `letter-spacing: 0.06em`
+- Action button inside toast: `min-height: 48px`, `padding: 0.5rem 1rem`
 - Position: `72px` above viewport bottom (above bottom nav), centred
 - Max 3 visible; `75ms linear` opacity — no slide
 
@@ -360,16 +369,18 @@ All buttons:
 ```
 
 - Background: `var(--color-bg-secondary)`, `border-top: 1px solid var(--color-border)`
-- Each tab: `min-height: 56px`, `min-width: 48px`, flex column, icon `24px`
+- Each tab: `min-height: 56px`, `min-width: 64px`, flex column, icon `24px`
 - Inactive: `color: var(--color-text-muted)`, `font-weight: 400`
 - Active: `color: var(--color-accent)`, `font-weight: 500`, `.hud-bracketed` 2-corner bracket
 - Labels: `font-size: 10px`, uppercase, `letter-spacing: 0.10em`
 
 ### 6.12 Desktop Sidebar Nav
 
+- Tab size: `width: 72px`, `min-height: 52px`
 - Active tab: `border-left: 3px solid var(--color-accent)`, `background: var(--color-accent-bg)`, `color: var(--color-accent)`, `font-weight: 500`
 - Inactive: `color: var(--color-text-muted)`, `font-weight: 400`
 - Tab labels: `font-size: 10px`, `letter-spacing: 0.10em`, uppercase
+- Resize handle: `width: 24px` (minimum visual), with padding so total grab zone ≥ 48 px
 - `75ms linear` transitions on colour and background
 
 ---
@@ -424,6 +435,8 @@ AZIMUTH          ← 10px/400/muted, uppercase, 0.08em tracking
   text-align: right;
 }
 ```
+
+- If a readout row is interactive (e.g., tap-to-copy), wrap it in a container with `min-height: 48px` and `box-sizing: border-box` so the hit target meets the minimum.
 
 ### 7.3 Settings-style label–value row
 
