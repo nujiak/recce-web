@@ -1,3 +1,10 @@
+/**
+ * GPS / Compass Tool Panel (content-only)
+ *
+ * Rendered inside ToolPanelShell. Must not define a root <div>, scroll container,
+ * or title bar — only cards and rows using ToolCard / SectionHeader.
+ */
+
 import { Component, createSignal, onMount, Show } from 'solid-js';
 import { gpsPosition, gpsHeading, gpsPitch, gpsRoll, orientationAbsolute } from '../../stores/gps';
 import { requestCompassPermission } from '../GpsTracker';
@@ -7,6 +14,7 @@ import { CoordinateTransformer, SYSTEM_NAMES } from '../../coords/index';
 import { copyToClipboard } from '../../utils/clipboard';
 import CompassNeedle from './CompassNeedle';
 import Button from '../ui/Button';
+import { ToolCard, SectionHeader } from './ToolCard';
 
 const GpsPanel: Component = () => {
   const [prefs] = usePrefs();
@@ -27,38 +35,10 @@ const GpsPanel: Component = () => {
   }
 
   return (
-    <div
-      style={{
-        padding: '16px',
-        display: 'flex',
-        'flex-direction': 'column',
-        gap: '16px',
-        'overflow-y': 'auto',
-      }}
-    >
+    <>
       {/* Location card */}
-      <div
-        style={{
-          background: 'var(--color-bg-secondary)',
-          'border-radius': '0px',
-          border: '1px solid var(--color-border)',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          class="panel-header"
-          style={{
-            'font-size': '11px',
-            'letter-spacing': '0.10em',
-            'text-transform': 'uppercase',
-            color: 'var(--color-text-secondary)',
-            padding: '6px 12px 6px 9px',
-            'border-bottom': '1px solid var(--color-border)',
-          }}
-        >
-          LOCATION
-        </div>
-
+      <ToolCard>
+        <SectionHeader label="Location" />
         <div style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '10px' }}>
           <Show when={!gpsPosition()}>
             <div
@@ -136,31 +116,11 @@ const GpsPanel: Component = () => {
             }}
           </Show>
         </div>
-      </div>
+      </ToolCard>
 
       {/* Compass card */}
-      <div
-        style={{
-          background: 'var(--color-bg-secondary)',
-          'border-radius': '0px',
-          border: '1px solid var(--color-border)',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          class="panel-header"
-          style={{
-            'font-size': '11px',
-            'letter-spacing': '0.10em',
-            'text-transform': 'uppercase',
-            color: 'var(--color-text-secondary)',
-            padding: '6px 12px 6px 9px',
-            'border-bottom': '1px solid var(--color-border)',
-          }}
-        >
-          COMPASS
-        </div>
-
+      <ToolCard>
+        <SectionHeader label="Compass" />
         <div style={{ padding: '16px', display: 'flex', 'flex-direction': 'column', gap: '12px' }}>
           <Show when={iosPrompt()}>
             <Button variant="primary" onClick={handleEnableCompass}>
@@ -270,8 +230,8 @@ const GpsPanel: Component = () => {
             </div>
           </Show>
         </div>
-      </div>
-    </div>
+      </ToolCard>
+    </>
   );
 };
 

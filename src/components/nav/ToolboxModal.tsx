@@ -1,26 +1,23 @@
+/**
+ * ToolboxModal — mobile tool launcher and panel host
+ *
+ * Shows a grid of tool launchers when activeTool is null.
+ * Renders the selected tool inside ToolPanelShell (from toolRegistry)
+ * when a tool is active.
+ */
+
 import { Component, Show, For } from 'solid-js';
 import { useUI } from '../../context/UIContext';
+import { rulerPoints, clearRuler } from '../../stores/ruler';
 import Button from '../ui/Button';
 import Icon from '../ui/Icon';
-import type { IconName } from '../ui/Icon';
-import SettingsPanel from '../settings/SettingsPanel';
-import GpsPanel from '../tools/GpsPanel';
-import RulerPanel from '../tools/RulerPanel';
-
-interface ToolCard {
-  id: string;
-  label: string;
-  icon: IconName;
-}
-
-const TOOL_CARDS: ToolCard[] = [
-  { id: 'gps', label: 'GPS/Compass', icon: 'satellite_alt' },
-  { id: 'ruler', label: 'Ruler', icon: 'straighten' },
-  { id: 'settings', label: 'Settings', icon: 'settings' },
-];
+import ToolPanelShell from '../tools/ToolPanelShell';
+import { TOOLS, getTool } from '../tools/toolRegistry';
 
 const ToolboxModal: Component = () => {
   const { activeNav, activeTool, setActiveTool } = useUI();
+
+  const tool = () => getTool(activeTool() ?? '');
 
   return (
     <Show when={activeNav() === 'tools'}>
@@ -37,38 +34,32 @@ const ToolboxModal: Component = () => {
           overflow: 'hidden',
         }}
       >
-        <Show when={activeTool() !== null}>
-          {/* Tool detail view */}
-          <div style={{ display: 'flex', 'flex-direction': 'column', flex: 1, overflow: 'hidden' }}>
-            <div
-              style={{
-                display: 'flex',
-                'align-items': 'center',
-                gap: '8px',
-                padding: '12px 16px',
-                'border-bottom': '1px solid var(--color-border)',
-                background: 'var(--color-bg-secondary)',
-              }}
-            >
-              <Button variant="icon" aria-label="Back" onClick={() => setActiveTool(null)}>
-                <Icon name="arrow_back" size={20} />
-              </Button>
-              <span style={{ 'font-size': '0.875rem' }}>
-                {TOOL_CARDS.find((t) => t.id === activeTool())?.label ?? activeTool()}
-              </span>
-            </div>
-            <div style={{ flex: 1, overflow: 'auto' }}>
-              <Show when={activeTool() === 'settings'}>
-                <SettingsPanel />
-              </Show>
-              <Show when={activeTool() === 'gps'}>
-                <GpsPanel />
-              </Show>
-              <Show when={activeTool() === 'ruler'}>
-                <RulerPanel />
-              </Show>
-            </div>
-          </div>
+        <Show when={activeTool() !== null && tool()}>
+          <ToolPanelShell
+            title={tool()!.label}
+            icon={tool()!.icon}
+            onClose={() => setActiveTool(null)}
+            actions={
+              activeTool() === 'ruler' && rulerPoints().length > 0 ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearRuler}
+                  style={{
+                    border: '1px solid var(--color-danger)',
+                    color: 'var(--color-danger)',
+                  }}
+                >
+                  Clear All
+                </Button>
+              ) : undefined
+            }
+          >
+            {(() => {
+              const Panel = tool()!.panel;
+              return <Panel />;
+            })()}
+          </ToolPanelShell>
         </Show>
 
         <Show when={activeTool() === null}>
@@ -78,12 +69,12 @@ const ToolboxModal: Component = () => {
             <div
               style={{ display: 'grid', 'grid-template-columns': 'repeat(3, 1fr)', gap: '12px' }}
             >
-              <For each={TOOL_CARDS}>
-                {(tool) => (
+              <For each={TOOLS}>
+                {(t) => (
                   <Button
                     variant="ghost"
-                    aria-label={tool.label}
-                    onClick={() => setActiveTool(tool.id)}
+                    aria-label={t.label}
+                    onClick={() => setActiveTool(t.id)}
                     style={{
                       display: 'flex',
                       'flex-direction': 'column',
@@ -97,8 +88,8 @@ const ToolboxModal: Component = () => {
                       'font-size': '0.75rem',
                     }}
                   >
-                    <Icon name={tool.icon} />
-                    {tool.label}
+                    <Icon name={t.icon} />
+                    {t.label}
                   </Button>
                 )}
               </For>

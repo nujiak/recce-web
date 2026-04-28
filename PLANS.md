@@ -10,6 +10,13 @@ All planned features and refactors live here. Each plan is self-contained — an
 
 ---
 
+## Plan: Unified Tool Panel Layout
+
+**Status:** Done
+**Branch:** `refactor/unified-tool-layout`
+
+---
+
 ## Plan: SVG Icon Migration
 
 **Status:** Done

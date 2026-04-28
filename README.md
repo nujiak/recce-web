@@ -79,7 +79,10 @@ All six systems share a unified API — display and parse in any system at any t
 ### Tools
 
 Accessed via the **Tools tab** in the bottom nav on mobile (opens a modal grid launcher) or
-via the **icon row below the Saved panel** on desktop (expands an accordion inline).
+via the **icon tab strip** on the right side of the desktop layout.
+
+All tool panels share a unified `ToolPanelShell` (header + scrollable body). Adding a new tool
+is a single-line change in `src/components/tools/toolRegistry.ts`.
 
 #### GPS & Compass
 
@@ -140,5 +143,5 @@ displays, compass azimuth, GPS overlay, ruler segments, saved list).
 | Coordinates    | proj4js + utm-latlng                |
 | Compression    | pako (zlib / deflate)               |
 | Share encoding | Base62 (custom, no deps)            |
-| Icons          | Material Symbols (Google Fonts CDN) |
+| Icons          | Material Symbols inline SVGs (via `@material-symbols/svg-400`) |
 | Font           | Share Tech Mono (Google Fonts)      |

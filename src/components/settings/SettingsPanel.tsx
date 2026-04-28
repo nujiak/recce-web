@@ -1,3 +1,10 @@
+/**
+ * Settings Panel (content-only)
+ *
+ * Rendered inside ToolPanelShell. Must not define a root <div>, scroll container,
+ * or title bar — only cards and rows using ToolCard / SectionHeader.
+ */
+
 import { type Component, type JSX, createMemo } from 'solid-js';
 import { Select } from '@kobalte/core/select';
 import { usePrefs } from '../../context/PrefsContext';
@@ -6,6 +13,7 @@ import Icon from '../ui/Icon';
 import type { IconName } from '../ui/Icon';
 import type { CoordinateSystem, AngleUnit, LengthUnit, Theme } from '../../types';
 import { ANGLE_UNIT_OPTIONS } from '../../types';
+import { ToolCard, SectionHeader, RowDivider } from '../tools/ToolCard';
 
 const REPO_URL = 'https://github.com/nujiak/recce-web';
 
@@ -106,49 +114,6 @@ const styles = `
     line-height: 1;
   }
 `;
-
-// ── Primitives ────────────────────────────────────────────────────────────────
-
-const SectionHeader: Component<{ label: string }> = (props) => (
-  <div
-    class="panel-header"
-    style={{
-      'font-size': '11px',
-      'letter-spacing': '0.10em',
-      'text-transform': 'uppercase',
-      color: 'var(--color-text-secondary)',
-      padding: '6px 12px 6px 9px',
-      'border-bottom': '1px solid var(--color-border)',
-      'margin-bottom': '0',
-      background: 'var(--color-bg-secondary)',
-    }}
-  >
-    {props.label}
-  </div>
-);
-
-const GroupCard: Component<{ children: JSX.Element }> = (props) => (
-  <div
-    style={{
-      background: 'var(--color-bg-secondary)',
-      border: '1px solid var(--color-border)',
-      'border-radius': '0px',
-      overflow: 'hidden',
-    }}
-  >
-    {props.children}
-  </div>
-);
-
-const RowDivider = () => (
-  <div
-    style={{
-      height: '1px',
-      background: 'var(--color-border-subtle)',
-      margin: '0 14px',
-    }}
-  />
-);
 
 // ── SettingSelectRow ──────────────────────────────────────────────────────────
 
@@ -338,21 +303,12 @@ const SettingsPanel: Component = () => {
   const [prefs, setPrefs] = usePrefs();
 
   return (
-    <div
-      class="settings-panel"
-      style={{
-        padding: '16px',
-        display: 'flex',
-        'flex-direction': 'column',
-        gap: '20px',
-        'overflow-y': 'auto',
-      }}
-    >
+    <>
       <style>{styles}</style>
 
       {/* ── Display ── */}
       <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0' }}>
-        <GroupCard>
+        <ToolCard>
           <SectionHeader label="Display" />
           <SettingSelectRow
             label="Coordinate System"
@@ -396,12 +352,12 @@ const SettingsPanel: Component = () => {
               { value: 'system', label: 'System' },
             ]}
           />
-        </GroupCard>
+        </ToolCard>
       </div>
 
       {/* ── Map ── */}
       <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0' }}>
-        <GroupCard>
+        <ToolCard>
           <SectionHeader label="Map" />
           <SettingToggleRow
             label="Follow Tilt"
@@ -409,21 +365,21 @@ const SettingsPanel: Component = () => {
             value={prefs.followPitch}
             onToggle={() => setPrefs('followPitch', !prefs.followPitch)}
           />
-        </GroupCard>
+        </ToolCard>
       </div>
 
       {/* ── About ── */}
       <div style={{ display: 'flex', 'flex-direction': 'column', gap: '0' }}>
-        <GroupCard>
+        <ToolCard>
           <SectionHeader label="About" />
           <SettingLinkRow
             label="Version"
             value={<>v{__APP_VERSION__}</>}
             href={`${REPO_URL}/releases`}
           />
-        </GroupCard>
+        </ToolCard>
       </div>
-    </div>
+    </>
   );
 };
 
