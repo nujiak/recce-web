@@ -88,9 +88,9 @@ const GpsPanel: Component = () => {
                         'font-variant-numeric': 'tabular-nums',
                         border: 'none',
                         'border-radius': '0',
-                        padding: '0',
+                        padding: '12px 8px',
                         'justify-content': 'flex-start',
-                        'min-height': 'unset',
+                        'min-height': '48px',
                       }}
                     >
                       {coordStr()}

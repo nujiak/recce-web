@@ -18,8 +18,8 @@ const ColorPicker: Component<ColorPickerProps> = (props) => (
             aria-pressed={props.value === c}
             onClick={() => props.onChange(c)}
             style={{
-              width: '28px',
-              height: '28px',
+              width: '48px',
+              height: '48px',
               'border-radius': '50%',
               background: PIN_COLOR_CSS[c],
               border: props.value === c ? '2px solid var(--color-text)' : '2px solid transparent',

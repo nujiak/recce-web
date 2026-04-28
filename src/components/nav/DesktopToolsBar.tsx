@@ -85,7 +85,7 @@ const DesktopToolsBar: Component = () => {
           flex-shrink: 0;
         }
         .dtb-resize-handle {
-          width: 16px;
+          width: 32px;
           flex-shrink: 0;
           cursor: col-resize;
           background: transparent;
@@ -124,7 +124,7 @@ const DesktopToolsBar: Component = () => {
           flex-shrink: 0;
           background: var(--color-bg-secondary);
           padding: 8px 4px;
-          width: 64px;
+          width: 72px;
           gap: 2px;
         }
         .dtb-tabs-border {
@@ -165,11 +165,7 @@ const DesktopToolsBar: Component = () => {
           line-height: 1;
         }
         .dtb-tab-label {
-          font-size: 10px;
-          font-weight: 400;
-          letter-spacing: 0.10em;
-          line-height: 1;
-          text-transform: uppercase;
+          display: none;
         }
       `}</style>
 

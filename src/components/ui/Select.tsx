@@ -40,7 +40,7 @@ const Select_: Component<SelectProps> = (props) => {
           align-items: center;
           justify-content: space-between;
           width: 100%;
-          min-height: 48px;
+          min-height: 52px;
           background: var(--color-bg-tertiary);
           border: 1px solid var(--color-border-subtle);
           border-radius: 0px;
@@ -106,7 +106,8 @@ const Select_: Component<SelectProps> = (props) => {
         .ui-select-item {
           color: var(--color-text);
           min-height: 48px;
-          padding: 0 12px;
+          padding: 12px 12px;
+          box-sizing: border-box;
           cursor: pointer;
           font-size: 12px;
           text-transform: uppercase;

@@ -52,7 +52,12 @@ const PinInfo: Component = () => {
               const display = CoordinateTransformer.toDisplay(p.lat, p.lng, sys);
               if (!display) return null;
               return (
-                <div
+                <button
+                  type="button"
+                  onClick={() => {
+                    copyToClipboard(display);
+                    showToast(`Copied ${SYSTEM_NAMES[sys]}`, 'success');
+                  }}
                   style={{
                     display: 'flex',
                     'align-items': 'center',
@@ -63,6 +68,14 @@ const PinInfo: Component = () => {
                     background: 'var(--color-bg-tertiary)',
                     border: 'none',
                     'border-bottom': '1px solid var(--color-border-subtle)',
+                    'border-radius': '0px',
+                    cursor: 'pointer',
+                    width: '100%',
+                    'text-align': 'left',
+                    'font-family': 'inherit',
+                    'font-size': 'inherit',
+                    color: 'inherit',
+                    'box-sizing': 'border-box',
                   }}
                 >
                   <div style={{ flex: 1, 'min-width': '0' }}>
@@ -90,19 +103,8 @@ const PinInfo: Component = () => {
                       {display}
                     </div>
                   </div>
-                  <Button
-                    variant="icon"
-                    size="sm"
-                    aria-label={`Copy ${SYSTEM_NAMES[sys]} coordinate`}
-                    onClick={() => {
-                      copyToClipboard(display);
-                      showToast(`Copied ${SYSTEM_NAMES[sys]}`, 'success');
-                    }}
-                    style={{ flex: 'none' }}
-                  >
-                    <Icon name="content_copy" size={16} />
-                  </Button>
-                </div>
+                  <Icon name="content_copy" size={16} style={{ flex: 'none', color: 'var(--color-text-secondary)' }} />
+                </button>
               );
             }}
           </For>

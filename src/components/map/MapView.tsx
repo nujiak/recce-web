@@ -373,6 +373,16 @@ const MapView: Component = () => {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+      <style>{`
+        .maplibregl-ctrl-attrib-button {
+          width: 48px !important;
+          height: 48px !important;
+          padding: 12px !important;
+          box-sizing: border-box !important;
+          background-size: 24px 24px !important;
+          background-position: center !important;
+        }
+      `}</style>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
 
       <Show when={mapInstance()}>
