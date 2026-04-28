@@ -202,7 +202,7 @@ Every panel section header carries a 3px left-border accent stripe via `.panel-h
 }
 ```
 
-Applied to: `GpsPanel` section headers, `RulerPanel` header, `SettingsPanel` group headers.
+Applied to: `SectionHeader` (shared primitive in `ToolCard.tsx`), which is used inside `GpsPanel`, `RulerPanel`, and `SettingsPanel` cards. Also used by dialog titles and accordion triggers.
 
 ### 4.3 Scanline texture (opt-in)
 
