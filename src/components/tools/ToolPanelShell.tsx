@@ -1,3 +1,18 @@
+/**
+ * ToolPanelShell
+ *
+ * Frame component that owns the header, scrollable body, and outer layout
+ * for every tool panel on both mobile and desktop.
+ *
+ * Content panels (e.g. GpsPanel, RulerPanel, SettingsPanel) must render
+ * only cards/rows — never a root <div> with overflow, height, or padding.
+ *
+ * Usage:
+ *   <ToolPanelShell title="Ruler" icon="straighten" onClose={…} actions={…}>
+ *     <RulerPanel />
+ *   </ToolPanelShell>
+ */
+
 import { type Component, type JSX, Show } from 'solid-js';
 import Button from '../ui/Button';
 import Icon from '../ui/Icon';

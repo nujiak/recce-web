@@ -118,12 +118,40 @@ recce-web/
 │   │   ├── ui/             # Reusable UI primitives (Dialog, Button, Icon, Toast, etc.)
 │   │   ├── layout/         # Application shell
 │   │   ├── map/            # MapLibre wrapper, controls, markers, tracks
-│   │   ├── nav/            # Bottom nav, toolbox modal
+│   │   ├── nav/            # Bottom nav, toolbox modal, desktop tools bar
 │   │   ├── pin/            # Pin editor, pin info
 │   │   ├── track/          # Track editor, track info
 │   │   ├── saved/          # Saved screen
-│   │   ├── tools/          # GPS, Ruler tools
-│   │   ├── settings/       # Settings panel
+│   │   ├── tools/          # Tool panels + shared shell, registry, primitives
+│   │   ├── settings/       # Settings panel (still in tool registry)
+│   │   └── onboarding/     # First-launch flow
+│   └── share/              # Share-code encode/decode
+├── public/                 # PWA manifest, service worker, icons
+├── AGENTS.md               # LLM instructions
+├── README.md               # Project overview
+└── package.json
+```
+recce-web/
+├── src/
+│   ├── index.html          # App shell
+│   ├── index.tsx           # Entry point
+│   ├── App.tsx             # Root component and layout wiring
+│   ├── styles/             # Global styles + Tailwind entry point
+│   ├── db/                 # Dexie schema & migrations
+│   ├── coords/             # Coordinate system parsers & formatters
+│   ├── context/            # SolidJS contexts (Prefs, UI)
+│   ├── stores/             # SolidJS stores
+│   ├── utils/              # Generic utility functions
+│   ├── components/         # SolidJS Components
+│   │   ├── ui/             # Reusable UI primitives (Dialog, Button, Icon, Toast, etc.)
+│   │   ├── layout/         # Application shell
+│   │   ├── map/            # MapLibre wrapper, controls, markers, tracks
+│   │   ├── nav/            # Bottom nav, toolbox modal, desktop tools bar
+│   │   ├── pin/            # Pin editor, pin info
+│   │   ├── track/          # Track editor, track info
+│   │   ├── saved/          # Saved screen
+│   │   ├── tools/          # Tool panels + shared shell, registry, primitives
+│   │   ├── settings/       # Settings panel (still in tool registry)
 │   │   └── onboarding/     # First-launch flow
 │   └── share/              # Share-code encode/decode
 ├── public/                 # PWA manifest, service worker, icons
@@ -280,14 +308,62 @@ Desktop is unaffected — `isMobile()` (`window.innerWidth < DESKTOP_BREAKPOINT`
 ### Settings Panel
 
 - Updates system preferences (coord system, units, theme). Changes apply immediately.
+- Lives in `src/components/settings/` but is registered as a tool panel in `toolRegistry.ts`.
 
-### Onboarding Flow
+---
 
-- Four-step modal on first launch to configure coordinate system, distance units, angle units, and theme before showing map.
+## Tool Panel Architecture
 
-### Share Code Format
+All tool panels (GPS, Ruler, Settings) share a unified rendering model: **a shell owns the frame; panels own only their content**.
 
-- Base62 encoded, zlib compressed JSON of essential fields (omitting `id`). Format starts with `R1`.
+### Registry
+
+`src/components/tools/toolRegistry.ts` is the single source of truth for tool metadata:
+
+```ts
+import { TOOLS, getTool } from './toolRegistry';
+// TOOLS: [{ id, label, icon, panel: LazyComponent }, ...]
+```
+
+When adding a new tool:
+1. Create the content panel component in `src/components/tools/<Name>Panel.tsx`.
+2. Add it to `TOOLS` in `toolRegistry.ts`.
+3. No additional host changes are needed — `ToolboxModal` and `DesktopToolsBar` iterate via the registry.
+
+### Content Panel Rules
+
+A content panel (e.g. `GpsPanel`, `RulerPanel`, `SettingsPanel`) **must**:
+- Return a fragment (or shallow wrapper) containing only cards, rows, and sections — **never** a root `<div>` with `height: 100%`, `overflow`, or outer padding.
+- Pull its own data from stores/contexts; accept **no props**.
+- Use shared primitives from `ToolCard.tsx` for grouped content:
+  ```tsx
+  import { ToolCard, SectionHeader, RowDivider } from './ToolCard';
+  ```
+
+The shell (`ToolPanelShell`) provides: header (title, icon, optional back button, optional actions slot), scrollable body, and consistent padding.
+
+### Rendering Flow
+
+| Host | Active state | Renders |
+|------|-------------|---------|
+| `ToolboxModal` (mobile) | `activeTool === null` | Tool launcher grid (not in shell) |
+| `ToolboxModal` (mobile) | `activeTool !== null` | `ToolPanelShell` wrapping `<tool.panel />` |
+| `DesktopToolsBar` | `desktopSection === 'saved'` | `SavedScreen` (special case, no shell) |
+| `DesktopToolsBar` | `desktopSection === <tool>` | `ToolPanelShell` wrapping `<tool.panel />` |
+
+### ToolCard Primitives
+
+```tsx
+import { ToolCard, SectionHeader, RowDivider } from '../tools/ToolCard';
+
+<ToolCard>
+  <SectionHeader label="My Section" />
+  {/* body content */}
+  <RowDivider />
+</ToolCard>
+```
+
+These use existing CSS custom properties (`--color-bg-secondary`, `--color-border`, etc.) and the `panel-header` class.
 
 ---
 

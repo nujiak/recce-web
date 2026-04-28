@@ -1,3 +1,11 @@
+/**
+ * ToolboxModal — mobile tool launcher and panel host
+ *
+ * Shows a grid of tool launchers when activeTool is null.
+ * Renders the selected tool inside ToolPanelShell (from toolRegistry)
+ * when a tool is active.
+ */
+
 import { Component, Show, For } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import { rulerPoints, clearRuler } from '../../stores/ruler';

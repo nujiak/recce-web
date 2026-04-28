@@ -1,3 +1,10 @@
+/**
+ * Ruler Tool Panel (content-only)
+ *
+ * Rendered inside ToolPanelShell. Must not define a root <div>, scroll container,
+ * or title bar — only cards and rows using ToolCard / SectionHeader.
+ */
+
 import { Component, For, Show } from 'solid-js';
 import { rulerPoints } from '../../stores/ruler';
 import { usePrefs } from '../../context/PrefsContext';

@@ -1,5 +1,13 @@
+/**
+ * ToolCard Primitives
+ *
+ * Shared layout primitives for content inside tool panels.
+ * Use these instead of ad-hoc wrappers so every panel stays visually consistent.
+ */
+
 import { type Component, type JSX } from 'solid-js';
 
+/** Card container with border and secondary background. */
 export const ToolCard: Component<{ children: JSX.Element }> = (props) => (
   <div style={{
     background: 'var(--color-bg-secondary)',
@@ -11,6 +19,7 @@ export const ToolCard: Component<{ children: JSX.Element }> = (props) => (
   </div>
 );
 
+/** Uppercase section header inside a card. Uses the `panel-header` class. */
 export const SectionHeader: Component<{ label: string }> = (props) => (
   <div class="panel-header" style={{
     'font-size': '11px',
@@ -25,6 +34,7 @@ export const SectionHeader: Component<{ label: string }> = (props) => (
   </div>
 );
 
+/** Thin horizontal divider with side margins. */
 export const RowDivider = () => (
   <div style={{ height: '1px', background: 'var(--color-border-subtle)', margin: '0 14px' }} />
 );

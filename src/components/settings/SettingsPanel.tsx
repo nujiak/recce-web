@@ -1,3 +1,10 @@
+/**
+ * Settings Panel (content-only)
+ *
+ * Rendered inside ToolPanelShell. Must not define a root <div>, scroll container,
+ * or title bar — only cards and rows using ToolCard / SectionHeader.
+ */
+
 import { type Component, type JSX, createMemo } from 'solid-js';
 import { Select } from '@kobalte/core/select';
 import { usePrefs } from '../../context/PrefsContext';

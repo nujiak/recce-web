@@ -1,3 +1,11 @@
+/**
+ * DesktopToolsBar — desktop sidebar with tab strip and resizable panel
+ *
+ * Tab strip includes "Saved" (special case) plus all tools from toolRegistry.
+ * Active tool panels are rendered inside ToolPanelShell; SavedScreen is a
+ * special case rendered without the shell.
+ */
+
 import { For, Show, createEffect, createSignal, onCleanup, type Component } from 'solid-js';
 import { useUI } from '../../context/UIContext';
 import type { DesktopSection } from '../../context/UIContext';

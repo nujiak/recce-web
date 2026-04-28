@@ -1,3 +1,16 @@
+/**
+ * Tool Registry
+ *
+ * Single source of truth for all tool panel metadata.
+ *
+ * Adding a new tool:
+ *   1. Create the content panel in src/components/tools/<Name>Panel.tsx.
+ *      It must be a content-only component: no root <div>, no scroll container,
+ *      no padding, no title bar. Import data from stores/contexts only.
+ *   2. Import it lazily below and add a { id, label, icon, panel } entry to TOOLS.
+ *   3. ToolboxModal and DesktopToolsBar will pick it up automatically.
+ */
+
 import { lazy, type Component } from 'solid-js';
 import type { IconName } from '../ui/Icon';
 

@@ -1,3 +1,10 @@
+/**
+ * GPS / Compass Tool Panel (content-only)
+ *
+ * Rendered inside ToolPanelShell. Must not define a root <div>, scroll container,
+ * or title bar — only cards and rows using ToolCard / SectionHeader.
+ */
+
 import { Component, createSignal, onMount, Show } from 'solid-js';
 import { gpsPosition, gpsHeading, gpsPitch, gpsRoll, orientationAbsolute } from '../../stores/gps';
 import { requestCompassPermission } from '../GpsTracker';
