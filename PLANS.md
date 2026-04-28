@@ -21,3 +21,10 @@ All planned features and refactors live here. Each plan is self-contained — an
 
 **Status:** Done
 **Branch:** `refactor/svg-icons`
+
+---
+
+## Plan: Touch-Target Optimisation
+
+**Status:** Done
+**Branch:** `fix/touch-targets`

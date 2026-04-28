@@ -32,11 +32,12 @@ const TextField: Component<TextFieldProps> = (props) => {
           border: 1px solid var(--color-border-subtle);
           color: var(--color-text);
           border-radius: 0px;
-          padding: 0.5rem 0.75rem;
+          padding: 0.75rem 0.75rem;
           font-size: 14px;
           font-family: inherit;
           letter-spacing: 0.04em;
           box-sizing: border-box;
+          min-height: 48px;
           outline: none;
           transition: border-color 75ms linear;
         }

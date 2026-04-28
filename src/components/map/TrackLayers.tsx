@@ -10,6 +10,7 @@ const SRC_TEMP = 'ts-temp';
 const SRC_PREVIEW = 'ts-preview';
 const LAYER_FILL = 'tl-fill';
 const LAYER_LINE = 'tl-line';
+const LAYER_LINE_HIT = 'tl-line-hit';
 const LAYER_CHECKPOINTS = 'tl-checkpoints';
 const LAYER_TEMP = 'tl-temp';
 const LAYER_PREVIEW = 'tl-preview';
@@ -124,6 +125,15 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
         paint: { 'line-color': ['get', 'color'], 'line-width': 3, 'line-opacity': 0.9 },
       });
     }
+    if (!m.getLayer(LAYER_LINE_HIT)) {
+      m.addLayer({
+        id: LAYER_LINE_HIT,
+        type: 'line',
+        source: SRC_TRACKS,
+        filter: ['==', '$type', 'LineString'],
+        paint: { 'line-width': 24, 'line-opacity': 0 },
+      });
+    }
     if (!m.getLayer(LAYER_CHECKPOINTS)) {
       m.addLayer({
         id: LAYER_CHECKPOINTS,
@@ -175,7 +185,7 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
 
     ensureLayers();
 
-    m.on('click', LAYER_LINE, (e) => {
+    m.on('click', LAYER_LINE_HIT, (e) => {
       const id = e.features?.[0]?.properties?.id;
       const track = props.tracks.find((t) => t.id === id);
       if (track) setViewingTrack(track);
@@ -185,10 +195,10 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
       const track = props.tracks.find((t) => t.id === id);
       if (track) setViewingTrack(track);
     });
-    m.on('mouseenter', LAYER_LINE, () => {
+    m.on('mouseenter', LAYER_LINE_HIT, () => {
       m.getCanvas().style.cursor = 'pointer';
     });
-    m.on('mouseleave', LAYER_LINE, () => {
+    m.on('mouseleave', LAYER_LINE_HIT, () => {
       m.getCanvas().style.cursor = '';
     });
     m.on('mouseenter', LAYER_FILL, () => {
@@ -224,7 +234,7 @@ const TrackLayers: Component<TrackLayersProps> = (props) => {
   onCleanup(() => {
     const m = props.map;
     m.off('styledata', ensureLayers);
-    for (const layer of [LAYER_FILL, LAYER_LINE, LAYER_CHECKPOINTS, LAYER_TEMP, LAYER_PREVIEW]) {
+    for (const layer of [LAYER_FILL, LAYER_LINE, LAYER_LINE_HIT, LAYER_CHECKPOINTS, LAYER_TEMP, LAYER_PREVIEW]) {
       if (m.getLayer(layer)) m.removeLayer(layer);
     }
     for (const src of [SRC_TRACKS, SRC_CHECKPOINTS, SRC_TEMP, SRC_PREVIEW]) {

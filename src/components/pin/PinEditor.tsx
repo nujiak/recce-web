@@ -176,7 +176,8 @@ const PinEditor: Component<PinEditorProps> = (props) => {
               display: 'flex',
               'align-items': 'center',
               gap: '10px',
-              padding: '0.5rem 0.75rem',
+              padding: '12px 12px',
+              'min-height': '48px',
               background: 'var(--color-bg-tertiary)',
               border: '1px solid var(--color-border)',
               'border-radius': '0px',
@@ -225,7 +226,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
               >
                 Pins
               </span>
-              <div style={{ display: 'flex', gap: '8px', 'justify-content': 'center' }}>
+              <div style={{ display: 'flex', gap: '12px', 'justify-content': 'center', 'min-height': '48px', 'align-items': 'center' }}>
                 <For each={PIN_COLORS}>
                   {(c) => (
                     <button
@@ -272,7 +273,7 @@ const PinEditor: Component<PinEditorProps> = (props) => {
               >
                 Arrows
               </span>
-              <div style={{ display: 'flex', gap: '8px', 'justify-content': 'center' }}>
+              <div style={{ display: 'flex', gap: '12px', 'justify-content': 'center', 'min-height': '48px', 'align-items': 'center' }}>
                 <For each={PIN_COLORS}>
                   {(c) => (
                     <button

@@ -58,16 +58,16 @@ const RulerPanel: Component = () => {
 
       {/* Points list */}
       <Show when={points().length > 0}>
-        <div
-          style={{
-            flex: 1,
-            'overflow-y': 'auto',
-            'scrollbar-gutter': 'stable',
-            display: 'flex',
-            'flex-direction': 'column',
-            gap: '4px',
-          }}
-        >
+          <div
+            style={{
+              flex: 1,
+              'overflow-y': 'auto',
+              'scrollbar-gutter': 'stable',
+              display: 'flex',
+              'flex-direction': 'column',
+              gap: '12px',
+            }}
+          >
           <For each={points()}>
             {(point, i) => (
               <>
@@ -86,14 +86,14 @@ const RulerPanel: Component = () => {
                 >
                   <div
                     style={{
-                      width: '20px',
-                      height: '20px',
+                      width: '32px',
+                      height: '32px',
                       'border-radius': '0px',
                       background: 'var(--color-accent)',
                       display: 'flex',
                       'align-items': 'center',
                       'justify-content': 'center',
-                      'font-size': '11px',
+                      'font-size': '14px',
                       color: 'oklch(0.1 0 0)',
                       'flex-shrink': '0',
                     }}
@@ -138,7 +138,7 @@ const RulerPanel: Component = () => {
                       'font-size': '0.75rem',
                     }}
                   >
-                    <Icon name="arrow_downward" size={14} />
+                    <Icon name="arrow_downward" size={24} />
                     <span>
                       {formatDistance(
                         haversineDistance(

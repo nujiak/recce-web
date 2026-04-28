@@ -211,7 +211,7 @@ const SavedScreen: Component = () => {
           gap: '8px',
         }}
       >
-        <div style={{ display: 'flex', 'align-items': 'center', gap: '4px' }}>
+        <div style={{ display: 'flex', 'align-items': 'center', gap: '12px' }}>
           <TextField
             type="search"
             placeholder="Search…"
@@ -272,7 +272,7 @@ const SavedScreen: Component = () => {
               display: flex;
               align-items: center;
               gap: 8px;
-              padding: 0.4rem 0.625rem;
+              padding: 0.75rem 0.625rem;
               border-radius: var(--radius-sm);
               font-size: 0.8125rem;
               color: var(--color-text);
@@ -367,7 +367,7 @@ const SavedScreen: Component = () => {
               background: 'var(--color-accent-bg)',
               'border-bottom': '1px solid var(--color-accent-border)',
               display: 'flex',
-              gap: '8px',
+              gap: '12px',
               'align-items': 'center',
             }}
           >

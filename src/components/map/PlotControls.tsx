@@ -306,7 +306,7 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                   <div
                     style={{
                       display: 'flex',
-                      'align-items': 'center',
+                      'align-items': 'stretch',
                       'justify-content': 'center',
                       flex: '1',
                       gap: '0',
@@ -316,11 +316,14 @@ const PlotControls: Component<PlotControlsProps> = (props) => {
                       style={{
                         flex: '1',
                         'text-align': 'center',
-                        'font-size': '10px',
+                        'font-size': '12px',
                         color: 'var(--color-text-muted)',
                         'letter-spacing': '0.08em',
                         'text-transform': 'uppercase',
                         padding: '0 12px',
+                        display: 'flex',
+                        'align-items': 'center',
+                        'justify-content': 'center',
                       }}
                     >
                       DISCARD TRACK?

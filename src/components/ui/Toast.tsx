@@ -52,13 +52,15 @@ function createToastItem(
               background: 'var(--color-accent)',
               border: 'none',
               color: 'oklch(0.07 0 0)',
-              'font-size': '11px',
+              'font-size': '13px',
               'font-weight': '400',
               'text-transform': 'uppercase',
               'letter-spacing': '0.06em',
               'border-radius': '0px',
               cursor: 'pointer',
-              padding: '0.2rem 0.65rem',
+              padding: '0.5rem 1rem',
+              'min-height': '48px',
+              'box-sizing': 'border-box',
               'white-space': 'nowrap',
             }}
             onClick={(e) => {

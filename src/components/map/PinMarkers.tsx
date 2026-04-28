@@ -6,6 +6,8 @@ import type { Pin, PinColor } from '../../types';
 
 const ARROW_SOURCE_ID = 'arrow-markers';
 const ARROW_LAYER_ID = 'arrow-markers-layer';
+const ARROW_HIT_LAYER_ID = 'arrow-markers-hit-layer';
+const ARROW_HIT_IMAGE_ID = 'arrow-hit';
 const IMAGE_PREFIX = 'arrow-icon-';
 
 function arrowImageId(color: PinColor): string {
@@ -44,6 +46,15 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
         })
     );
     await Promise.all(loads);
+
+    if (!props.map.hasImage(ARROW_HIT_IMAGE_ID)) {
+      props.map.addImage(ARROW_HIT_IMAGE_ID, {
+        width: 64,
+        height: 64,
+        data: new Uint8ClampedArray(64 * 64 * 4),
+      });
+    }
+
     imagesLoaded = true;
   }
 
@@ -109,6 +120,23 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
       });
     }
 
+    if (!props.map.getLayer(ARROW_HIT_LAYER_ID)) {
+      props.map.addLayer({
+        id: ARROW_HIT_LAYER_ID,
+        type: 'symbol',
+        source: ARROW_SOURCE_ID,
+        layout: {
+          'icon-image': ARROW_HIT_IMAGE_ID,
+          'icon-size': 1.0,
+          'icon-rotate': ['get', 'bearing'],
+          'icon-rotation-alignment': 'map',
+          'icon-pitch-alignment': 'map',
+          'icon-allow-overlap': true,
+          'icon-anchor': 'center',
+        },
+      });
+    }
+
     const features = arrowPins.map((p) => ({
       type: 'Feature' as const,
       properties: { color: p.color, pinId: p.id, bearing: p.bearing ?? 0 },
@@ -125,10 +153,10 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
     const el = document.createElement('div');
     const img = document.createElement('img');
     img.src = getMarkerIconPath(pin.color, 'pin');
-    img.width = 48;
-    img.height = 48;
+    img.width = 56;
+    img.height = 56;
     img.alt = pin.name;
-    img.style.cssText = 'display: block; cursor: pointer;';
+    img.style.cssText = 'display: block; cursor: pointer; object-fit: contain;';
     el.appendChild(img);
     el.style.cssText = 'background: transparent; border: none;';
     el.setAttribute('aria-label', pin.name);
@@ -157,16 +185,28 @@ const PinMarkers: Component<PinMarkersProps> = (props) => {
     syncMarkers();
   });
 
+  const onArrowEnter = () => {
+    props.map.getCanvas().style.cursor = 'pointer';
+  };
+  const onArrowLeave = () => {
+    props.map.getCanvas().style.cursor = '';
+  };
+
   props.map.on('styledata', reloadArrowLayer);
-  props.map.on('click', ARROW_LAYER_ID, onArrowClick);
+  props.map.on('click', ARROW_HIT_LAYER_ID, onArrowClick);
+  props.map.on('mouseenter', ARROW_HIT_LAYER_ID, onArrowEnter);
+  props.map.on('mouseleave', ARROW_HIT_LAYER_ID, onArrowLeave);
 
   reloadArrowLayer();
 
   onCleanup(() => {
     props.map.off('styledata', reloadArrowLayer);
-    props.map.off('click', onArrowClick);
+    props.map.off('click', ARROW_HIT_LAYER_ID, onArrowClick);
+    props.map.off('mouseenter', ARROW_HIT_LAYER_ID, onArrowEnter);
+    props.map.off('mouseleave', ARROW_HIT_LAYER_ID, onArrowLeave);
     markerMap.forEach((m) => m.remove());
     markerMap.clear();
+    if (props.map.getLayer(ARROW_HIT_LAYER_ID)) props.map.removeLayer(ARROW_HIT_LAYER_ID);
     if (props.map.getLayer(ARROW_LAYER_ID)) props.map.removeLayer(ARROW_LAYER_ID);
     if (props.map.getSource(ARROW_SOURCE_ID)) props.map.removeSource(ARROW_SOURCE_ID);
   });
